@@ -1,0 +1,88 @@
+#!/usr/bin/env python
+
+import boto3
+import botocore
+
+import glob
+import string
+
+from troposphere import Ref, Template
+
+import troposphere.s3 as s3
+import troposphere.route53 as route53
+
+import argparse
+
+parser = argparse.ArgumentParser(description='Build Cloudformation template and deploy')
+parser.add_argument('--stack-name', nargs=1, required=True,
+                   help='Set the name of the stack to be deployed to.')
+
+args = parser.parse_args()
+
+stack_name=args.stack_name[0]
+
+template = Template()
+
+def name(*names):
+    name = ''.join(map(lambda name: name.title(), names))
+    name = ''.join(e for e in name if e.isalnum())
+    return name
+
+def resource(resource):
+    return template.add_resource(resource)
+
+def mapping(name, values):
+    return template.add_mapping(name, values)
+
+def module(module_name, part='*', **variables):
+    execute(module_name, part, variables)
+
+def execute(path='.', part='*', variables={}):
+    aws_services = {'s3': s3, 'route53': route53}
+    commands = {'resource': resource, 'mapping': mapping, 'module': module}
+    keys = {'ref': Ref, 'name': name}
+    toload = f'{path}/{part}.fc'
+    print(toload)
+    for file in glob.glob(toload):
+        with open(file) as f:
+            code = compile(f.read(), file, 'exec')
+            exec(code, {**aws_services, **commands, **keys, **variables}, )
+
+execute()
+
+print(template.to_json())
+
+
+client = boto3.client('cloudformation')
+cloudformation = boto3.resource('cloudformation')
+
+@click.command('create')
+def create_stack():
+    print('Creating Stack')
+    stack = client.create_stack(
+        StackName= stack_name,
+        TemplateBody= template.to_json())
+    waiter = client.get_waiter('stack_create_complete')
+    waiter.wait(StackName= stack['StackId'])
+    print('Stack Created')
+
+def deploy():
+
+    try:
+        print('Trying to create stack')
+        stack = client.describe_stacks(StackName=stack_name)
+    except botocore.exceptions.ClientError as e:
+        # create_stack()
+
+    stack = cloudformation.Stack(stack_name)
+
+    try:
+        print ('Updating Stack')
+        client.update_stack(StackName= stack_name, TemplateBody= template.to_json())
+        client.get_waiter('stack_update_complete').wait(StackName= stack_name)
+        print("Stack Update Finished")
+    except Exception as e:
+        print(e)
+
+
+deploy()
