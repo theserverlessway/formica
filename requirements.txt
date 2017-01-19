@@ -1,2 +1,0 @@
-troposphere==1.9.1
-boto3==1.4.3

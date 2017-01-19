@@ -14,23 +14,6 @@ with open(join(this_dir, 'README.md'), encoding='utf-8') as file:
     long_description = file.read()
 
 
-class RunTests(Command):
-    """Run all tests."""
-    description = 'run tests'
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        """Run all tests!"""
-        errno = call(['py.test', '--cov=skele', '--cov-report=term-missing'])
-        raise SystemExit(errno)
-
-
 setup(
     name = 'formica',
     version = __version__,
@@ -55,15 +38,12 @@ setup(
         'Programming Language :: Python :: 3.4',
     ],
     keywords = 'cloudformation, aws, cloud',
-    packages = find_packages(exclude=['docs', 'tests*']),
-    install_requires = ['troposphere', 'boto3', 'click'],
-    extras_require = {
-        'test': ['coverage', 'pytest', 'pytest-cov'],
-    },
+    packages = ['formica'],
+    install_requires = ['troposphere==1.9.1', 'boto3==1.4.3', 'click==6.7'],
     entry_points = {
         'console_scripts': [
             'formica=formica.cli:main',
         ],
     },
-    cmdclass = {'test': RunTests},
+    test_suite = "tests"
 )
