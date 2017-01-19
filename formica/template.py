@@ -32,8 +32,8 @@ CLOUDFORMATION_FUNCTIONS = {x.__name__: x for x in AWSHelperFn.__subclasses__()}
 
 def load(path=os.getcwd(), part='*', variables={}):
     formica_commands = {
-        'resource': resource,
-        'mapping': mapping,
+        'resource': lambda resource: template.add_resource(resource),
+        'mapping': lambda name, value: template.add_mapping(name, values),
         'module': module,
         'name': helper.name}
     toload = f'{path}/{part}.fc'
@@ -41,12 +41,6 @@ def load(path=os.getcwd(), part='*', variables={}):
         with open(file) as f:
             code = compile(f.read(), file, 'exec')
             exec(code, {**formica_commands, **CLOUDFORMATION_FUNCTIONS, **TROPOSPHERE_MODULES, **variables}, )
-
-def resource(resource):
-    return template.add_resource(resource)
-
-def mapping(name, values):
-    return template.add_mapping(name, values)
 
 def module(module_name, part='*', **variables):
     filepath = os.path.dirname(inspect.stack()[1].filename)
