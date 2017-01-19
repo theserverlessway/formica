@@ -1,0 +1,17 @@
+language: python
+sudo: false
+python:
+  - "3.6"
+
+before_install:
+  - pip install --upgrade pip setuptools wheel
+
+install:
+  - pip install --upgrade pycodestyle pyflakes
+
+before_script:
+  - pycodestyle .
+  - pyflakes .
+
+script:
+  - python setup.py test
