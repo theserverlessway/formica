@@ -2,7 +2,6 @@ from troposphere import AWSHelperFn, Template
 
 import glob
 import os
-import string
 import inspect
 import pkgutil
 import importlib
@@ -23,24 +22,32 @@ DISALLOWED_MODULES = [
 
 TROPOSPHERE_MODULE_NAMES = [
     name for _, name, _ in pkgutil.iter_modules([TROPOSPHERE_PATH])
-        if name not in DISALLOWED_MODULES]
+    if name not in DISALLOWED_MODULES]
 
-TROPOSPHERE_MODULES = {
-    name: importlib.import_module(f'troposphere.{name}') for name in TROPOSPHERE_MODULE_NAMES}
+TROPOSPHERE_MODULES = {name: importlib.import_module(
+    f'troposphere.{name}') for name in TROPOSPHERE_MODULE_NAMES}
 
-CLOUDFORMATION_FUNCTIONS = {x.__name__: x for x in AWSHelperFn.__subclasses__()}
+CLOUDFORMATION_FUNCTIONS = {
+    x.__name__: x for x in AWSHelperFn.__subclasses__()}
+
 
 def load(path=os.getcwd(), part='*', variables={}):
     formica_commands = {
         'resource': lambda resource: template.add_resource(resource),
-        'mapping': lambda name, value: template.add_mapping(name, values),
+        'mapping': lambda name, values: template.add_mapping(name, values),
         'module': module,
         'name': helper.name}
     toload = f'{path}/{part}.fc'
     for file in glob.glob(toload):
         with open(file) as f:
             code = compile(f.read(), file, 'exec')
-            exec(code, {**formica_commands, **CLOUDFORMATION_FUNCTIONS, **TROPOSPHERE_MODULES, **variables}, )
+            exec(code,
+                 {**formica_commands,
+                  **CLOUDFORMATION_FUNCTIONS,
+                  **TROPOSPHERE_MODULES,
+                  **variables},
+                 )
+
 
 def module(module_name, part='*', **variables):
     filepath = os.path.dirname(inspect.stack()[1].filename)

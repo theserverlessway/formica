@@ -1,11 +1,9 @@
 """Packaging settings."""
 
-
 from codecs import open
 from os.path import abspath, dirname, join
-from subprocess import call
 
-from setuptools import Command, find_packages, setup
+from setuptools import setup
 
 from formica import __version__
 
@@ -15,15 +13,15 @@ with open(join(this_dir, 'README.md'), encoding='utf-8') as file:
 
 
 setup(
-    name = 'formica',
-    version = __version__,
-    description = 'Simple Cloudformation stack management tooling.',
-    long_description = long_description,
-    url = 'https://github.com/cloudthropology/formica',
-    author = 'Florian Motlik',
-    author_email = 'florian.motlik@cloudthropology.com',
-    license = 'MIT',
-    classifiers = [
+    name='formica',
+    version=__version__,
+    description='Simple Cloudformation stack management tooling.',
+    long_description=long_description,
+    url='https://github.com/cloudthropology/formica',
+    author='Florian Motlik',
+    author_email='florian.motlik@cloudthropology.com',
+    license='MIT',
+    classifiers=[
         'Intended Audience :: Developers',
         'Topic :: Utilities',
         'License :: Public Domain',
@@ -37,13 +35,13 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
     ],
-    keywords = 'cloudformation, aws, cloud',
-    packages = ['formica'],
-    install_requires = ['troposphere==1.9.1', 'boto3==1.4.3', 'click==6.7'],
-    entry_points = {
+    keywords='cloudformation, aws, cloud',
+    packages=['formica'],
+    install_requires=['troposphere==1.9.1', 'boto3==1.4.3', 'click==6.7'],
+    entry_points={
         'console_scripts': [
             'formica=formica.cli:main',
         ],
     },
-    test_suite = "tests"
+    test_suite="tests"
 )
