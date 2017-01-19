@@ -1,0 +1,1 @@
+resource(s3.Bucket(name('Deployment2', 'Bucket')))
