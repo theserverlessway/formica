@@ -58,7 +58,11 @@ class TestTemplate(unittest.TestCase):
     def test_successfully_adds_metadata_to_template(self, glob):
         glob.glob.return_value = ['some-file']
         self.template.load('/some/path', 'module')
-        expected = {'Metadata': {'key': 'value', 'key2': 'value2'}, 'Resources': {}}
+        expected = {
+            'Metadata': {
+                'key': 'value',
+                'key2': 'value2'},
+            'Resources': {}}
         actual = json.loads(self.template.template())
         self.assertEqual(actual, expected)
 
@@ -70,18 +74,20 @@ class TestTemplate(unittest.TestCase):
         self.template.load('/some/path', 'module')
         expected = {'Conditions':
                     {'Condition1':
-                        {'Fn::Equals':
-                            [{'Ref': 'EnvType'}, 'prod']}}, 'Resources': {}}
+                     {'Fn::Equals':
+                      [{'Ref': 'EnvType'}, 'prod']}}, 'Resources': {}}
         actual = json.loads(self.template.template())
         self.assertEqual(actual, expected)
 
-    @patch('builtins.open', mock_open(
-        read_data='mapping("RegionMap", {"us-east-1": {"AMI": "ami-7f418316"}})'))
+    mapping = 'mapping("RegionMap", {"us-east-1": {"AMI": "ami-7f418316"}})'
+
+    @patch(
+        'builtins.open', mock_open(read_data=mapping))
     @patch('formica.template.glob')
     def test_successfully_adds_mapping_to_template(self, glob):
         glob.glob.return_value = ['some-file']
         self.template.load('/some/path', 'module')
-        expected = {'Mappings':
-            {'RegionMap': {'us-east-1': {"AMI": "ami-7f418316"}}}, 'Resources': {}}
+        expected = {'Mappings': {'RegionMap': {
+            'us-east-1': {"AMI": "ami-7f418316"}}}, 'Resources': {}}
         actual = json.loads(self.template.template())
         self.assertEqual(actual, expected)
