@@ -5,7 +5,7 @@ import botocore
 
 import click
 
-from . import template
+from . import loader
 
 client = boto3.client('cloudformation')
 
@@ -19,8 +19,8 @@ def main():
 
 @main.command()
 def inspect():
-    template.load()
-    print(template.template.to_json())
+    loader.load()
+    print(loader.template.to_json())
 
 
 @main.command()
@@ -32,10 +32,10 @@ def create(stack):
         click.echo('Stack was already created')
         return
     except botocore.exceptions.ClientError as e:
-        template.load()
+        loader.load()
         stack = client.create_stack(
             StackName=stack,
-            TemplateBody=template.template.to_json())
+            TemplateBody=loader.template.to_json())
         waiter = client.get_waiter('stack_create_complete')
         waiter.wait(StackName=stack['StackId'])
         print('Stack Created')
@@ -44,12 +44,12 @@ def create(stack):
 @main.command()
 @click.option('--stack', help='The stack you want to deploy to.')
 def deploy(stack):
-    template.load()
+    loader.load()
     try:
         print('Updating Stack')
-        print(template.template.to_json())
+        print(loader.template.to_json())
         client.update_stack(StackName=stack,
-                            TemplateBody=template.template.to_json())
+                            TemplateBody=loader.template.to_json())
         client.get_waiter('stack_update_complete').wait(StackName=stack)
         print("Stack Update Finished")
     except Exception as e:

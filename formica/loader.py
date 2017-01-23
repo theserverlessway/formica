@@ -29,10 +29,9 @@ CLOUDFORMATION_FUNCTIONS = {
     x.__name__: x for x in AWSHelperFn.__subclasses__()}
 
 
-class Template():
-
+class Loader():
     def __init__(self):
-        self.cftemplate = troposphere.Template()
+        self.cftemplate = Template()
 
     def template(self):
         return self.cftemplate.to_json()
@@ -54,12 +53,12 @@ class Template():
                 lambda name, values: self.cftemplate.add_mapping(name, values),
             'description':
                 lambda description:
-                    self.cftemplate.add_description(description),
+                self.cftemplate.add_description(description),
             'metadata':
                 lambda metadata: self.cftemplate.add_metadata(metadata),
             'condition':
                 lambda name, condition:
-                    self.cftemplate.add_condition(name, condition),
+                self.cftemplate.add_condition(name, condition),
             'module': self.module,
             'name': helper.name}
         toload = f'{path}/{part}.fc'
