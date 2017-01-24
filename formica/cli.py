@@ -2,7 +2,6 @@
 
 import boto3
 import botocore
-
 import click
 
 from . import loader

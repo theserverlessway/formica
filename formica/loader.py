@@ -1,11 +1,11 @@
+import glob
+import importlib
+import inspect
+import os
+import pkgutil
+import troposphere
 from troposphere import AWSHelperFn, Template
 
-import glob
-import os
-import inspect
-import pkgutil
-import importlib
-import troposphere
 from . import helper
 
 DISALLOWED_MODULES = [
