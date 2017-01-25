@@ -4,6 +4,8 @@ import logging
 
 import click
 
+from formica.aws_session import AWSSession
+from formica.create import Create
 from .loader import Loader
 
 
@@ -33,8 +35,10 @@ def inspect():
 
 @main.command()
 @stack('The stack you want to create.')
-def create(stack):
-    pass
+@aws_options
+def create(stack, profile, region):
+    session = AWSSession(region, profile)
+    Create(stack, session).create()
 
 
 @main.command()
@@ -46,13 +50,14 @@ def submit(stack):
 @main.command()
 @stack('The stack you want to deploy to.')
 def deploy(stack):
-    loader.load()
-    try:
-        print('Updating Stack')
-        print(loader.template.to_json())
-        client.update_stack(StackName=stack,
-                            TemplateBody=loader.template.to_json())
-        client.get_waiter('stack_update_complete').wait(StackName=stack)
-        print("Stack Update Finished")
-    except Exception as e:
-        print(e)
+    pass
+    # loader.load()
+    # try:
+    #     print('Updating Stack')
+    #     print(loader.template.to_json())
+    #     client.update_stack(StackName=stack,
+    #                         TemplateBody=loader.template.to_json())
+    #     client.get_waiter('stack_update_complete').wait(StackName=stack)
+    #     print("Stack Update Finished")
+    # except Exception as e:
+    #     print(e)

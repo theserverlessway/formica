@@ -1,7 +1,6 @@
+import json
 import unittest
 from unittest.mock import patch, mock_open
-
-import json
 
 from formica import loader
 

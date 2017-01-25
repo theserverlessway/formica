@@ -1,11 +1,12 @@
 import glob
 import importlib
 import inspect
+import logging
 import os
 import pkgutil
+
 import troposphere
 from troposphere import AWSHelperFn, Template
-import logging
 
 from . import helper
 

@@ -7,7 +7,8 @@ from tests.test_constants import REGION, PROFILE
 
 @patch('boto3.session.Session')
 class AWSClientTest(unittest.TestCase):
-    def test_init_with_region(self, session):
+
+    def test_init_without_parameters(self, session):
         AWSSession()
         session.assert_called_with()
 

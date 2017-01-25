@@ -7,6 +7,7 @@ from formica import cli
 
 
 class TestInspect(unittest.TestCase):
+
     def test_inspect_calls_inspector(self):
         runner = CliRunner()
         with runner.isolated_filesystem():
