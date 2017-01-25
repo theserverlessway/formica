@@ -11,7 +11,6 @@ def openpatch(string=''):
 
 @patch('formica.loader.glob')
 class TestLoader(unittest.TestCase):
-
     def setUp(self):
         self.loader = loader.Loader()
 
@@ -62,9 +61,10 @@ class TestLoader(unittest.TestCase):
         glob.glob.return_value = ['some-file']
         self.loader.load('/some/path', 'module')
         expected = {'Conditions':
-                    {'Condition1':
-                     {'Fn::Equals':
-                      [{'Ref': 'EnvType'}, 'prod']}}, 'Resources': {}}
+                        {'Condition1':
+                             {'Fn::Equals':
+                                  [{'Ref': 'EnvType'}, 'prod']}},
+                    'Resources': {}}
         actual = json.loads(self.loader.template())
         self.assertEqual(actual, expected)
 
@@ -74,5 +74,23 @@ class TestLoader(unittest.TestCase):
         self.loader.load('/some/path', 'module')
         expected = {'Mappings': {'RegionMap': {
             'us-east-1': {"AMI": "ami-7f418316"}}}, 'Resources': {}}
+        actual = json.loads(self.loader.template())
+        self.assertEqual(actual, expected)
+
+    @openpatch('parameter(Parameter("param", Type="String"))')
+    def test_successfully_adds_parameter_to_template(self, glob):
+        glob.glob.return_value = ['some-file']
+        self.loader.load('/some/path', 'module')
+        expected = {'Parameters': {'param': {'Type': 'String'}},
+                    'Resources': {}}
+        actual = json.loads(self.loader.template())
+        self.assertEqual(actual, expected)
+
+    @openpatch('output(Output("Output", Value="value"))')
+    def test_successfully_adds_parameter_to_template(self, glob):
+        glob.glob.return_value = ['some-file']
+        self.loader.load('/some/path', 'module')
+        expected = {'Outputs': {'Output': {'Value': 'value'}},
+                    'Resources': {}}
         actual = json.loads(self.loader.template())
         self.assertEqual(actual, expected)

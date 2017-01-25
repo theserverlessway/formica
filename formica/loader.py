@@ -6,7 +6,7 @@ import os
 import pkgutil
 
 import troposphere
-from troposphere import AWSHelperFn, Template
+from troposphere import AWSHelperFn, Template, AWSDeclaration
 
 from . import helper
 
@@ -29,6 +29,9 @@ TROPOSPHERE_MODULES = {name: importlib.import_module(
 
 CLOUDFORMATION_FUNCTIONS = {
     x.__name__: x for x in AWSHelperFn.__subclasses__()}
+
+CLOUDFORMATION_DECLARATIONS = {
+    x.__name__: x for x in AWSDeclaration.__subclasses__()}
 
 
 class Loader():
@@ -62,6 +65,12 @@ class Loader():
             'condition':
                 lambda name, condition:
                 self.cftemplate.add_condition(name, condition),
+            'parameter':
+                lambda parameter:
+                self.cftemplate.add_parameter(parameter),
+            'output':
+                lambda output:
+                self.cftemplate.add_output(output),
             'module': self.module,
             'name': helper.name}
         toload = f'{path}/{part}.fc'
@@ -71,6 +80,7 @@ class Loader():
                 exec(code,
                      {**formica_commands,
                       **CLOUDFORMATION_FUNCTIONS,
+                      **CLOUDFORMATION_DECLARATIONS,
                       **TROPOSPHERE_MODULES,
                       **variables},
                      )
