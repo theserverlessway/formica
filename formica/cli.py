@@ -1,47 +1,50 @@
 #!/usr/bin/env python
 
-import boto3
-import botocore
+import logging
+
 import click
 
-from . import loader
+from .loader import Loader
 
-client = boto3.client('cloudformation')
 
-resource = boto3.resource('cloudformation')
+def aws_options(f):
+    f = click.option('--region', help='The stack you want to create.')(f)
+    f = click.option('--profile', help='The stack you want to create.')(f)
+    return f
+
+
+def stack(message):
+    return click.option('--stack', help=message)
 
 
 @click.group()
-def main():
-    pass
+@click.version_option()
+@click.option('--debug/--no-debug', help='Enable debugging output')
+def main(debug):
+    logging.basicConfig(level=(logging.DEBUG if debug else logging.WARNING))
 
 
 @main.command()
 def inspect():
+    loader = Loader()
     loader.load()
-    print(loader.template.to_json())
+    click.echo(loader.template())
 
 
 @main.command()
-@click.option('--stack', help='The stack you want to create.')
+@stack('The stack you want to create.')
 def create(stack):
-    try:
-        print('Creating the Cloudformation stack.')
-        stack = client.describe_stacks(StackName=stack)
-        click.echo('Stack was already created')
-        return
-    except botocore.exceptions.ClientError as e:
-        loader.load()
-        stack = client.create_stack(
-            StackName=stack,
-            TemplateBody=loader.template.to_json())
-        waiter = client.get_waiter('stack_create_complete')
-        waiter.wait(StackName=stack['StackId'])
-        print('Stack Created')
+    pass
 
 
 @main.command()
-@click.option('--stack', help='The stack you want to deploy to.')
+@stack('The stack to submit your changes to.')
+def submit(stack):
+    pass
+
+
+@main.command()
+@stack('The stack you want to deploy to.')
 def deploy(stack):
     loader.load()
     try:

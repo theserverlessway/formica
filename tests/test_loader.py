@@ -1,8 +1,6 @@
 import unittest
 from unittest.mock import patch, mock_open
 
-import os
-
 import json
 
 from formica import loader
@@ -20,7 +18,7 @@ class TestLoader(unittest.TestCase):
 
     def test_load_uses_current_path_as_default(self, glob):
         self.loader.load()
-        glob.glob.assert_called_with(f'{os.getcwd()}/*.fc')
+        glob.glob.assert_called_with(f'./*.fc')
 
     def test_load_uses_configured_path_and_module(self, glob):
         self.loader.load('/some/path', 'module')

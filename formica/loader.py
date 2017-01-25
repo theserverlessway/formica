@@ -5,6 +5,7 @@ import os
 import pkgutil
 import troposphere
 from troposphere import AWSHelperFn, Template
+import logging
 
 from . import helper
 
@@ -45,7 +46,8 @@ class Loader():
             part,
             variables)
 
-    def load(self, path=os.getcwd(), part='*', variables={}):
+    def load(self, path='.', part='*', variables={}):
+        logging.info(f'Loading: {path} {part}')
         formica_commands = {
             'resource':
                 lambda resource: self.cftemplate.add_resource(resource),
