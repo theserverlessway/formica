@@ -25,23 +25,31 @@ class TestCreate(unittest.TestCase):
         self.assertEquals(result.exit_code, exit_code)
         return result
 
+    def test_fails_if_no_stack_given(self):
+        runner = CliRunner()
+        result = runner.invoke(cli.create)
+        self.assertIn('--stack', result.output)
+        self.assertEquals(result.exit_code, 2)
+
     @patch('formica.cli.AWSSession')
-    def test_create_uses_parameters_for_session(self, session):
+    def test_uses_parameters_for_session(self, session):
         self.run_create(0)
         session.assert_called_with(REGION, PROFILE)
 
     @patch('formica.cli.AWSSession')
-    def test_create_gets_cloudformation_client(self, session):
+    def test_gets_cloudformation_client(self, session):
         self.run_create(0)
         session.return_value.client_for.assert_called_with('cloudformation')
 
+    @patch('formica.create.sys')
     @patch('formica.cli.AWSSession')
-    def test_does_not_call_create_if_stack_exists(self, session):
+    def test_does_not_call_create_if_stack_exists(self, session, sys):
         cf_client_mock = Mock()
         session.return_value.client_for.return_value = cf_client_mock
         self.run_create(0)
         cf_client_mock.describe_stacks.assert_called_with(StackName=STACK)
         cf_client_mock.create_stack.assert_not_called()
+        sys.exit.assert_called_with(1)
 
     @patch('formica.cli.AWSSession')
     @patch('formica.create.Loader')

@@ -1,5 +1,6 @@
 import botocore
 import click
+import sys
 
 from formica.loader import Loader
 
@@ -14,7 +15,8 @@ class Create:
         try:
             click.echo('Creating the Cloudformation stack.')
             client.describe_stacks(StackName=self.stack_name)
-            click.echo('Stack was already created')
+            click.echo('Stack already exists')
+            sys.exit(1)
         except botocore.exceptions.ClientError as e:
             if e.response['Error']['Code'] == 'ValidationError':
                 loader = Loader()

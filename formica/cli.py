@@ -16,7 +16,7 @@ def aws_options(f):
 
 
 def stack(message):
-    return click.option('--stack', help=message)
+    return click.option('--stack', help=message, required=True)
 
 
 @click.group()
