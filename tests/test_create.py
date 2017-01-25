@@ -5,6 +5,7 @@ import botocore
 from click.testing import CliRunner
 
 from formica import cli
+from formica.create import Create
 from tests.test_constants import REGION, PROFILE, STACK, TEMPLATE
 
 
@@ -22,22 +23,24 @@ class TestCreate(unittest.TestCase):
             print(result.output)
             print(result.exception)
             print(result.exit_code)
-        self.assertEquals(result.exit_code, exit_code)
+        self.assertEqual(result.exit_code, exit_code)
         return result
 
     def test_fails_if_no_stack_given(self):
         runner = CliRunner()
         result = runner.invoke(cli.create)
         self.assertIn('--stack', result.output)
-        self.assertEquals(result.exit_code, 2)
+        self.assertEqual(result.exit_code, 2)
 
+    @patch('formica.cli.Create')
     @patch('formica.cli.AWSSession')
-    def test_uses_parameters_for_session(self, session):
+    def test_uses_parameters_for_session(self, session, create):
         self.run_create(0)
         session.assert_called_with(REGION, PROFILE)
 
+    @patch.object(Create, 'create')
     @patch('formica.cli.AWSSession')
-    def test_gets_cloudformation_client(self, session):
+    def test_gets_cloudformation_client(self, session, create):
         self.run_create(0)
         session.return_value.client_for.assert_called_with('cloudformation')
 
@@ -60,7 +63,7 @@ class TestCreate(unittest.TestCase):
             Code='SomeOtherError')), "DescribeStacks")
         cf_client_mock.describe_stacks.side_effect = exception
         result = self.run_create(-1)
-        self.assertEquals(result.exception, exception)
+        self.assertEqual(result.exception, exception)
         loader.assert_not_called()
         cf_client_mock.create_stack.assert_not_called()
 

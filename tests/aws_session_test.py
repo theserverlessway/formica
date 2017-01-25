@@ -32,4 +32,4 @@ class AWSClientTest(unittest.TestCase):
         client = aws_session.client_for('s3')
 
         session.return_value.client.assert_called_with('s3')
-        self.assertEquals(client_mock, client)
+        self.assertEqual(client_mock, client)

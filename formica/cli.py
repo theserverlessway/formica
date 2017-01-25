@@ -6,6 +6,7 @@ import click
 
 from formica.aws_session import AWSSession
 from formica.create import Create
+from formica.submit import Submit
 from .loader import Loader
 
 
@@ -43,8 +44,10 @@ def create(stack, profile, region):
 
 @main.command()
 @stack('The stack to submit your changes to.')
-def submit(stack):
-    pass
+@aws_options
+def submit(stack, profile, region):
+    session = AWSSession(region, profile)
+    Submit(stack, session).submit()
 
 
 @main.command()
