@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, Mock, create_autospec
 
-import botocore
+from botocore.exceptions import WaiterError, ClientError
 from click.testing import CliRunner
 
 from formica import cli
@@ -61,6 +61,25 @@ class TestSubmit(unittest.TestCase):
             StackName=STACK, ChangeSetName=CHANGESETNAME)
         cf_client_mock.describe_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
 
+    @patch('formica.submit.click')
+    @patch.object(Submit, 'remove_existing_changeset')
+    @patch('formica.cli.AWSSession')
+    @patch('formica.submit.Loader')
+    def test_prints_error_message_for_failed_submit(self, loader, session, remove, click):
+        cf_client_mock = Mock()
+
+        session.return_value.client_for.return_value = cf_client_mock
+
+        loader.return_value.template.return_value = TEMPLATE
+
+        error = WaiterError('name', 'reason', {'StatusReason': 'StatusReason'})
+        cf_client_mock.get_waiter.return_value.wait.side_effect = error
+
+        self.run_submit(1)
+        loader.return_value.load.assert_called_with()
+
+        click.echo.assert_called_with('StatusReason')
+
     def test_remove_existing_changeset(self):
         client_mock = Mock()
         session = create_autospec(AWSSession)
@@ -75,7 +94,7 @@ class TestSubmit(unittest.TestCase):
         session = create_autospec(AWSSession)()
         session.client_for.return_value = client_mock
         submit = Submit(STACK, session)
-        exception = botocore.exceptions.ClientError(dict(Error=dict(Code='ChangeSetNotFound')), "DescribeChangeSet")
+        exception = ClientError(dict(Error=dict(Code='ChangeSetNotFound')), "DescribeChangeSet")
         client_mock.describe_change_set.side_effect = exception
         submit.remove_existing_changeset()
         client_mock.delete_change_set.assert_not_called()
@@ -85,8 +104,8 @@ class TestSubmit(unittest.TestCase):
         session = create_autospec(AWSSession)()
         session.client_for.return_value = client_mock
         submit = Submit(STACK, session)
-        exception = botocore.exceptions.ClientError(dict(Error=dict(
+        exception = ClientError(dict(Error=dict(
             Code='ValidationError')), "DescribeChangeSet")
         client_mock.describe_change_set.side_effect = exception
-        with self.assertRaises(botocore.exceptions.ClientError):
+        with self.assertRaises(ClientError):
             submit.remove_existing_changeset()

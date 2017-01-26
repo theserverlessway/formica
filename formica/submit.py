@@ -1,3 +1,5 @@
+import sys
+
 import botocore
 import click
 
@@ -19,10 +21,14 @@ class Submit:
                                       ChangeSetName=self.change_set_name)
         click.echo('Change set submitted, waiting until creation ...')
         waiter = self.client.get_waiter('change_set_create_complete')
-        waiter.wait(ChangeSetName=self.change_set_name, StackName=self.stack)
-        click.echo('Change set created successfully')
-        change_set = self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.change_set_name)
-        click.echo(change_set['Changes'])
+        try:
+            waiter.wait(ChangeSetName=self.change_set_name, StackName=self.stack)
+            click.echo('Change set created successfully')
+            change_set = self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.change_set_name)
+            click.echo(change_set['Changes'])
+        except botocore.exceptions.WaiterError as e:
+            click.echo(e.last_response['StatusReason'])
+            sys.exit(1)
 
     def remove_existing_changeset(self):
         try:
