@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 from unittest.mock import patch, Mock, create_autospec
 
 from botocore.exceptions import WaiterError, ClientError
@@ -6,11 +7,12 @@ from click.testing import CliRunner
 
 from formica import cli
 from formica.aws_session import AWSSession
-from formica.submit import Submit
-from tests.test_constants import REGION, PROFILE, STACK, TEMPLATE, CHANGESETNAME
+from formica.submit import Submit, CHANGE_SET_HEADER
+from tests.test_constants import REGION, PROFILE, STACK, TEMPLATE, CHANGESETNAME, CHANGESETCHANGES
 
 
 class TestSubmit(unittest.TestCase):
+
     def run_submit(self, exit_code=0):
         runner = CliRunner()
         result = runner.invoke(cli.submit, ['--stack', STACK, '--profile', PROFILE, '--region', REGION])
@@ -109,3 +111,24 @@ class TestSubmit(unittest.TestCase):
         client_mock.describe_change_set.side_effect = exception
         with self.assertRaises(ClientError):
             submit.remove_existing_changeset()
+
+    @patch('formica.submit.click')
+    def test_prints_changes(self, click):
+        Submit.print_changes(CHANGESETCHANGES)
+
+        click.echo.assert_called_once_with(mock.ANY)
+        args = click.echo.call_args[0]
+
+        to_search = []
+        to_search.extend(CHANGE_SET_HEADER)
+        to_search.extend(['Remove', 'Modify', 'Add'])
+        to_search.extend(['DeploymentBucket', 'DeploymentBucket2', 'DeploymentBucket3'])
+        to_search.extend(['simpleteststack-deploymentbucket-1l7p61v6fxpry ',
+                         'simpleteststack-deploymentbucket2-11ngaeftydtn7 '])
+        to_search.extend(['AWS::S3::Bucket'])
+        to_search.extend(['True'])
+        to_search.extend(['Tags, BucketName'])
+        change_set_output = args[0]
+        for term in to_search:
+            self.assertIn(term, change_set_output)
+        self.assertNotIn('None', change_set_output)
