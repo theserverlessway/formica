@@ -1,13 +1,11 @@
 import glob
-import importlib
 import inspect
 import logging
 import os
-import pkgutil
 
-import troposphere
-from troposphere import AWSHelperFn, Template, AWSDeclaration
+from troposphere import Template
 
+from formica.troposphere_attributes import TROPOSPHERE_MODULES, CLOUDFORMATION_FUNCTIONS, CLOUDFORMATION_DECLARATIONS
 from . import helper
 
 DISALLOWED_MODULES = [
@@ -18,24 +16,14 @@ DISALLOWED_MODULES = [
     'validators',
     'dynamodb2']
 
-TROPOSPHERE_PATH = os.path.dirname(troposphere.__file__)
-
-TROPOSPHERE_MODULE_NAMES = [
-    name for _, name, _ in pkgutil.iter_modules([TROPOSPHERE_PATH])
-    if name not in DISALLOWED_MODULES]
-
-TROPOSPHERE_MODULES = {name: importlib.import_module(
-    f'troposphere.{name}') for name in TROPOSPHERE_MODULE_NAMES}
-
-CLOUDFORMATION_FUNCTIONS = {
-    x.__name__: x for x in AWSHelperFn.__subclasses__()}
-
-CLOUDFORMATION_DECLARATIONS = {
-    x.__name__: x for x in AWSDeclaration.__subclasses__()}
+CLOUDFORMATION_EXPORTS = {
+    **{module.__name__.split('.')[-1]: module for module in TROPOSPHERE_MODULES},
+    **{function.__name__: function for function in CLOUDFORMATION_FUNCTIONS},
+    **{declaration.__name__: declaration for declaration in CLOUDFORMATION_DECLARATIONS}
+}
 
 
 class Loader():
-
     def __init__(self):
         self.cftemplate = Template()
 
@@ -80,8 +68,6 @@ class Loader():
                 code = compile(f.read(), file, 'exec')
                 exec(code,
                      {**formica_commands,
-                      **CLOUDFORMATION_FUNCTIONS,
-                      **CLOUDFORMATION_DECLARATIONS,
-                      **TROPOSPHERE_MODULES,
-                      **variables},
+                      **CLOUDFORMATION_EXPORTS,
+                      **variables}
                      )
