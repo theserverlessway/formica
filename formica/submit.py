@@ -10,6 +10,7 @@ CHANGE_SET_HEADER = ['Action', 'LogicalId', 'PhysicalId', 'Type', 'Replacement',
 
 
 class Submit:
+
     def __init__(self, stack, session):
         self.stack = stack
         self.change_set_name = f'{stack}-change-set'

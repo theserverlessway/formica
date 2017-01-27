@@ -6,6 +6,7 @@ from formica.loader import Loader
 
 
 class Create:
+
     def __init__(self, stack_name, aws_session):
         self.stack_name = stack_name
         self.client = aws_session.client_for('cloudformation')

@@ -35,6 +35,7 @@ CLOUDFORMATION_DECLARATIONS = {
 
 
 class Loader():
+
     def __init__(self):
         self.cftemplate = Template()
 

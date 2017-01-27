@@ -10,6 +10,7 @@ from tests.test_constants import REGION, PROFILE, STACK, TEMPLATE
 
 
 class TestCreate(unittest.TestCase):
+
     def run_create(self, exit_code=0):
         runner = CliRunner()
         result = runner.invoke(cli.create,

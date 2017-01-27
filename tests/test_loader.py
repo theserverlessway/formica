@@ -11,6 +11,7 @@ def openpatch(string=''):
 
 @patch('formica.loader.glob')
 class TestLoader(unittest.TestCase):
+
     def setUp(self):
         self.loader = loader.Loader()
 
