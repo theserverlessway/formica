@@ -4,6 +4,7 @@ import botocore
 import click
 from texttable import Texttable
 
+from formica import CHANGE_SET_FORMAT
 from formica.loader import Loader
 
 CHANGE_SET_HEADER = ['Action', 'LogicalId', 'PhysicalId', 'Type', 'Replacement', 'Changed']
@@ -13,7 +14,7 @@ class Submit:
 
     def __init__(self, stack, session):
         self.stack = stack
-        self.change_set_name = f'{stack}-change-set'
+        self.change_set_name = CHANGE_SET_FORMAT.format(stack=stack)
         self.client = session.client_for('cloudformation')
 
     def submit(self):
