@@ -2,7 +2,6 @@ import boto3
 
 
 class AWSSession:
-
     def __init__(self, region='', profile=''):
         params = {}
         if region:

@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, Mock
 
 from formica.aws_session import AWSSession
-from tests.test_constants import REGION, PROFILE
+from tests.constants import REGION, PROFILE
 
 
 @patch('boto3.session.Session')

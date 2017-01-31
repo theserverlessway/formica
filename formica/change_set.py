@@ -1,42 +1,39 @@
 import sys
 
-import botocore
 import click
+from botocore.exceptions import ClientError, WaiterError
 from texttable import Texttable
 
 from formica import CHANGE_SET_FORMAT
-from formica.loader import Loader
 
 CHANGE_SET_HEADER = ['Action', 'LogicalId', 'PhysicalId', 'Type', 'Replacement', 'Changed']
 
 
-class Submit:
-
-    def __init__(self, stack, session):
+class ChangeSet:
+    def __init__(self, stack, template, client, type):
+        self.name = CHANGE_SET_FORMAT.format(stack=stack)
         self.stack = stack
-        self.change_set_name = CHANGE_SET_FORMAT.format(stack=stack)
-        self.client = session.client_for('cloudformation')
+        self.template = template
+        self.client = client
+        self.type = type
 
-    def submit(self):
-        loader = Loader()
-        loader.load()
-
-        self.remove_existing_changeset()
-        self.client.create_change_set(StackName=self.stack, TemplateBody=loader.template(),
-                                      ChangeSetName=self.change_set_name)
-        click.echo('ChangeSet submitted, waiting for CloudFormation to calculate changes ...')
+    def create(self):
+        if self.type == 'UPDATE':
+            self.remove_existing_changeset()
+        self.client.create_change_set(StackName=self.stack, TemplateBody=self.template,
+                                      ChangeSetName=self.name, ChangeSetType=self.type)
+        click.echo('Change set submitted, waiting for CloudFormation to calculate changes ...')
         waiter = self.client.get_waiter('change_set_create_complete')
         try:
-            waiter.wait(ChangeSetName=self.change_set_name, StackName=self.stack)
-            click.echo('ChangeSet created successfully')
-            change_set = self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.change_set_name)
-            self.print_changes(change_set)
-        except botocore.exceptions.WaiterError as e:
+            waiter.wait(ChangeSetName=self.name, StackName=self.stack)
+            click.echo('Change set created successfully')
+            change_set = self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
+            self.describe(change_set)
+        except WaiterError as e:
             click.echo(e.last_response['StatusReason'])
             sys.exit(1)
 
-    @staticmethod
-    def print_changes(change_set):
+    def describe(self, change_set):
         table = Texttable(max_width=150)
 
         table.add_row(CHANGE_SET_HEADER)
@@ -65,10 +62,10 @@ class Submit:
     def remove_existing_changeset(self):
         try:
             self.client.describe_change_set(StackName=self.stack,
-                                            ChangeSetName=self.change_set_name)
-            click.echo('Removing existing changeset')
+                                            ChangeSetName=self.name)
+            click.echo('Removing existing change set')
             self.client.delete_change_set(StackName=self.stack,
-                                          ChangeSetName=self.change_set_name)
-        except botocore.exceptions.ClientError as e:
+                                          ChangeSetName=self.name)
+        except ClientError as e:
             if e.response['Error']['Code'] != 'ChangeSetNotFound':
                 raise e

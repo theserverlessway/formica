@@ -3,14 +3,18 @@
 import logging
 
 import click
+from texttable import Texttable
 
-from formica.aws_session import AWSSession
-from formica.create import Create
-from formica.submit import Submit
+from formica import CHANGE_SET_FORMAT
+from formica.change_set import ChangeSet
+from formica.helper import aws_exceptions, session_wrapper
 from .loader import Loader
+
+STACK_HEADERS = ['Name', 'Created At', 'Updated At', 'Status']
 
 
 def aws_options(f):
+    f = session_wrapper(f)
     f = click.option('--region', help='The stack you want to create.')(f)
     f = click.option('--profile', help='The stack you want to create.')(f)
     return f
@@ -28,7 +32,8 @@ def main(debug):
 
 
 @main.command()
-def inspect():
+def show():
+    """Print the current template"""
     loader = Loader()
     loader.load()
     click.echo(loader.template())
@@ -36,31 +41,79 @@ def inspect():
 
 @main.command()
 @stack('The stack you want to create.')
+@aws_exceptions
 @aws_options
-def create(stack, profile, region):
-    session = AWSSession(region, profile)
-    Create(stack, session).create()
+def new(stack, profile, region, session):
+    """Create a change set for a new stack"""
+    client = session.client_for('cloudformation')
+    loader = Loader()
+    loader.load()
+    click.echo('Creating change set for new stack, ...')
+    change_set = ChangeSet(stack=stack, client=client, template=loader.template(),
+                           type='CREATE')
+    change_set.create()
+    click.echo('Change set created, please deploy.')
 
 
 @main.command()
 @stack('The stack to submit your changes to.')
+@aws_exceptions
 @aws_options
-def submit(stack, profile, region):
-    session = AWSSession(region, profile)
-    Submit(stack, session).submit()
+def change(stack, profile, region, session):
+    """Create a change set for an existing stack"""
+    client = session.client_for('cloudformation')
+    loader = Loader()
+    loader.load()
+
+    change_set = ChangeSet(stack=stack, client=client, template=loader.template(),
+                           type='UPDATE')
+    change_set.create()
 
 
 @main.command()
 @stack('The stack you want to deploy to.')
-def deploy(stack):
-    pass
-    # loader.load()
-    # try:
-    #     print('Updating Stack')
-    #     print(loader.template.to_json())
-    #     client.update_stack(StackName=stack,
-    #                         TemplateBody=loader.template.to_json())
-    #     client.get_waiter('stack_update_complete').wait(StackName=stack)
-    #     print("Stack Update Finished")
-    # except Exception as e:
-    #     print(e)
+@aws_exceptions
+@aws_options
+def deploy(stack, region, profile, session):
+    """Deploy the latest change set for a stack"""
+    client = session.client_for('cloudformation')
+    click.echo('Executing Changeset')
+    client.execute_change_set(ChangeSetName=(CHANGE_SET_FORMAT.format(stack=stack)), StackName=stack)
+    waiter = client.get_waiter('stack_update_complete')
+    waiter.wait(StackName=stack)
+    click.echo('Deployment successful')
+
+
+@main.command()
+@aws_exceptions
+@aws_options
+def stacks(region, profile, session):
+    """List all stacks"""
+    client = session.client_for('cloudformation')
+    stacks = client.describe_stacks()
+    table = Texttable(max_width=150)
+    print(stacks)
+    table.add_row(STACK_HEADERS)
+
+    for stack in stacks['Stacks']:
+        table.add_row(
+            [stack['StackName'],
+             stack['CreationTime'],
+             stack.get('LastUpdatedTime', ''),
+             stack['StackStatus']
+             ])
+
+    click.echo("Current Stacks:\n" + table.draw() + "\n")
+
+
+@main.command()
+@stack('The stack you want to destroy.')
+@aws_exceptions
+@aws_options
+def remove(stack, region, profile, session):
+    """Remove the configured stack"""
+    client = session.client_for('cloudformation')
+    click.echo('Removing Stack and waiting for it to be removed, ...')
+    client.delete_stack(StackName=stack)
+    waiter = client.get_waiter('stack_delete_complete')
+    waiter.wait(StackName=stack)
