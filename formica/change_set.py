@@ -10,33 +10,30 @@ CHANGE_SET_HEADER = ['Action', 'LogicalId', 'PhysicalId', 'Type', 'Replacement',
 
 
 class ChangeSet:
-    def __init__(self, stack, template, client, type):
+    def __init__(self, stack, client):
         self.name = CHANGE_SET_FORMAT.format(stack=stack)
         self.stack = stack
-        self.template = template
         self.client = client
-        self.type = type
 
-    def create(self):
-        if self.type == 'UPDATE':
+    def create(self, template, type):
+        if type == 'UPDATE':
             self.remove_existing_changeset()
-        self.client.create_change_set(StackName=self.stack, TemplateBody=self.template,
-                                      ChangeSetName=self.name, ChangeSetType=self.type)
+        self.client.create_change_set(StackName=self.stack, TemplateBody=template,
+                                      ChangeSetName=self.name, ChangeSetType=type)
         click.echo('Change set submitted, waiting for CloudFormation to calculate changes ...')
         waiter = self.client.get_waiter('change_set_create_complete')
         try:
             waiter.wait(ChangeSetName=self.name, StackName=self.stack)
             click.echo('Change set created successfully')
-            change_set = self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
-            self.describe(change_set)
         except WaiterError as e:
             click.echo(e.last_response['StatusReason'])
             sys.exit(1)
 
-    def describe(self, change_set):
+    def describe(self):
+        change_set = self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
         table = Texttable(max_width=150)
 
-        table.add_row(CHANGE_SET_HEADER)
+        table.add_rows([CHANGE_SET_HEADER])
 
         def __change_detail(change):
             target_ = change['Target']

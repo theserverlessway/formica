@@ -8,6 +8,7 @@ from texttable import Texttable
 from formica import CHANGE_SET_FORMAT
 from formica.change_set import ChangeSet
 from formica.helper import aws_exceptions, session_wrapper
+from formica.stack_waiter import StackWaiter
 from .loader import Loader
 
 STACK_HEADERS = ['Name', 'Created At', 'Updated At', 'Status']
@@ -49,9 +50,9 @@ def new(stack, profile, region, session):
     loader = Loader()
     loader.load()
     click.echo('Creating change set for new stack, ...')
-    change_set = ChangeSet(stack=stack, client=client, template=loader.template(),
-                           type='CREATE')
-    change_set.create()
+    change_set = ChangeSet(stack=stack, client=client)
+    change_set.create(template=loader.template(), type='CREATE')
+    change_set.describe()
     click.echo('Change set created, please deploy.')
 
 
@@ -65,9 +66,9 @@ def change(stack, profile, region, session):
     loader = Loader()
     loader.load()
 
-    change_set = ChangeSet(stack=stack, client=client, template=loader.template(),
-                           type='UPDATE')
-    change_set.create()
+    change_set = ChangeSet(stack=stack, client=client)
+    change_set.create(template=loader.template(), type='UPDATE')
+    change_set.describe()
 
 
 @main.command()
@@ -77,11 +78,9 @@ def change(stack, profile, region, session):
 def deploy(stack, region, profile, session):
     """Deploy the latest change set for a stack"""
     client = session.client_for('cloudformation')
-    click.echo('Executing Changeset')
+    last_event = client.describe_stack_events(StackName=stack)['StackEvents'][0]['EventId']
     client.execute_change_set(ChangeSetName=(CHANGE_SET_FORMAT.format(stack=stack)), StackName=stack)
-    waiter = client.get_waiter('stack_update_complete')
-    waiter.wait(StackName=stack)
-    click.echo('Deployment successful')
+    StackWaiter(stack, client).wait(last_event)
 
 
 @main.command()
@@ -92,8 +91,7 @@ def stacks(region, profile, session):
     client = session.client_for('cloudformation')
     stacks = client.describe_stacks()
     table = Texttable(max_width=150)
-    print(stacks)
-    table.add_row(STACK_HEADERS)
+    table.add_rows([STACK_HEADERS])
 
     for stack in stacks['Stacks']:
         table.add_row(
@@ -113,7 +111,8 @@ def stacks(region, profile, session):
 def remove(stack, region, profile, session):
     """Remove the configured stack"""
     client = session.client_for('cloudformation')
+    stack_id = client.describe_stacks(StackName=stack)['Stacks'][0]['StackId']
     click.echo('Removing Stack and waiting for it to be removed, ...')
+    last_event = client.describe_stack_events(StackName=stack)['StackEvents'][0]['EventId']
     client.delete_stack(StackName=stack)
-    waiter = client.get_waiter('stack_delete_complete')
-    waiter.wait(StackName=stack)
+    StackWaiter(stack_id, client).wait(last_event)

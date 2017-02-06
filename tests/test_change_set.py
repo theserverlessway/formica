@@ -9,12 +9,11 @@ from tests.constants import STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHA
 
 
 class TestChangeSet(unittest.TestCase):
-    @patch.object(ChangeSet, 'describe')
-    def test_submits_changeset_and_waits(self, describe):
+    def test_submits_changeset_and_waits(self):
         cf_client_mock = Mock()
-        change_set = ChangeSet(STACK, TEMPLATE, cf_client_mock, CHANGE_SET_TYPE)
+        change_set = ChangeSet(STACK, cf_client_mock)
 
-        change_set.create()
+        change_set.create(template=TEMPLATE, type=CHANGE_SET_TYPE)
 
         cf_client_mock.create_change_set.assert_called_with(
             StackName=STACK, TemplateBody=TEMPLATE,
@@ -24,18 +23,17 @@ class TestChangeSet(unittest.TestCase):
             'change_set_create_complete')
         cf_client_mock.get_waiter.return_value.wait.assert_called_with(
             StackName=STACK, ChangeSetName=CHANGESETNAME)
-        cf_client_mock.describe_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
 
     @patch('formica.change_set.click')
     @patch('formica.change_set.sys')
     def test_prints_error_message_for_failed_submit_and_exits(self, sys, click):
         cf_client_mock = Mock()
-        change_set = ChangeSet(STACK, TEMPLATE, cf_client_mock, CHANGE_SET_TYPE)
+        change_set = ChangeSet(STACK, cf_client_mock)
 
         error = WaiterError('name', 'reason', {'StatusReason': 'StatusReason'})
         cf_client_mock.get_waiter.return_value.wait.side_effect = error
 
-        change_set.create()
+        change_set.create(template=TEMPLATE, type=CHANGE_SET_TYPE)
         click.echo.assert_called_with('StatusReason')
         sys.exit.assert_called_with(1)
 
@@ -43,14 +41,14 @@ class TestChangeSet(unittest.TestCase):
     @patch.object(ChangeSet, 'describe')
     def test_remove_existing_changeset_for_update_type(self, describe, sys):
         cf_client_mock = Mock()
-        change_set = ChangeSet(STACK, TEMPLATE, cf_client_mock, 'UPDATE')
-        change_set.create()
+        change_set = ChangeSet(STACK, cf_client_mock)
+        change_set.create(template=TEMPLATE, type='UPDATE')
         cf_client_mock.describe_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
         cf_client_mock.delete_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
 
     def test_do_not_remove_changeset_if_non_existent(self):
         cf_client_mock = Mock()
-        change_set = ChangeSet(STACK, TEMPLATE, cf_client_mock, CHANGE_SET_TYPE)
+        change_set = ChangeSet(STACK, cf_client_mock)
         exception = ClientError(dict(Error=dict(Code='ChangeSetNotFound')), "DescribeChangeSet")
         cf_client_mock.describe_change_set.side_effect = exception
         change_set.remove_existing_changeset()
@@ -58,7 +56,7 @@ class TestChangeSet(unittest.TestCase):
 
     def test_reraises_exception_when_not_change_set_not_found(self):
         cf_client_mock = Mock()
-        change_set = ChangeSet(STACK, TEMPLATE, cf_client_mock, CHANGE_SET_TYPE)
+        change_set = ChangeSet(STACK, cf_client_mock)
         exception = ClientError(dict(Error=dict(
             Code='ValidationError')), "DescribeChangeSet")
         cf_client_mock.describe_change_set.side_effect = exception
@@ -69,9 +67,9 @@ class TestChangeSet(unittest.TestCase):
     def test_prints_changes(self, click):
         cf_client_mock = Mock()
         cf_client_mock.describe_change_set.return_value = CHANGESETCHANGES
-        change_set = ChangeSet(STACK, TEMPLATE, cf_client_mock, CHANGE_SET_TYPE)
+        change_set = ChangeSet(STACK, cf_client_mock)
 
-        change_set.create()
+        change_set.describe()
 
         click.echo.assert_called_with(mock.ANY)
         args = click.echo.call_args[0]

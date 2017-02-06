@@ -26,6 +26,6 @@ class TestNew(unittest.TestCase):
         session.return_value.client_for.return_value = client_mock
         loader.return_value.template.return_value = TEMPLATE
         self.run_change()
-        change_set.assert_called_with(stack=STACK, client=client_mock, template=TEMPLATE,
-                                      type='UPDATE')
-        change_set.return_value.create.assert_called_once()
+        change_set.assert_called_with(stack=STACK, client=client_mock)
+        change_set.return_value.create.assert_called_once_with(template=TEMPLATE, type='UPDATE')
+        change_set.return_value.describe.assert_called_once()
