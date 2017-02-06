@@ -34,4 +34,3 @@ class TestRemove(unittest.TestCase):
         client_mock.delete_stack.assert_called_with(StackName=STACK)
         stack_waiter.assert_called_with(STACK_ID, client_mock)
         stack_waiter.return_value.wait.assert_called_with(EVENT_ID)
-
