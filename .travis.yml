@@ -7,11 +7,14 @@ before_install:
   - pip install --upgrade pip setuptools wheel
 
 install:
-  - pip install --upgrade pycodestyle pyflakes
+  - pip install --upgrade pycodestyle pyflakes coverage python-coveralls
 
 before_script:
   - pycodestyle .
   - pyflakes .
 
 script:
-  - python setup.py test
+  - coverage run --include "formica/**" setup.py test
+
+after_success:
+  - coveralls
