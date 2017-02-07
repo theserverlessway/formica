@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 from botocore.exceptions import WaiterError, ClientError
 
 from formica.change_set import ChangeSet, CHANGE_SET_HEADER
-from tests.constants import STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES
+from tests.constants import STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES, CHANGE_SET_PARAMETERS
 
 
 class TestChangeSet(unittest.TestCase):
@@ -17,7 +17,26 @@ class TestChangeSet(unittest.TestCase):
 
         cf_client_mock.create_change_set.assert_called_with(
             StackName=STACK, TemplateBody=TEMPLATE,
-            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE)
+            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=[])
+
+        cf_client_mock.get_waiter.assert_called_with(
+            'change_set_create_complete')
+        cf_client_mock.get_waiter.return_value.wait.assert_called_with(
+            StackName=STACK, ChangeSetName=CHANGESETNAME)
+
+    def test_submits_changeset_with_parameters(self):
+        cf_client_mock = Mock()
+        change_set = ChangeSet(STACK, cf_client_mock)
+
+        change_set.create(template=TEMPLATE, type=CHANGE_SET_TYPE, parameters=CHANGE_SET_PARAMETERS)
+
+        Parameters = [
+            {'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False},
+            {'ParameterKey': 'B', 'ParameterValue': 'C', 'UsePreviousValue': False}
+        ]
+        cf_client_mock.create_change_set.assert_called_with(
+            StackName=STACK, TemplateBody=TEMPLATE,
+            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters)
 
         cf_client_mock.get_waiter.assert_called_with(
             'change_set_create_complete')

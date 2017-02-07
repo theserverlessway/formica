@@ -15,11 +15,13 @@ class ChangeSet:
         self.stack = stack
         self.client = client
 
-    def create(self, template, type):
+    def create(self, template, type, parameters={}):
         if type == 'UPDATE':
             self.remove_existing_changeset()
+        parameters = [{'ParameterKey': key, 'ParameterValue': value, 'UsePreviousValue': False} for (key, value) in
+                      parameters.items()]
         self.client.create_change_set(StackName=self.stack, TemplateBody=template,
-                                      ChangeSetName=self.name, ChangeSetType=type)
+                                      ChangeSetName=self.name, ChangeSetType=type, Parameters=parameters)
         click.echo('Change set submitted, waiting for CloudFormation to calculate changes ...')
         waiter = self.client.get_waiter('change_set_create_complete')
         try:
