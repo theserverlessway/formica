@@ -2,7 +2,10 @@ import glob
 import inspect
 import logging
 import os
+import sys
+import traceback
 
+import click
 from troposphere import Template
 
 from formica.troposphere_attributes import TROPOSPHERE_MODULES, CLOUDFORMATION_FUNCTIONS, CLOUDFORMATION_DECLARATIONS
@@ -21,6 +24,8 @@ CLOUDFORMATION_EXPORTS = {
     **{function.__name__: function for function in CLOUDFORMATION_FUNCTIONS},
     **{declaration.__name__: declaration for declaration in CLOUDFORMATION_DECLARATIONS}
 }
+
+LINE_WHITESPACE_OFFSET = '  |'
 
 
 class Loader():
@@ -65,9 +70,24 @@ class Loader():
         toload = f'{path}/{part}.fc'
         for file in glob.glob(toload):
             with open(file) as f:
-                code = compile(f.read(), file, 'exec')
-                exec(code,
-                     {**formica_commands,
-                      **CLOUDFORMATION_EXPORTS,
-                      **variables}
-                     )
+                try:
+                    code = compile(f.read(), file, 'exec')
+                except SyntaxError as e:
+                    print(e.__class__.__name__ + ': ' + e.msg)
+                    click.echo('File: "' + e.filename + '", line ' + str(e.lineno) + ', char ' + str(e.offset))
+                    click.echo(LINE_WHITESPACE_OFFSET + e.text.rstrip('\n'))
+                    click.echo(LINE_WHITESPACE_OFFSET + ''.join([' ' for x in range(e.offset - 1)]) + '^')
+                    sys.exit(1)
+                else:
+                    try:
+                        exec(code,
+                             {**formica_commands,
+                              **CLOUDFORMATION_EXPORTS,
+                              **variables}
+                             )
+                    except Exception as e:
+                        frame = traceback.extract_tb(e.__traceback__)[1]
+                        print(e.__class__.__name__ + ': ' + str(e))
+                        click.echo('File: "' + frame.filename + '", line ' + str(frame.lineno))
+                        click.echo(LINE_WHITESPACE_OFFSET + frame.line.rstrip('\n'))
+                        sys.exit(1)

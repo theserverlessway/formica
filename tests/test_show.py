@@ -32,3 +32,26 @@ class TestShow(unittest.TestCase):
             expected = {'Resources': {'TestName': {'Type': 'AWS::S3::Bucket'}}}
             actual = json.loads(result.output)
             self.assertEqual(actual, expected)
+
+    def test_template_syntax_exception_gets_caught(self):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open('main.fc', 'w') as f:
+                f.write('module("moduledir')
+
+            result = runner.invoke(cli.show)
+            self.assertEqual(result.exit_code, 1)
+            self.assertIn('main.fc", line 1, char 18', result.output)
+            self.assertIn('SyntaxError: EOL while scanning string literal', result.output)
+            self.assertIn(' ^\n', result.output)
+
+    def test_template_exception_gets_caught(self):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open('main.fc', 'w') as f:
+                f.write('module("moduledir" + randomvariable)')
+
+            result = runner.invoke(cli.show)
+            self.assertEqual(result.exit_code, 1)
+            self.assertIn('main.fc", line 1', result.output)
+            self.assertIn('NameError: name \'randomvariable\' is not defined', result.output)
