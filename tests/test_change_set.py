@@ -13,11 +13,11 @@ class TestChangeSet(unittest.TestCase):
         cf_client_mock = Mock()
         change_set = ChangeSet(STACK, cf_client_mock)
 
-        change_set.create(template=TEMPLATE, type=CHANGE_SET_TYPE)
+        change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE)
 
         cf_client_mock.create_change_set.assert_called_with(
             StackName=STACK, TemplateBody=TEMPLATE,
-            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=[], Tags=[])
+            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE)
 
         cf_client_mock.get_waiter.assert_called_with(
             'change_set_create_complete')
@@ -28,7 +28,7 @@ class TestChangeSet(unittest.TestCase):
         cf_client_mock = Mock()
         change_set = ChangeSet(STACK, cf_client_mock)
 
-        change_set.create(template=TEMPLATE, type=CHANGE_SET_TYPE, parameters=CHANGE_SET_PARAMETERS, tags={})
+        change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, parameters=CHANGE_SET_PARAMETERS)
 
         Parameters = [
             {'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False},
@@ -36,7 +36,7 @@ class TestChangeSet(unittest.TestCase):
         ]
         cf_client_mock.create_change_set.assert_called_with(
             StackName=STACK, TemplateBody=TEMPLATE,
-            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters, Tags=[])
+            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters)
 
         cf_client_mock.get_waiter.assert_called_with(
             'change_set_create_complete')
@@ -47,7 +47,7 @@ class TestChangeSet(unittest.TestCase):
         cf_client_mock = Mock()
         change_set = ChangeSet(STACK, cf_client_mock)
 
-        change_set.create(template=TEMPLATE, type=CHANGE_SET_TYPE, tags=CHANGE_SET_STACK_TAGS)
+        change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, tags=CHANGE_SET_STACK_TAGS)
 
         Tags = [
             {'Key': 'A', 'Value': 'B'},
@@ -55,7 +55,23 @@ class TestChangeSet(unittest.TestCase):
         ]
         cf_client_mock.create_change_set.assert_called_with(
             StackName=STACK, TemplateBody=TEMPLATE,
-            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=[], Tags=Tags)
+            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Tags=Tags)
+
+        cf_client_mock.get_waiter.assert_called_with(
+            'change_set_create_complete')
+        cf_client_mock.get_waiter.return_value.wait.assert_called_with(
+            StackName=STACK, ChangeSetName=CHANGESETNAME)
+
+    def test_submits_changeset_with_capabilities(self):
+        cf_client_mock = Mock()
+        change_set = ChangeSet(STACK, cf_client_mock)
+
+        change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, parameters={},
+                          tags={}, capabilities=['A', 'B'])
+
+        cf_client_mock.create_change_set.assert_called_with(
+            StackName=STACK, TemplateBody=TEMPLATE,
+            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Capabilities=['A', 'B'])
 
         cf_client_mock.get_waiter.assert_called_with(
             'change_set_create_complete')
@@ -71,7 +87,7 @@ class TestChangeSet(unittest.TestCase):
         error = WaiterError('name', 'reason', {'StatusReason': 'StatusReason'})
         cf_client_mock.get_waiter.return_value.wait.side_effect = error
 
-        change_set.create(template=TEMPLATE, type=CHANGE_SET_TYPE)
+        change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE)
         click.echo.assert_called_with('StatusReason')
         sys.exit.assert_called_with(1)
 
@@ -80,7 +96,7 @@ class TestChangeSet(unittest.TestCase):
     def test_remove_existing_changeset_for_update_type(self, describe, sys):
         cf_client_mock = Mock()
         change_set = ChangeSet(STACK, cf_client_mock)
-        change_set.create(template=TEMPLATE, type='UPDATE')
+        change_set.create(template=TEMPLATE, change_set_type='UPDATE')
         cf_client_mock.describe_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
         cf_client_mock.delete_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
 
