@@ -15,13 +15,15 @@ class ChangeSet:
         self.stack = stack
         self.client = client
 
-    def create(self, template, type, parameters={}):
+    def create(self, template, type, parameters={}, tags={}):
         if type == 'UPDATE':
             self.remove_existing_changeset()
         parameters = [{'ParameterKey': key, 'ParameterValue': value, 'UsePreviousValue': False} for (key, value) in
                       parameters.items()]
+        tags = [{'Key': key, 'Value': value, } for (key, value) in
+                tags.items()]
         self.client.create_change_set(StackName=self.stack, TemplateBody=template,
-                                      ChangeSetName=self.name, ChangeSetType=type, Parameters=parameters)
+                                      ChangeSetName=self.name, ChangeSetType=type, Parameters=parameters, Tags=tags)
         click.echo('Change set submitted, waiting for CloudFormation to calculate changes ...')
         waiter = self.client.get_waiter('change_set_create_complete')
         try:
@@ -53,7 +55,7 @@ class ChangeSet:
                  resource_change.get('PhysicalResourceId', ''),
                  resource_change['ResourceType'],
                  resource_change.get('Replacement', ''),
-                 ', '.join(set([__change_detail(c) for c in resource_change['Details']]))
+                 ', '.join(sorted(set([__change_detail(c) for c in resource_change['Details']])))
                  ])
 
         click.echo("Changes to be deployed:\n" + table.draw() + "\n")
