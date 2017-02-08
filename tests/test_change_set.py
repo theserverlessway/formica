@@ -1,11 +1,11 @@
 import unittest
-from unittest import mock
 from unittest.mock import Mock, patch
 
 from botocore.exceptions import WaiterError, ClientError
 
 from formica.change_set import ChangeSet, CHANGE_SET_HEADER
-from tests.constants import STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES, CHANGE_SET_PARAMETERS
+from tests.constants import STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES, CHANGE_SET_PARAMETERS, \
+    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER
 
 
 class TestChangeSet(unittest.TestCase):
@@ -90,7 +90,6 @@ class TestChangeSet(unittest.TestCase):
 
         change_set.describe()
 
-        click.echo.assert_called_with(mock.ANY)
         args = click.echo.call_args[0]
 
         to_search = []
@@ -106,3 +105,15 @@ class TestChangeSet(unittest.TestCase):
         for term in to_search:
             self.assertIn(term, change_set_output)
         self.assertNotIn('None', change_set_output)
+
+    @patch('formica.change_set.click')
+    def test_only_prints_unique_changed_parameters(self, click):
+        cf_client_mock = Mock()
+        cf_client_mock.describe_change_set.return_value = CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER
+        change_set = ChangeSet(STACK, cf_client_mock)
+
+        change_set.describe()
+
+        change_set_output = click.echo.call_args[0][0]
+
+        self.assertEquals(change_set_output.count('BucketName'), 1)
