@@ -21,7 +21,7 @@ def aws_options(f):
     return f
 
 
-def params_callback(ctx, param, value):
+def equals_option(ctx, param, value):
     parameters = {}
     try:
         for param in value:
@@ -32,14 +32,23 @@ def params_callback(ctx, param, value):
         raise click.BadParameter('needs to be in format KEY=VALUE')
 
 
+def csv_option(ctx, param, value):
+    if value:
+        return value.split(',')
+    else:
+        return value
+
+
 def stack_parameters(f):
-    f = click.option('--parameter', help='CloudFormation Stack parameter', multiple=True, callback=params_callback)(f)
-    return f
+    return click.option('--parameter', help='CloudFormation Stack parameter', multiple=True, callback=equals_option)(f)
 
 
 def stack_tags(f):
-    f = click.option('--tag', help='CloudFormation Stack tag', multiple=True, callback=params_callback)(f)
-    return f
+    return click.option('--tag', help='CloudFormation Stack tag', multiple=True, callback=equals_option)(f)
+
+
+def capabilities(f):
+    return click.option('--capabilities', help='CloudFormation stack Capabilities', callback=csv_option)(f)
 
 
 def stack(message):
@@ -67,14 +76,16 @@ def show():
 @aws_options
 @stack_parameters
 @stack_tags
-def new(stack, profile, region, session, parameter, tag):
+@capabilities
+def new(stack, profile, region, session, parameter, tag, capabilities):
     """Create a change set for a new stack"""
     client = session.client_for('cloudformation')
     loader = Loader()
     loader.load()
     click.echo('Creating change set for new stack, ...')
     change_set = ChangeSet(stack=stack, client=client)
-    change_set.create(template=loader.template(), type='CREATE', parameters=parameter, tags=tag)
+    change_set.create(template=loader.template(), change_set_type='CREATE', parameters=parameter, tags=tag,
+                      capabilities=capabilities)
     change_set.describe()
     click.echo('Change set created, please deploy.')
 
@@ -85,14 +96,16 @@ def new(stack, profile, region, session, parameter, tag):
 @aws_options
 @stack_parameters
 @stack_tags
-def change(stack, profile, region, session, parameter={}, tag={}):
+@capabilities
+def change(stack, profile, region, session, parameter, tag, capabilities):
     """Create a change set for an existing stack"""
     client = session.client_for('cloudformation')
     loader = Loader()
     loader.load()
 
     change_set = ChangeSet(stack=stack, client=client)
-    change_set.create(template=loader.template(), type='UPDATE', parameters=parameter, tags=tag)
+    change_set.create(template=loader.template(), change_set_type='UPDATE', parameters=parameter, tags=tag,
+                      capabilities=capabilities)
     change_set.describe()
 
 
