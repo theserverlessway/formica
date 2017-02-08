@@ -15,9 +15,9 @@ with open(join(this_dir, 'README.md'), encoding='utf-8') as file:
 setup(
     name='formica',
     version=__version__,
-    description='Simple Cloudformation stack management tooling.',
+    description='Simple AWS CloudFormation stack management tooling.',
     long_description=long_description,
-    url='https://github.com/cloudthropology/formica',
+    url='https://github.com/flomotlik/formica',
     author='Florian Motlik',
     author_email='florian.motlik@cloudthropology.com',
     license='MIT',
