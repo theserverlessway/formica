@@ -29,11 +29,16 @@ def params_callback(ctx, param, value):
             parameters[key] = value
         return parameters
     except ValueError:
-        raise click.BadParameter('parameters need to be in format KEY=VALUE')
+        raise click.BadParameter('needs to be in format KEY=VALUE')
 
 
 def stack_parameters(f):
     f = click.option('--parameter', help='CloudFormation Stack parameter', multiple=True, callback=params_callback)(f)
+    return f
+
+
+def stack_tags(f):
+    f = click.option('--tag', help='CloudFormation Stack tag', multiple=True, callback=params_callback)(f)
     return f
 
 
@@ -61,14 +66,15 @@ def show():
 @aws_exceptions
 @aws_options
 @stack_parameters
-def new(stack, profile, region, session, parameter):
+@stack_tags
+def new(stack, profile, region, session, parameter, tag):
     """Create a change set for a new stack"""
     client = session.client_for('cloudformation')
     loader = Loader()
     loader.load()
     click.echo('Creating change set for new stack, ...')
     change_set = ChangeSet(stack=stack, client=client)
-    change_set.create(template=loader.template(), type='CREATE', parameters=parameter)
+    change_set.create(template=loader.template(), type='CREATE', parameters=parameter, tags=tag)
     change_set.describe()
     click.echo('Change set created, please deploy.')
 
@@ -78,14 +84,15 @@ def new(stack, profile, region, session, parameter):
 @aws_exceptions
 @aws_options
 @stack_parameters
-def change(stack, profile, region, session, parameter={}):
+@stack_tags
+def change(stack, profile, region, session, parameter={}, tag={}):
     """Create a change set for an existing stack"""
     client = session.client_for('cloudformation')
     loader = Loader()
     loader.load()
 
     change_set = ChangeSet(stack=stack, client=client)
-    change_set.create(template=loader.template(), type='UPDATE', parameters=parameter)
+    change_set.create(template=loader.template(), type='UPDATE', parameters=parameter, tags=tag)
     change_set.describe()
 
 

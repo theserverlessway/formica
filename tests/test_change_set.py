@@ -5,7 +5,7 @@ from botocore.exceptions import WaiterError, ClientError
 
 from formica.change_set import ChangeSet, CHANGE_SET_HEADER
 from tests.constants import STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES, CHANGE_SET_PARAMETERS, \
-    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER
+    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER, CHANGE_SET_STACK_TAGS
 
 
 class TestChangeSet(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestChangeSet(unittest.TestCase):
 
         cf_client_mock.create_change_set.assert_called_with(
             StackName=STACK, TemplateBody=TEMPLATE,
-            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=[])
+            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=[], Tags=[])
 
         cf_client_mock.get_waiter.assert_called_with(
             'change_set_create_complete')
@@ -28,7 +28,7 @@ class TestChangeSet(unittest.TestCase):
         cf_client_mock = Mock()
         change_set = ChangeSet(STACK, cf_client_mock)
 
-        change_set.create(template=TEMPLATE, type=CHANGE_SET_TYPE, parameters=CHANGE_SET_PARAMETERS)
+        change_set.create(template=TEMPLATE, type=CHANGE_SET_TYPE, parameters=CHANGE_SET_PARAMETERS, tags={})
 
         Parameters = [
             {'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False},
@@ -36,7 +36,26 @@ class TestChangeSet(unittest.TestCase):
         ]
         cf_client_mock.create_change_set.assert_called_with(
             StackName=STACK, TemplateBody=TEMPLATE,
-            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters)
+            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters, Tags=[])
+
+        cf_client_mock.get_waiter.assert_called_with(
+            'change_set_create_complete')
+        cf_client_mock.get_waiter.return_value.wait.assert_called_with(
+            StackName=STACK, ChangeSetName=CHANGESETNAME)
+
+    def test_submits_changeset_with_stack_tags(self):
+        cf_client_mock = Mock()
+        change_set = ChangeSet(STACK, cf_client_mock)
+
+        change_set.create(template=TEMPLATE, type=CHANGE_SET_TYPE, tags=CHANGE_SET_STACK_TAGS)
+
+        Tags = [
+            {'Key': 'A', 'Value': 'B'},
+            {'Key': 'B', 'Value': 'C'}
+        ]
+        cf_client_mock.create_change_set.assert_called_with(
+            StackName=STACK, TemplateBody=TEMPLATE,
+            ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=[], Tags=Tags)
 
         cf_client_mock.get_waiter.assert_called_with(
             'change_set_create_complete')
@@ -100,7 +119,7 @@ class TestChangeSet(unittest.TestCase):
                           'simpleteststack-deploymentbucket2-11ngaeftydtn7 '])
         to_search.extend(['AWS::S3::Bucket'])
         to_search.extend(['True'])
-        to_search.extend(['Tags, BucketName'])
+        to_search.extend(['BucketName, Tags'])
         change_set_output = args[0]
         for term in to_search:
             self.assertIn(term, change_set_output)
