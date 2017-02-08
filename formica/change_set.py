@@ -43,6 +43,18 @@ class ChangeSet:
         change_set = self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
         table = Texttable(max_width=150)
 
+        click.echo("Deployment metadata:")
+        parameters = ', '.join([parameter['ParameterKey'] + '=' + parameter['ParameterValue'] for parameter in
+                                change_set.get('Parameters', [])])
+        table.add_row(['Parameters', parameters])
+        tags = [tag['Key'] + '=' + tag['Value'] for tag in
+                change_set.get('Tags', [])]
+        table.add_row(["Tags ", ', '.join(tags)])
+        table.add_row(["Capabilities ", ', '.join(change_set.get('Capabilities', []))])
+        click.echo(table.draw() + '\n')
+
+        table.reset()
+        table = Texttable(max_width=150)
         table.add_rows([CHANGE_SET_HEADER])
 
         def __change_detail(change):
@@ -64,7 +76,8 @@ class ChangeSet:
                  ', '.join(sorted(set([__change_detail(c) for c in resource_change['Details']])))
                  ])
 
-        click.echo("Changes to be deployed:\n" + table.draw() + "\n")
+        click.echo('Resource Changes:')
+        click.echo(table.draw())
 
     def remove_existing_changeset(self):
         try:
