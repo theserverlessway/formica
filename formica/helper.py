@@ -37,6 +37,8 @@ def session_wrapper(function):
     @wraps(function)
     def wrap(*args, **kwargs):
         kwargs['session'] = AWSSession(kwargs['region'], kwargs['profile'])
+        del(kwargs['region'])
+        del (kwargs['profile'])
         return function(*args, **kwargs)
 
     return wrap

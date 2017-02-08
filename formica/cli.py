@@ -63,7 +63,7 @@ def main(debug):
 
 
 @main.command()
-def show():
+def template():
     """Print the current template"""
     loader = Loader()
     loader.load()
@@ -77,7 +77,7 @@ def show():
 @stack_parameters
 @stack_tags
 @capabilities
-def new(stack, profile, region, session, parameter, tag, capabilities):
+def new(stack, session, parameter, tag, capabilities):
     """Create a change set for a new stack"""
     client = session.client_for('cloudformation')
     loader = Loader()
@@ -97,7 +97,7 @@ def new(stack, profile, region, session, parameter, tag, capabilities):
 @stack_parameters
 @stack_tags
 @capabilities
-def change(stack, profile, region, session, parameter, tag, capabilities):
+def change(stack, session, parameter, tag, capabilities):
     """Create a change set for an existing stack"""
     client = session.client_for('cloudformation')
     loader = Loader()
@@ -113,7 +113,7 @@ def change(stack, profile, region, session, parameter, tag, capabilities):
 @stack('The stack you want to deploy to.')
 @aws_exceptions
 @aws_options
-def deploy(stack, region, profile, session):
+def deploy(stack, session):
     """Deploy the latest change set for a stack"""
     client = session.client_for('cloudformation')
     last_event = client.describe_stack_events(StackName=stack)['StackEvents'][0]['EventId']
@@ -124,7 +124,7 @@ def deploy(stack, region, profile, session):
 @main.command()
 @aws_exceptions
 @aws_options
-def stacks(region, profile, session):
+def stacks(session):
     """List all stacks"""
     client = session.client_for('cloudformation')
     stacks = client.describe_stacks()
@@ -143,10 +143,21 @@ def stacks(region, profile, session):
 
 
 @main.command()
+@stack('The stack you want to describe the latest change set for')
+@aws_exceptions
+@aws_options
+def describe(stack, session):
+    """Describe the latest change set"""
+    client = session.client_for('cloudformation')
+    change_set = ChangeSet(stack=stack, client=client)
+    change_set.describe()
+
+
+@main.command()
 @stack('The stack you want to destroy.')
 @aws_exceptions
 @aws_options
-def remove(stack, region, profile, session):
+def remove(stack, session):
     """Remove the configured stack"""
     client = session.client_for('cloudformation')
     stack_id = client.describe_stacks(StackName=stack)['Stacks'][0]['StackId']

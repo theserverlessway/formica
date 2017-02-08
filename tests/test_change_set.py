@@ -125,7 +125,8 @@ class TestChangeSet(unittest.TestCase):
 
         change_set.describe()
 
-        args = click.echo.call_args[0]
+        change_set_output = '\n'.join([call[1][0] for call in click.echo.mock_calls])
+        print(change_set_output)
 
         to_search = []
         to_search.extend(CHANGE_SET_HEADER)
@@ -136,9 +137,15 @@ class TestChangeSet(unittest.TestCase):
         to_search.extend(['AWS::S3::Bucket'])
         to_search.extend(['True'])
         to_search.extend(['BucketName, Tags'])
-        change_set_output = args[0]
+        # Parameters
+        to_search.extend(['bucketname=formicatestbucketname, bucketname2=formicatestbucketname2'])
+        # Capabilities
+        to_search.extend(['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'])
+        # Stack Tags
+        to_search.extend(['StackKey=StackValue, StackKey2=StackValue2'])
         for term in to_search:
             self.assertIn(term, change_set_output)
+
         self.assertNotIn('None', change_set_output)
 
     @patch('formica.change_set.click')
