@@ -13,18 +13,14 @@ class TestStacks(unittest.TestCase):
     def run_stacks(self, exit_code=0):
         runner = CliRunner()
         result = runner.invoke(cli.stacks)
-        if result.exit_code != exit_code:
-            print(result.output)
-            print(result.exception)
-            print(result.exit_code)
         self.assertEqual(result.exit_code, exit_code)
         return result
 
     @patch('formica.cli.click')
-    @patch('formica.helper.AWSSession')
+    @patch('formica.aws.Session')
     def test_print_stacks(self, session, click):
         client_mock = Mock()
-        session.return_value.client_for.return_value = client_mock
+        session.return_value.client.return_value = client_mock
         client_mock.describe_stacks.return_value = DESCRIBE_STACKS
         self.run_stacks()
 
@@ -43,10 +39,10 @@ class TestStacks(unittest.TestCase):
         self.assertNotIn('None', change_set_output)
 
     @patch('formica.cli.click')
-    @patch('formica.helper.AWSSession')
+    @patch('formica.aws.Session')
     def test_does_not_fail_without_update_date(self, session, click):
         client_mock = Mock()
-        session.return_value.client_for.return_value = client_mock
+        session.return_value.client.return_value = client_mock
         client_mock.describe_stacks.return_value = {
             "Stacks": [{'StackName': 'abc', 'CreationTime': '12345', 'StackStatus': 'status'}]
         }

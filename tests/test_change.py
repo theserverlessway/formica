@@ -9,11 +9,11 @@ from tests.constants import REGION, PROFILE, STACK, TEMPLATE
 
 class TestChange(unittest.TestCase):
     @patch('formica.cli.Loader')
-    @patch('formica.helper.AWSSession')
+    @patch('formica.aws.Session')
     @patch('formica.cli.ChangeSet')
     def test_change_creates_update_change_set(self, change_set, session, loader):
         client_mock = Mock()
-        session.return_value.client_for.return_value = client_mock
+        session.return_value.client.return_value = client_mock
         loader.return_value.template.return_value = TEMPLATE
         runner = CliRunner()
         result = runner.invoke(cli.change, ['--stack', STACK, '--profile', PROFILE, '--region', REGION])
@@ -25,11 +25,11 @@ class TestChange(unittest.TestCase):
         change_set.return_value.describe.assert_called_once()
 
     @patch('formica.cli.Loader')
-    @patch('formica.helper.AWSSession')
+    @patch('formica.aws.Session')
     @patch('formica.cli.ChangeSet')
     def test_change_uses_parameters_for_update(self, change_set, session, loader):
         client_mock = Mock()
-        session.return_value.client_for.return_value = client_mock
+        session.return_value.client.return_value = client_mock
         loader.return_value.template.return_value = TEMPLATE
         runner = CliRunner()
         result = runner.invoke(cli.change,
@@ -51,11 +51,11 @@ class TestChange(unittest.TestCase):
         self.assertEqual(result.exit_code, 2)
 
     @patch('formica.cli.Loader')
-    @patch('formica.helper.AWSSession')
+    @patch('formica.aws.Session')
     @patch('formica.cli.ChangeSet')
     def test_change_uses_tags_for_creation(self, change_set, session, loader):
         client_mock = Mock()
-        session.return_value.client_for.return_value = client_mock
+        session.return_value.client.return_value = client_mock
         loader.return_value.template.return_value = TEMPLATE
         runner = CliRunner()
         result = runner.invoke(cli.change,
@@ -76,11 +76,11 @@ class TestChange(unittest.TestCase):
         self.assertEqual(result.exit_code, 2)
 
     @patch('formica.cli.Loader')
-    @patch('formica.helper.AWSSession')
+    @patch('formica.aws.Session')
     @patch('formica.cli.ChangeSet')
     def test_change_uses_capabilities_for_creation(self, change_set, session, loader):
         client_mock = Mock()
-        session.return_value.client_for.return_value = client_mock
+        session.return_value.client.return_value = client_mock
         loader.return_value.template.return_value = TEMPLATE
         runner = CliRunner()
         result = runner.invoke(cli.change,

@@ -6,6 +6,7 @@ import click
 from texttable import Texttable
 
 from formica import CHANGE_SET_FORMAT
+from formica.aws import AWS
 from formica.change_set import ChangeSet
 from formica.helper import aws_exceptions, session_wrapper
 from formica.stack_waiter import StackWaiter
@@ -77,9 +78,9 @@ def template():
 @stack_parameters
 @stack_tags
 @capabilities
-def new(stack, session, parameter, tag, capabilities):
+def new(stack, parameter, tag, capabilities):
     """Create a change set for a new stack"""
-    client = session.client_for('cloudformation')
+    client = AWS.current_session().client('cloudformation')
     loader = Loader()
     loader.load()
     click.echo('Creating change set for new stack, ...')
@@ -97,9 +98,9 @@ def new(stack, session, parameter, tag, capabilities):
 @stack_parameters
 @stack_tags
 @capabilities
-def change(stack, session, parameter, tag, capabilities):
+def change(stack, parameter, tag, capabilities):
     """Create a change set for an existing stack"""
-    client = session.client_for('cloudformation')
+    client = AWS.current_session().client('cloudformation')
     loader = Loader()
     loader.load()
 
@@ -113,9 +114,9 @@ def change(stack, session, parameter, tag, capabilities):
 @stack('The stack you want to deploy to.')
 @aws_exceptions
 @aws_options
-def deploy(stack, session):
+def deploy(stack):
     """Deploy the latest change set for a stack"""
-    client = session.client_for('cloudformation')
+    client = AWS.current_session().client('cloudformation')
     last_event = client.describe_stack_events(StackName=stack)['StackEvents'][0]['EventId']
     client.execute_change_set(ChangeSetName=(CHANGE_SET_FORMAT.format(stack=stack)), StackName=stack)
     StackWaiter(stack, client).wait(last_event)
@@ -124,9 +125,9 @@ def deploy(stack, session):
 @main.command()
 @aws_exceptions
 @aws_options
-def stacks(session):
+def stacks():
     """List all stacks"""
-    client = session.client_for('cloudformation')
+    client = AWS.current_session().client('cloudformation')
     stacks = client.describe_stacks()
     table = Texttable(max_width=150)
     table.add_rows([STACK_HEADERS])
@@ -146,9 +147,9 @@ def stacks(session):
 @stack('The stack you want to describe the latest change set for')
 @aws_exceptions
 @aws_options
-def describe(stack, session):
+def describe(stack):
     """Describe the latest change set"""
-    client = session.client_for('cloudformation')
+    client = AWS.current_session().client('cloudformation')
     change_set = ChangeSet(stack=stack, client=client)
     change_set.describe()
 
@@ -157,9 +158,9 @@ def describe(stack, session):
 @stack('The stack you want to destroy.')
 @aws_exceptions
 @aws_options
-def remove(stack, session):
+def remove(stack):
     """Remove the configured stack"""
-    client = session.client_for('cloudformation')
+    client = AWS.current_session().client('cloudformation')
     stack_id = client.describe_stacks(StackName=stack)['Stacks'][0]['StackId']
     click.echo('Removing Stack and waiting for it to be removed, ...')
     last_event = client.describe_stack_events(StackName=stack)['StackEvents'][0]['EventId']
