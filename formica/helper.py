@@ -4,7 +4,7 @@ from functools import wraps
 import click
 from botocore.exceptions import ProfileNotFound, NoCredentialsError, NoRegionError, ClientError
 
-from formica.aws_session import AWSSession
+from formica.aws import AWS
 
 
 def name(*names):
@@ -36,8 +36,8 @@ def aws_exceptions(function):
 def session_wrapper(function):
     @wraps(function)
     def wrap(*args, **kwargs):
-        kwargs['session'] = AWSSession(kwargs['region'], kwargs['profile'])
-        del(kwargs['region'])
+        AWS.initialize(kwargs['region'], kwargs['profile'])
+        del (kwargs['region'])
         del (kwargs['profile'])
         return function(*args, **kwargs)
 

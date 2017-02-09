@@ -24,13 +24,12 @@ class TestCLI(TestCase):
         sys.exit.assert_called_with(1)
         self.assertEquals(3, sys.exit.call_count)
 
-    @patch('formica.helper.AWSSession')
+    @patch('formica.aws.Session')
     def test_commands_use_exception_handling(self, session):
         session.side_effect = NoCredentialsError()
         runner = CliRunner()
         for method in METHODS:
             result = runner.invoke(method, ['--stack', STACK])
-            print(result.output)
             self.assertEqual(result.exit_code, 1)
 
         for method in NO_STACK_METHODS:
@@ -38,7 +37,7 @@ class TestCLI(TestCase):
             self.assertEqual(result.exit_code, 1)
 
     @patch('formica.helper.click')
-    @patch('formica.helper.AWSSession')
+    @patch('formica.aws.Session')
     def test_catches_client_errors(self, session, click):
         session.side_effect = ClientError({'Error': {'Code': 'ValidationError', 'Message': MESSAGE}}, 'ERROR_TEST')
         runner = CliRunner()
@@ -53,7 +52,7 @@ class TestCLI(TestCase):
             click.echo.assert_called_with(MESSAGE)
 
     @patch('formica.helper.click')
-    @patch('formica.helper.AWSSession')
+    @patch('formica.aws.Session')
     def test_arbitrary_clients_error(self, session, click):
         session.side_effect = ClientError({'Error': {'Code': 'SOMEOTHER', 'Message': MESSAGE}}, 'ERROR_TEST')
         runner = CliRunner()

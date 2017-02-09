@@ -126,7 +126,6 @@ class TestChangeSet(unittest.TestCase):
         change_set.describe()
 
         change_set_output = '\n'.join([call[1][0] for call in click.echo.mock_calls])
-        print(change_set_output)
 
         to_search = []
         to_search.extend(CHANGE_SET_HEADER)
