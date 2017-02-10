@@ -3,8 +3,8 @@ from troposphere import apigateway, applicationautoscaling, autoscaling, awslamb
     constants, datapipeline, directoryservice, dynamodb, ec2, ecr, ecs, efs, elasticache, elasticbeanstalk, \
     elasticloadbalancing, elasticsearch, emr, events, firehose, iam, iot, kinesis, kms, logs, opsworks, policies, \
     rds, redshift, route53, sqs, sns, sdb, s3, ssm, waf, workspaces, elasticloadbalancingv2, Output, Parameter, \
-    Base64, FindInMap, GetAtt, GetAZs, If, Equals, And, Or, Not, Join, Sub, Select, Ref, Condition, ImportValue, \
-    Export, Tags
+    Base64, FindInMap, GetAtt, GetAZs, If, Equals, And, Or, Not, Join, Sub, Split, Select, Ref, Condition, \
+    ImportValue, Export, Tags
 
 TROPOSPHERE_MODULES = [
     apigateway,
@@ -57,7 +57,7 @@ TROPOSPHERE_MODULES = [
 ]
 
 CLOUDFORMATION_FUNCTIONS = [
-    Base64, FindInMap, GetAtt, GetAZs, If, Equals, And, Or, Not, Join, Sub, Select, Ref, Condition, ImportValue,
+    Base64, FindInMap, GetAtt, GetAZs, If, Equals, And, Or, Not, Join, Sub, Split, Select, Ref, Condition, ImportValue,
     Export, Tags
 ]
 

@@ -5,7 +5,7 @@ from botocore.exceptions import NoCredentialsError
 from click.testing import CliRunner
 
 from formica import cli
-from tests.constants import STACK, PROFILE, REGION, CHANGESETNAME, EVENT_ID
+from tests.unit.constants import STACK, PROFILE, REGION, CHANGESETNAME, EVENT_ID
 
 
 class TestDeploy(TestCase):

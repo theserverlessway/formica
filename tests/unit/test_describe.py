@@ -4,7 +4,7 @@ from unittest.mock import patch, Mock
 from click.testing import CliRunner
 
 from formica import cli
-from tests.constants import STACK
+from tests.unit.constants import STACK
 
 
 class TestDescribe(unittest.TestCase):

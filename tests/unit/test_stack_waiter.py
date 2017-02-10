@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from formica.stack_waiter import StackWaiter, EVENT_TABLE_HEADERS
-from tests.constants import STACK, STACK_EVENTS
+from tests.unit.constants import STACK, STACK_EVENTS
 
 
 @patch('formica.stack_waiter.time')

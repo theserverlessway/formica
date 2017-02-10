@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from formica.aws import AWS
-from tests.constants import REGION, PROFILE
+from tests.unit.constants import REGION, PROFILE
 
 
 @patch('formica.aws.Session')

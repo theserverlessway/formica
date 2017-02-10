@@ -6,7 +6,7 @@ from click.testing import CliRunner
 
 from formica import cli
 from formica.cli import STACK_HEADERS
-from tests.constants import DESCRIBE_STACKS
+from tests.unit.constants import DESCRIBE_STACKS
 
 
 class TestStacks(unittest.TestCase):

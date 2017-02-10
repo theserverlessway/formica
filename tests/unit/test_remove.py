@@ -4,7 +4,7 @@ from unittest.mock import patch, Mock
 from click.testing import CliRunner
 
 from formica import cli
-from tests.constants import REGION, PROFILE, STACK, EVENT_ID, STACK_ID
+from tests.unit.constants import REGION, PROFILE, STACK, EVENT_ID, STACK_ID
 
 
 class TestRemove(unittest.TestCase):

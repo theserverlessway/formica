@@ -4,8 +4,8 @@ from unittest.mock import Mock, patch
 from botocore.exceptions import WaiterError, ClientError
 
 from formica.change_set import ChangeSet, CHANGE_SET_HEADER
-from tests.constants import STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES, CHANGE_SET_PARAMETERS, \
-    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER, CHANGE_SET_STACK_TAGS
+from tests.unit.constants import STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES, \
+    CHANGE_SET_PARAMETERS, CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER, CHANGE_SET_STACK_TAGS
 
 
 class TestChangeSet(unittest.TestCase):
