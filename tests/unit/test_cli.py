@@ -6,7 +6,7 @@ from click.testing import CliRunner
 
 from formica.cli import change, deploy, new, stacks, remove
 from formica.helper import aws_exceptions
-from tests.constants import STACK, MESSAGE
+from tests.unit.constants import STACK, MESSAGE
 
 METHODS = [change, deploy, new, remove]
 NO_STACK_METHODS = [stacks]
