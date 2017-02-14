@@ -1,0 +1,2 @@
+param = parameter(Parameter("BucketName", Type="String"))
+resource(s3.Bucket(name('Deployment', 'Bucket'), BucketName=Ref(param)))
