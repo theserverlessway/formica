@@ -1,2 +1,2 @@
-param = parameter(Parameter("BucketName", Type="String"))
-resource(s3.Bucket(name('Deployment', 'Bucket'), BucketName=Ref(param)))
+resource(s3.Bucket('DeploymentBucket'))
+resource(s3.Bucket('DeploymentBucket2'))
