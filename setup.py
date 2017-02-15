@@ -1,16 +1,14 @@
 """Packaging settings."""
 
-from codecs import open
-from os.path import abspath, dirname, join
+from os.path import abspath, dirname
 
+import pypandoc
 from setuptools import setup
 
 from formica import __version__
 
 this_dir = abspath(dirname(__file__))
-with open(join(this_dir, 'README.rst'), encoding='utf-8') as file:
-    long_description = file.read()
-
+long_description = pypandoc.convert_file('README.md', 'rst')
 
 setup(
     name='formica-cli',

@@ -1,11 +1,11 @@
-FROM python:2.7
+FROM python:latest
 
 WORKDIR /app
 
 RUN apt-get update -y -qq
 RUN apt-get install -y -qq groff pandoc
 
-RUN pip install -U pip setuptools wheel pygments twine
+RUN pip install -U pip setuptools wheel pygments twine pypandoc
 RUN pip install -U pycodestyle pyflakes autopep8 coverage pytest
 RUN pip install -U awslogs awscli
 

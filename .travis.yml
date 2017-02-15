@@ -11,11 +11,16 @@ matrix:
         - secure: cjYgJ3u0TD0zLfm+PgyCOcwE9ZnmKaM68QEF/JsCAkcD2iz8eYTssBIDMp988+YJHSltptOMBruzy33CnkC1AH6UV+Vp9OyBb38++/U1nUK0QEjZxWNuggDgRGuJ1BbLTjCjFRqHDU2zvKc5zgQUTo056i7TyM9gj7e0RI2gtfF+A2h71Z2MzFFQJAILAlx3TTztqRq2OEQHO2TnBpX+BKDEGhy+mNV+VT+aUHl7ik/khHMK5yyyd6PtVxjHTJBS12VKx6InvxSbT/Eat7SXmFfM9+xDopr4Fw5HV/KG+3mNQAQA+3HsZfTGlECn4tNXdBoABPqVGvfUllbR5OyM8QKlAVQtbJMnpFpFObI2Q3yeWerIeJvp4bgVSSmCdXzg233rOtOreAT2yQjURVaNePwSQtuX9PkFadfTFbfYaRIgjHnBeclE1Dm9zyyxIhHbUx/UfGvYkHxWarXhUDEhGYfhEjm4QVReonO/MYcaQeu7LEEqR0g7PmOWf4cuNfF1SWuDQBGsQU26FXgsGATJGTUoZjkwsPOtInZW0hsmHLwgs0sj6iz3JwvGDfgdv7iX+iebZCYKtBUNv0vq8s7IqY5Fk5m5Ferj+Drb0auUvlQcxotBOE3IupUwpMNLFLXju7TrLU5pjHMeM4dfeFwiXkRBdcZi/QmJEvy2kbf410I=
     - python: '3.6'
 
+addons:
+  apt:
+    packages:
+    - pandoc
+
 before_install:
 - pip install --upgrade pip setuptools wheel
 
 install:
-- pip install --upgrade pycodestyle pyflakes coverage python-coveralls pytest pytest-cov
+- pip install --upgrade pycodestyle pyflakes coverage python-coveralls pytest pytest-cov pypandoc
 - python setup.py develop
 
 script:
