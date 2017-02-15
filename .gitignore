@@ -90,3 +90,6 @@ ENV/
 
 # IDE
 .idea
+
+# Pypi
+README.rst

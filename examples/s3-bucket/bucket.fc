@@ -1,2 +1,0 @@
-resource(s3.Bucket('DeploymentBucket'))
-resource(s3.Bucket('DeploymentBucket2'))
