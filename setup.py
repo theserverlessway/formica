@@ -19,7 +19,7 @@ setup(
     long_description=long_description,
     url='https://github.com/flomotlik/formica',
     author='Florian Motlik',
-    author_email='florian.motlik@cloudthropology.com',
+    author_email='flo@flomotlik.me',
     license='MIT',
     classifiers=[
         'Intended Audience :: Developers',
