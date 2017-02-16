@@ -1,5 +1,12 @@
+
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import dict
+from future import standard_library
+standard_library.install_aliases()
 import unittest
-from unittest.mock import Mock, patch
+from mock import Mock, patch
 
 from botocore.exceptions import WaiterError, ClientError
 

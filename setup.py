@@ -1,6 +1,5 @@
 """Packaging settings."""
 
-from codecs import open
 from os.path import abspath, dirname, join, isfile
 
 from setuptools import setup
@@ -11,7 +10,7 @@ this_dir = abspath(dirname(__file__))
 path = join(this_dir, 'README.rst')
 long_description = ''
 if isfile(path):
-    with open(path, encoding='utf-8') as file:
+    with open(path) as file:
         long_description = file.read()
 
 setup(
@@ -39,11 +38,11 @@ setup(
     ],
     keywords='cloudformation, aws, cloud',
     packages=['formica'],
-    install_requires=['troposphere==1.9.2', 'boto3==1.4.4', 'click==6.7', 'texttable==0.8.7', 'awacs==0.6.1'],
+    install_requires=['troposphere==1.9.2', 'boto3==1.4.4', 'click==6.7', 'texttable==0.8.7', 'awacs==0.6.1',
+                      'future==0.16.0'],
     entry_points={
         'console_scripts': [
             'formica=formica.cli:main',
         ],
-    },
-    test_suite="tests"
+    }
 )

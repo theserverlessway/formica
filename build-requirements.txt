@@ -1,0 +1,10 @@
+pycodestyle
+pyflakes
+autopep8
+coverage
+python-coveralls
+pytest
+pytest-cov
+mock
+setuptools
+pip
