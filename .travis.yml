@@ -31,7 +31,7 @@ script:
 - if [[ -z "$INTEGRATION_TEST" ]]; then pycodestyle .; fi
 - if [[ -z "$INTEGRATION_TEST" ]]; then  pyflakes .; fi
 - if [[ -z "$INTEGRATION_TEST" ]]; then py.test --cov=formica tests/unit; fi
-- if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then py.test tests/integration; fi
+- if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then py.test -s tests/integration; fi
 
 after_success:
 - if [[ -z "$INTEGRATION_TEST" ]]; then coveralls; fi

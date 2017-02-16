@@ -22,7 +22,7 @@ class TestIntegrationBasic():
     def test_integration_basic(self, tmpdir, stack_name):
         def run_formica(*args):
             print(args)
-            result = subprocess.check_output([u'formica'] + list(args), cwd=str(tmpdir))
+            result = str(subprocess.check_output([u'formica'] + list(args), cwd=str(tmpdir)))
             print(result)
             return result
 
