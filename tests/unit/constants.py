@@ -1,3 +1,9 @@
+
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
 import datetime
 
 from dateutil.tz import tzlocal
@@ -7,7 +13,7 @@ PROFILE = 'my-profile'
 STACK = 'my-stack'
 STACK_ID = 'my-stack-id'
 TEMPLATE = 'MYTEMPLATE'
-CHANGESETNAME = f'{STACK}-change-set'
+CHANGESETNAME = '{}-change-set'.format(STACK)
 CHANGE_SET_TYPE = 'WHATEVER'
 CHANGE_SET_PARAMETERS = {'A': 'B', 'B': 'C'}
 CHANGE_SET_STACK_TAGS = {'A': 'B', 'B': 'C'}

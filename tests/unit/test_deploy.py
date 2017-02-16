@@ -1,5 +1,11 @@
+
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
 from unittest import TestCase
-from unittest.mock import patch, Mock
+from mock import patch, Mock
 
 from botocore.exceptions import NoCredentialsError
 from click.testing import CliRunner

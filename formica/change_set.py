@@ -1,3 +1,10 @@
+
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import sys
 
 import click
@@ -9,7 +16,7 @@ from formica import CHANGE_SET_FORMAT
 CHANGE_SET_HEADER = ['Action', 'LogicalId', 'PhysicalId', 'Type', 'Replacement', 'Changed']
 
 
-class ChangeSet:
+class ChangeSet(object):
     def __init__(self, stack, client):
         self.name = CHANGE_SET_FORMAT.format(stack=stack)
         self.stack = stack

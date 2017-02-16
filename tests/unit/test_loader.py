@@ -1,33 +1,40 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+
+from future import standard_library
+
+standard_library.install_aliases()
 import json
 import unittest
-from unittest.mock import patch, mock_open
+from mock import patch, mock_open
 
 from formica import loader
 
 
 def openpatch(string=''):
-    return patch('builtins.open', mock_open(read_data=string))
+    return patch('formica.loader.open', mock_open(read_data=string))
 
 
 @patch('formica.loader.glob')
 class TestLoader(unittest.TestCase):
-
     def setUp(self):
         self.loader = loader.Loader()
 
     def test_load_uses_current_path_as_default(self, glob):
         self.loader.load()
-        glob.glob.assert_called_with(f'./*.fc')
+        glob.glob.assert_called_with('./*.fc')
 
     def test_load_uses_configured_path_and_module(self, glob):
         self.loader.load('/some/path', 'module')
         glob.glob.assert_called_with('/some/path/module.fc')
 
-    @patch('builtins.open', mock_open())
     def test_opens_globbed_files(self, glob):
         glob.glob.return_value = ['some-file']
-        self.loader.load('/some/path', 'module')
-        open.assert_called_with('some-file')
+        with patch('formica.loader.open', mock_open()) as m:
+            self.loader.load('/some/path', 'module')
+        m.assert_called_with('some-file')
 
     @openpatch('resource(s3.Bucket("TestName"))')
     def test_successfully_adds_resources_to_template(self, glob):

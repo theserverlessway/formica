@@ -1,5 +1,13 @@
+
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import range
+from builtins import str
+from future import standard_library
+standard_library.install_aliases()
 import unittest
-from unittest.mock import Mock, patch
+from mock import Mock, patch
 
 from formica.stack_waiter import StackWaiter, EVENT_TABLE_HEADERS
 from tests.unit.constants import STACK, STACK_EVENTS

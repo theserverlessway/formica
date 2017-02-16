@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from future import standard_library
+standard_library.install_aliases()
 import json
 import os
 import unittest
@@ -12,7 +18,7 @@ class TestTemplate(unittest.TestCase):
         runner = CliRunner()
         with runner.isolated_filesystem():
             with open('test.fc', 'w') as f:
-                f.write('resource(s3.Bucket("TestName"))')
+                f.write(u'resource(s3.Bucket("TestName"))')
 
             result = runner.invoke(cli.template)
             self.assertEqual(result.exit_code, 0)
@@ -24,9 +30,9 @@ class TestTemplate(unittest.TestCase):
         with runner.isolated_filesystem():
             os.mkdir('moduledir')
             with open('main.fc', 'w') as f:
-                f.write('module("moduledir")')
+                f.write(u'module("moduledir")')
             with open('moduledir/test.fc', 'w') as f:
-                f.write('resource(s3.Bucket("TestName"))')
+                f.write(u'resource(s3.Bucket("TestName"))')
 
             result = runner.invoke(cli.template)
             expected = {'Resources': {'TestName': {'Type': 'AWS::S3::Bucket'}}}
@@ -37,19 +43,19 @@ class TestTemplate(unittest.TestCase):
         runner = CliRunner()
         with runner.isolated_filesystem():
             with open('main.fc', 'w') as f:
-                f.write('module("moduledir')
+                f.write(u'module("moduledir')
 
             result = runner.invoke(cli.template)
             self.assertEqual(result.exit_code, 1)
-            self.assertIn('main.fc", line 1, char 18', result.output)
-            self.assertIn('SyntaxError: EOL while scanning string literal', result.output)
-            self.assertIn(' ^\n', result.output)
+            self.assertIn('main.fc", line 1, char 1', result.output)
+            self.assertIn(u'SyntaxError: EOL while scanning string literal', result.output)
+            self.assertIn(u' ^\n', result.output)
 
     def test_template_exception_gets_caught(self):
         runner = CliRunner()
         with runner.isolated_filesystem():
             with open('main.fc', 'w') as f:
-                f.write('module("moduledir" + randomvariable)')
+                f.write(u'module("moduledir" + randomvariable)')
 
             result = runner.invoke(cli.template)
             self.assertEqual(result.exit_code, 1)

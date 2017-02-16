@@ -1,3 +1,11 @@
+
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import next
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import sys
 import time
 
@@ -13,7 +21,7 @@ FAILED_STATES = ['CREATE_FAILED', 'DELETE_FAILED', 'ROLLBACK_FAILED', 'ROLLBACK_
                  'UPDATE_ROLLBACK_FAILED', 'UPDATE_ROLLBACK_COMPLETE']
 
 
-class StackWaiter():
+class StackWaiter(object):
     def __init__(self, stack, client):
         self.stack = stack
         self.client = client

@@ -1,3 +1,9 @@
+
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
 from troposphere import apigateway, applicationautoscaling, autoscaling, awslambda, certificatemanager, \
     cloudformation, cloudfront, cloudtrail, cloudwatch, codebuild, codecommit, codedeploy, codepipeline, config, \
     constants, datapipeline, directoryservice, dynamodb, ec2, ecr, ecs, efs, elasticache, elasticbeanstalk, \
