@@ -20,6 +20,8 @@ Alternatively you can clone this repository and run
 python setup.py install
 ```
 
+After installing Formica take a look at the [quick start guide](#quick-start-guide) or the [in-depth documentation](docs#formica-documentation) and [examples](docs#examples)
+
 ## AWS Credentials
 
 Formica supports all the standard AWS credential settings, so you can use profiles through the `--profile` option, provide no specific profile which will use the default profile or set environment variables like **AWS_ACCESS_KEY_ID**. Take a look at the [AWS credentials docs](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html) for more details on how to configure these credentials.
