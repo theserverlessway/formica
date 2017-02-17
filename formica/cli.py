@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
 
-from __future__ import print_function
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from future import standard_library
+
 standard_library.install_aliases()
 import logging
 
@@ -23,8 +25,8 @@ STACK_HEADERS = ['Name', 'Created At', 'Updated At', 'Status']
 
 def aws_options(f):
     f = session_wrapper(f)
-    f = click.option('--region', help='The stack you want to create.')(f)
-    f = click.option('--profile', help='The stack you want to create.')(f)
+    f = click.option('--region', help='The AWS region to use.', metavar='REGION')(f)
+    f = click.option('--profile', help='The AWS profile to use.', metavar='PROFILE')(f)
     return f
 
 
@@ -47,19 +49,22 @@ def csv_option(ctx, param, value):
 
 
 def stack_parameters(f):
-    return click.option('--parameter', help='CloudFormation Stack parameter', multiple=True, callback=equals_option)(f)
+    return click.option('--parameter', help='Add a parameter. Repeat for multiple parameters',
+                        multiple=True, callback=equals_option, metavar='KEY=Value')(f)
 
 
 def stack_tags(f):
-    return click.option('--tag', help='CloudFormation Stack tag', multiple=True, callback=equals_option)(f)
+    return click.option('--tag', help='Add a stack tag. Repeat for multipe tags', multiple=True,
+                        callback=equals_option, metavar='KEY=Value')(f)
 
 
 def capabilities(f):
-    return click.option('--capabilities', help='CloudFormation stack Capabilities', callback=csv_option)(f)
+    return click.option('--capabilities', help='Set one or multiple stack capabilities', callback=csv_option,
+                        metavar='Cap1,Cap2')(f)
 
 
 def stack(message):
-    return click.option('--stack', help=message, required=True)
+    return click.option('--stack', help=message, required=True, metavar='STACK')
 
 
 @click.group()
@@ -150,18 +155,18 @@ def stacks():
 
 
 @main.command()
-@stack('The stack you want to describe the latest change set for')
+@stack('The stack to describe')
 @aws_exceptions
 @aws_options
 def describe(stack):
-    """Describe the latest change set"""
+    """Describe the latest change set of the specified stack"""
     client = AWS.current_session().client('cloudformation')
     change_set = ChangeSet(stack=stack, client=client)
     change_set.describe()
 
 
 @main.command()
-@stack('The stack you want to destroy.')
+@stack('The stack you want to remove.')
 @aws_exceptions
 @aws_options
 def remove(stack):
