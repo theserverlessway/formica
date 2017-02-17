@@ -32,6 +32,8 @@ Our goal is that you should never have to log into the AWS Console to look at yo
 
 ##Quick Start Guide
 
+You can also jump to the [in-depth docs](docs) for more information.
+
 You define your CloudFormation template through `*.fc` files. Those files will be automatically loaded from the current working directory and executed to create your template. They are python files with built-in troposphere support.
 
 In this example we'll create an S3 Bucket and set the bucket name through a parameter. Put the following into a `bucket.fc` file:
