@@ -64,7 +64,8 @@ def capabilities(f):
 
 
 def stack(message):
-    return click.option('--stack', help=message, required=True, metavar='STACK')
+    return click.option('--stack', help=message, required=True, metavar='STACK',
+                        envvar='FORMICA_STACK')
 
 
 @click.group()
