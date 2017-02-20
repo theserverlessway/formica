@@ -27,7 +27,7 @@ class TestLoader(unittest.TestCase):
         glob.glob.assert_called_with('./*.fc')
 
     def test_load_uses_configured_path_and_module(self, glob):
-        self.loader.load('/some/path', 'module')
+        self.loader.load('/some/path', 'module.fc')
         glob.glob.assert_called_with('/some/path/module.fc')
 
     def test_opens_globbed_files(self, glob):
