@@ -13,3 +13,13 @@
 
 
 ## Examples
+
+# Module System
+* [nested and relative modules](examples/nested_relative_module)
+
+# S3
+* [Simple S3 Bucket](examples/s3-bucket)
+* [S3 Bucket that runs Lambda on File upload/remove](examples/s3-lambda)
+
+# Custom Resources
+* [Custom Resource](custom-resource)
