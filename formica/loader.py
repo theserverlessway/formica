@@ -2,11 +2,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-
 from builtins import open
 from builtins import range
 from builtins import str
-
 from future import standard_library
 
 standard_library.install_aliases()
@@ -47,15 +45,20 @@ class Loader(object):
         return self.cftemplate.to_json()
 
     def module(self, module_name, part='*', **variables):
-        filepath = os.path.dirname(inspect.stack()[1][1])
-        self.load(
-            filepath.rstrip('/') +
-            '/' +
-            module_name.strip('/'),
-            part,
-            variables)
+        parent_template = str(os.path.dirname(inspect.stack()[1][1]))
+        part = part.rstrip('.fc') + '.fc'
+        dir_path = parent_template.rstrip('/')
+        module_name = module_name.strip('/')
+        module_path = dir_path + '/' + module_name
+        if not os.path.isdir(module_path):
+            raise ValueError('Module directory "' + module_name + '" does not exist')
+        if part != '*.fc' and not os.path.isfile(module_path + '/' + part):
+            raise ValueError('Module file "' + part + '" in module "' + module_name + '" does not exist')
+        self.load(module_path, part, variables)
 
-    def load(self, path='.', part='*', variables={}):
+    def load(self, path='.', file='*.fc', variables=None):
+        if variables is None:
+            variables = {}
         formica_commands = {
             'resource':
                 lambda resource: self.cftemplate.add_resource(resource),
@@ -77,7 +80,7 @@ class Loader(object):
                 self.cftemplate.add_output(output),
             'module': self.module,
             'name': helper.name}
-        toload = '{}/{}.fc'.format(path, part)
+        toload = '{}/{}'.format(path, file)
         available = {}
         available.update(formica_commands)
         available.update(CLOUDFORMATION_EXPORTS)
