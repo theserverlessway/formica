@@ -117,6 +117,17 @@ root@62d81801cc09:/app/examples/s3-bucket# aws s3 ls
 2017-02-15 11:21:18 formica-example-stack-deploymentbucket-57ouvt2o46yh
 ```
 
+We can also check out all the resources for a specific stack with the resources command: 
+
+```
+root@67c57a89511a:/app/docs/examples/s3-bucket# formica resources --stack formica-example-stack
++------------------+------------------------------------------------------+-----------------+-----------------+
+|    Logical ID    |                     Physical ID                      |      Type       |     Status      |
++==================+======================================================+=================+=================+
+| DeploymentBucket | formica-example-stack-deploymentbucket-57ouvt2o46yh  | AWS::S3::Bucket | CREATE_COMPLETE |
++------------------+------------------------------------------------------+-----------------+-----------------+
+```
+
 If we want to add an additional bucket we can change our `bucket.fc` file to be the following:
 
 ```shell

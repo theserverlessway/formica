@@ -21,6 +21,7 @@ from formica.stack_waiter import StackWaiter
 from .loader import Loader
 
 STACK_HEADERS = ['Name', 'Created At', 'Updated At', 'Status']
+RESOURCE_HEADERS = ['Logical ID', 'Physical ID', 'Type', 'Status']
 
 
 def aws_options(f):
@@ -178,3 +179,27 @@ def remove(stack):
     last_event = client.describe_stack_events(StackName=stack)['StackEvents'][0]['EventId']
     client.delete_stack(StackName=stack)
     StackWaiter(stack_id, client).wait(last_event)
+
+
+@main.command()
+@stack('The stack see the resources for.')
+@aws_exceptions
+@aws_options
+def resources(stack):
+    """List all resources of a stack"""
+    client = AWS.current_session().client('cloudformation')
+    paginator = client.get_paginator('list_stack_resources').paginate(StackName=stack)
+
+    table = Texttable(max_width=150)
+    table.add_rows([RESOURCE_HEADERS])
+
+    for page in paginator:
+        for resource in page['StackResourceSummaries']:
+            table.add_row(
+                [resource['LogicalResourceId'],
+                 resource['PhysicalResourceId'],
+                 resource['ResourceType'],
+                 resource['ResourceStatus']
+                 ])
+
+    click.echo(table.draw() + "\n")

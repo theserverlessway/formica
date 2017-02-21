@@ -10,11 +10,11 @@ from mock import patch
 from botocore.exceptions import ProfileNotFound, NoCredentialsError, NoRegionError, ClientError
 from click.testing import CliRunner
 
-from formica.cli import change, deploy, new, stacks, remove
+from formica.cli import change, deploy, new, stacks, remove, resources
 from formica.helper import aws_exceptions
 from tests.unit.constants import STACK, MESSAGE
 
-METHODS = [change, deploy, new, remove]
+METHODS = [change, deploy, new, remove, resources]
 NO_STACK_METHODS = [stacks]
 
 
