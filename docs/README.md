@@ -6,6 +6,7 @@
   * [describe:](commands/describe.md) Describe the latest change set
   * [new:](commands/new.md) Create a change set for a new stack
   * [remove:](commands/remove.md) Remove the configured stack
+  * [resources:](commands/resources.md) List all resources of a stack
   * [stacks:](commands/stacks.md) List all stacks
   * [template:](commands/template.md) Print the current template
 2. [Template files reference](template-files.md)

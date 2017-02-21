@@ -1,8 +1,9 @@
-
-from __future__ import print_function
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from future import standard_library
+
 standard_library.install_aliases()
 import datetime
 
@@ -24,3 +25,4 @@ DESCRIBE_STACKS = {'Stacks': [{'StackId': 'arn:aws:cloudformation:eu-central-1:4
 MESSAGE = 'TESTMESSAGE'
 EVENT_ID = 'SomeEventID'
 STACK_EVENTS = {'StackEvents': [{'StackId': 'arn:aws:cloudformation:eu-central-1:420759548424:stack/teststack/a29eaa70-e7ab-11e6-aada-503f2ad2e536', 'EventId': '7e7e22e0-ec85-11e6-a72f-50a68a770ce6', 'StackName': 'teststack', 'LogicalResourceId': 'teststack', 'PhysicalResourceId': 'arn:aws:cloudformation:eu-central-1:420759548424:stack/teststack/a29eaa70-e7ab-11e6-aada-503f2ad2e536', 'ResourceType': 'AWS::CloudFormation::Stack', 'Timestamp': datetime.datetime(2017, 2, 6, 16, 1, 17, 611000, tzinfo=tzlocal()), 'ResourceStatus': 'UPDATE_COMPLETE', "ResourceStatusReason": "Resource creation Initiated"}, {'StackId': 'arn:aws:cloudformation:eu-central-1:420759548424:stack/teststack/a29eaa70-e7ab-11e6-aada-503f2ad2e536', 'EventId': 'DeploymentBucket14-bc35d70a-3df5-45d4-afaa-c06b536a50cd', 'StackName': 'teststack', 'LogicalResourceId': 'DeploymentBucket14', 'PhysicalResourceId': 'teststack-deploymentbucket14-1r1yxsi27kclv', 'ResourceType': 'AWS::S3::Bucket', 'Timestamp': datetime.datetime(2017, 2, 6, 16, 1, 16, 976000), 'ResourceStatus': 'DELETE_COMPLETE'}, {'StackId': 'arn:aws:cloudformation:eu-central-1:420759548424:stack/teststack/a29eaa70-e7ab-11e6-aada-503f2ad2e536', 'EventId': 'DeploymentBucket18-f9a5ef79-307a-4919-a293-b74be40e19b2', 'StackName': 'teststack', 'LogicalResourceId': 'DeploymentBucket18', 'PhysicalResourceId': 'teststack-deploymentbucket18-iy7lt61peqvp', 'ResourceType': 'AWS::S3::Bucket', 'Timestamp': datetime.datetime(2017, 2, 6, 16, 1, 16, 868000), 'ResourceStatus': 'DELETE_COMPLETE'}, {'StackId': 'arn:aws:cloudformation:eu-central-1:420759548424:stack/teststack/a29eaa70-e7ab-11e6-aada-503f2ad2e536', 'EventId': 'DeploymentBucket3-7c92066b-c2e7-427a-ab29-53b928925473', 'StackName': 'teststack', 'LogicalResourceId': 'DeploymentBucket3', 'PhysicalResourceId': 'teststack-deploymentbucket3-51e2v1veq7go', 'ResourceType': 'AWS::S3::Bucket', 'Timestamp': datetime.datetime(2017, 2, 6, 16, 1, 16, 852000), 'ResourceStatus': 'DELETE_COMPLETE'}, {'StackId': 'arn:aws:cloudformation:eu-central-1:420759548424:stack/teststack/a29eaa70-e7ab-11e6-aada-503f2ad2e536', 'EventId': 'DeploymentBucket15-4ce4845e-f072-4d69-9aae-d2e8105dc0a8', 'StackName': 'teststack', 'LogicalResourceId': 'DeploymentBucket15', 'PhysicalResourceId': 'teststack-deploymentbucket15-2tdubysims21', 'ResourceType': 'AWS::S3::Bucket', 'Timestamp': datetime.datetime(2017, 2, 6, 16, 1, 16, 712000), 'ResourceStatus': 'DELETE_COMPLETE'}]}  # noqa
+LIST_STACK_RESOURCES = {'ResponseMetadata': {'RetryAttempts': 0, 'HTTPStatusCode': 200, 'RequestId': '516e9109-f819-11e6-816b-69534f0a2126', 'HTTPHeaders': {'x-amzn-requestid': '516e9109-f819-11e6-816b-69534f0a2126', 'vary': 'Accept-Encoding', 'content-length': '2121', 'content-type': 'text/xml', 'date': 'Tue, 21 Feb 2017 09:37:10 GMT'}}, u'StackResourceSummaries': [{u'ResourceType': 'AWS::Route53::HostedZone', u'PhysicalResourceId': 'ZAYGDOKFPYFK6', u'LastUpdatedTimestamp': datetime.datetime(2017, 1, 13, 16, 13, 25, 978000, tzinfo=tzlocal()), u'ResourceStatus': 'CREATE_COMPLETE', u'LogicalResourceId': 'FlomotlikMe'}]}  # noqa
