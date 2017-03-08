@@ -1,14 +1,6 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-from builtins import str
-
-from future import standard_library
-
-standard_library.install_aliases()
 import subprocess
 import uuid
+import json
 
 import pytest
 
@@ -22,14 +14,14 @@ class TestIntegrationBasic():
     def test_integration_basic(self, tmpdir, stack_name):
         def run_formica(*args):
             print(args)
-            result = str(subprocess.check_output([u'formica'] + list(args), cwd=str(tmpdir)))
+            result = str(subprocess.check_output(['formica'] + list(args), cwd=str(tmpdir)))
             print(result)
             return result
 
         # Create a simple FC file and print it to STDOUT
-        f = tmpdir.join("test.fc")
-        f.write(u'resource(s3.Bucket("TestName"))')
-        template = run_formica(u'template')
+        f = tmpdir.join("test.template.json")
+        f.write(json.dumps({'Resources': {'TestName': {'Type': 'AWS::S3::Bucket'}}}))
+        template = run_formica('template')
         assert 'TestName' in template
         assert 'AWS::S3::Bucket' in template
 
@@ -42,7 +34,7 @@ class TestIntegrationBasic():
         # Deploy new Stack
         run_formica('deploy', *stack_args)
 
-        f.write('resource(s3.Bucket("TestNameUpdate"))')
+        f.write(json.dumps({'Resources': {'TestNameUpdate': {'Type': 'AWS::S3::Bucket'}}}))
 
         # Change Resources in existing stack
         change = run_formica('change', *stack_args)

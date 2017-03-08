@@ -4,6 +4,7 @@ autopep8
 coverage
 python-coveralls
 pytest
+path.py
 pytest-cov
 mock
 setuptools
