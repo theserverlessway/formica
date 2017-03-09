@@ -1,7 +1,8 @@
 import json
-import yaml
-import pytest
 import os
+
+import pytest
+import yaml
 from path import Path
 
 from formica.loader import Loader
@@ -87,6 +88,14 @@ def test_supports_jinja_templates(load, tmpdir):
         actual = json.loads(load.template())
     assert actual == {"Description": "Test"}
 
+def test_supports_resouce_command(load, tmpdir):
+    example = '{"Description": "{{ \'ABC%123.\' | resource }}"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "Abc123"}
 
 def test_template_loads_submodules(load, tmpdir):
     example = '{"Description": "{{ \'test\'}}"}'
@@ -129,6 +138,21 @@ def test_template_submodule_loads_variables(load, tmpdir):
     assert actual == {"Description": "Variable"}
 
 
+def test_template_submodule_loads_further_modules(load, tmpdir):
+    example = '{"Description": "Description"}'
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/test.template.json', 'w') as f:
+            f.write(example)
+        with open('moduledir/module.template.json', 'w') as f:
+            f.write(json.dumps({'Modules': [{'path': '.', 'template': 'test'}]}))
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Modules': [{'path': 'moduledir', 'template': 'module'}]}))
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "Description"}
+
+
 def test_template_fails_with_nonexistent_module(load, tmpdir):
     with Path(tmpdir):
         with open('test.template.json', 'w') as f:
@@ -148,6 +172,14 @@ def test_template_fails_with_nonexistent_module_file(load, tmpdir):
 
 def test_template_syntax_exception_gets_caught(load, tmpdir):
     example = '{"Description": "{{ test }"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with pytest.raises(SystemExit):
+            load.load()
+
+def test_mandatory_filter_throws_exception(load, tmpdir):
+    example = '{"Description": "{{ test | mandatory }}"}'
     with Path(tmpdir):
         with open('test.template.json', 'w') as f:
             f.write(example)

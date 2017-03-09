@@ -1,11 +1,14 @@
-import click
 import glob
 import json
 import os
 import sys
+
+import click
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateSyntaxError
+
+from .exceptions import FormicaArgumentException
 
 LINE_WHITESPACE_OFFSET = '  |'
 
@@ -38,6 +41,19 @@ def code_escape(source):
     return '"' + source.replace('\n', '\\n').replace('"', '\\"') + '"'
 
 
+def mandatory(a):
+    from jinja2.runtime import Undefined
+
+    if isinstance(a, Undefined):
+        raise FormicaArgumentException('Mandatory variable not set.')
+    return a
+
+
+def resource(name):
+    name = ''.join(e for e in name.title() if e.isalnum())
+    return name
+
+
 class Loader(object):
     def __init__(self):
         self.cftemplate = {}
@@ -50,6 +66,8 @@ class Loader(object):
             variables = {}
         env = Environment()
         env.filters['code_escape'] = code_escape
+        env.filters['mandatory'] = mandatory
+        env.filters['resource'] = resource
         env.loader = FileSystemLoader(path)
 
         def include_file(filename):
@@ -62,7 +80,7 @@ class Loader(object):
             files.extend(glob.glob('{}/{}.template.{}'.format(path, file, file_type)))
 
         if not files:
-            print("Could not find any template files in {}".format(path))
+            click.echo("Could not find any template files in {}".format(path))
             sys.exit(1)
 
         for file in files:
@@ -73,6 +91,12 @@ class Loader(object):
                 click.echo(
                     'File: "' + e.filename + '", line ' + str(e.lineno))
                 click.echo(LINE_WHITESPACE_OFFSET + e.source.rstrip('\n'))
+                sys.exit(1)
+            except FormicaArgumentException as e:
+                click.echo(e.__class__.__name__ + ': ' + e.args[0])
+                click.echo(
+                    'For Template: "' + file + '"')
+                click.echo('If you use it as a template make sure you\'re setting all necessary vars')
                 sys.exit(1)
             if file.endswith(tuple(YAML_FILE_TYPES)):
                 template = yaml.load(result)
@@ -96,8 +120,8 @@ class Loader(object):
                             vars = module.get('vars', {})
                             self.load(path + '/' + module_path, file_name, vars)
                     else:
-                        print("Key '{}' in file {} is not valid".format(key, file))
+                        click.echo("Key '{}' in file {} is not valid".format(key, file))
                         sys.exit(1)
                 else:
-                    print("Key '{}' in file {} is not valid".format(key, file))
+                    click.echo("Key '{}' in file {} is not valid".format(key, file))
                     sys.exit(1)
