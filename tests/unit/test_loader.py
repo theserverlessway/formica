@@ -88,6 +88,7 @@ def test_supports_jinja_templates(load, tmpdir):
         actual = json.loads(load.template())
     assert actual == {"Description": "Test"}
 
+
 def test_supports_resouce_command(load, tmpdir):
     example = '{"Description": "{{ \'ABC%123.\' | resource }}"}'
     with Path(tmpdir):
@@ -96,6 +97,7 @@ def test_supports_resouce_command(load, tmpdir):
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "Abc123"}
+
 
 def test_template_loads_submodules(load, tmpdir):
     example = '{"Description": "{{ \'test\'}}"}'
@@ -177,6 +179,7 @@ def test_template_syntax_exception_gets_caught(load, tmpdir):
             f.write(example)
         with pytest.raises(SystemExit):
             load.load()
+
 
 def test_mandatory_filter_throws_exception(load, tmpdir):
     example = '{"Description": "{{ test | mandatory }}"}'
