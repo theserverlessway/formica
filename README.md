@@ -4,7 +4,10 @@
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)
 [![Coverage Status](https://coveralls.io/repos/github/flomotlik/formica/badge.svg?branch=master)](https://coveralls.io/github/flomotlik/formica?branch=master)
 
-Formica makes it easy to create and deploy CloudFormation stacks. It is built on top of [Troposphere](https://github.com/cloudtools/troposphere) and has built-in modularity so you can reuse CloudFormation stack components.
+Formica makes it easy to create and deploy CloudFormation stacks. It uses CloudFormation syntax with yaml and json support to make it easy to start from an existing Staack. It also has built-in modularity so you can reuse and share CloudFormation stack components easily.
+
+For dynamic elements in your templates Formica supports [jinja2](http://jinja.pocoo.org/docs/2.9/templates/) as a templating
+engine. Jinja2 is widely used, for example in ansible configuration files.
 
 ## Installation
 
@@ -36,13 +39,15 @@ Our goal is that you should never have to log into the AWS Console to look at yo
 
 You can also jump to the [in-depth docs](docs) for more information.
 
-You define your CloudFormation template through `*.fc` files. Those files will be automatically loaded from the current working directory and executed to create your template. They are python files with built-in troposphere support.
+You define your CloudFormation template through `*.template.(json/yaml/yml)` files. Those files will be automatically loaded from the current working directory and executed to create your template.
 
-In this example we'll create an S3 Bucket and set the bucket name through a parameter. Put the following into a `bucket.fc` file:
+In this example we'll create an S3 Bucket. We use jinja templating to set a variable and use it for the bucket logical name. Put the following into a `bucket.template.yml` file:
 
-```python
-resource(s3.Bucket('DeploymentBucket'))
-
+```yaml
+{% set bucket = "DeploymentBucket" %}
+Resources:
+  {{ bucket }}:
+    Type: "AWS::S3::Bucket"
 ```
 
 In the same folder run `formica template` which should show you the following template:
@@ -128,11 +133,30 @@ root@67c57a89511a:/app/docs/examples/s3-bucket# formica resources --stack formic
 +------------------+------------------------------------------------------+-----------------+-----------------+
 ```
 
-If we want to add an additional bucket we can change our `bucket.fc` file to be the following:
+If we want to add an additional bucket we can change add a second file `bucket2.template.json` file with the following content:
 
-```shell
-resource(s3.Bucket('DeploymentBucket'))
-resource(s3.Bucket('DeploymentBucket2'))
+```json
+{"Resources": {
+  "DeploymentBucket2": {
+    "Type": "AWS::S3::Bucket"
+    }
+  }
+}
+```
+
+Running `formica template` again will now result in both files being picked up and merged:
+
+```json
+{
+    "Resources": {
+        "DeploymentBucket": {
+            "Type": "AWS::S3::Bucket"
+        },
+        "DeploymentBucket2": {
+            "Type": "AWS::S3::Bucket"
+        }
+    }
+}
 ```
 
 and then run the change and deploy commands:

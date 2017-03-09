@@ -2,42 +2,80 @@
 
 One of the core features of Formica is its module system. The goal is to make reusing existing CloudFormation components easy.
 
-Modules are simply subfolders in the current directory. You can then either include all `*.fc` files in that subfolder or include specific `*.fc` files. All resources in the files you include will be automatically added to the template.
+Modules are simply subfolders in the current directory. You can then either include all `template` files in that subfolder or include specific `template` files. All resources in the files you include will be automatically added to the template.
 
-Example for including all `*.fc` files in a subfolder:
+To load modules simply add a `Modules` config to your existing `template` files.
 
-```python
-module('bucket')
+Example for including all `template` files in a subfolder:
+
+```yaml
+Modules:
+  - path: moduledirectory
 ```
 
-Example of including a specific `*.fc` file. You don't have to add the `.fc` extension:
-
-```python
-module('dns', 'cname')
+```json
+{
+	"Modules": [
+		{
+			"path": "moduledirectory"
+		}
+	]
+}
 ```
 
-You can check out the [formica-modules](https://github.com/flomotlik/formica-modules) repository for official modules. 
+Example of including a specific `template` file. Only add the part before `.template.(yaml|yml|json)`, so if you
+have a file `something.template.json` in a subfolder you just set the template to `something`. If you have multiple
+files that start with the template name, but have different extensions (e.g. `something.template.yaml` and `something.template.json`)
+all of them will be loaded.
+
+Following is an example in yaml and json:
+
+```yaml
+Modules:
+  - path: moduledirectory
+    template: sometemplate
+```
+
+```json
+{
+	"Modules": [
+		{
+			"path": "moduledirectory",
+			"template": "sometemplate"			
+		}
+	]
+}
+```
+
+You can check out the [formica-modules](https://github.com/flomotlik/formica-modules) repository for official modules.
 
 ## Variables
 
 You can also pass variables to the modules. In the following example we're creating a Route53 HostedZone for a domain and pass the domain, target and HostedZone to a the CName file in a DNS module.
 
-```python
-domain = 'cname.somedomain.me'
-hostedZone = resource(route53.HostedZone(name(domain), Name=domain))
-module('dns', 'cname', source=domain, target='somewhere.else.me', hostedZone=hostedZone)
+```yaml
+Modules:
+  - path: dns
+    template: cname
+    vars:
+      source: flomotlik.me
+      target: somewhere.else.me
+      hostedZone: FloMotlikHostedZone
 ```
 
 In the module you can then use the variable:
 
-```python
-resource(route53.RecordSetType(
-    name(source, "CNameRecord"), # using the built-in name function for filter unallowed characters
-    Name= source,
-    Type= 'CNAME',
-    HostedZoneId= Ref(hostedZone),
-    ResourceRecords= [target],
-    TTL= 43200))
+```yaml
+{{ source }}RecordSet:
+  Type: AWS::Route53::RecordSet
+  Properties:
+    HostedZoneName: 
+      Ref: {{ hostedZone }}
+    Name: {{ source }}
+    Type: CNAME
+    TTL: '43200'
+    ResourceRecords:
+      - {{ target }}
 ```
 
 ## How to get modules
