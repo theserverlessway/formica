@@ -1,100 +1,222 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-
-from future import standard_library
-
-standard_library.install_aliases()
 import json
-import unittest
-from mock import patch, mock_open
+import os
 
-from formica import loader
+import pytest
+import yaml
+from path import Path
+
+from formica.loader import Loader
 
 
-def openpatch(string=''):
-    return patch('formica.loader.open', mock_open(read_data=string))
+@pytest.fixture()
+def load():
+    return Loader()
 
 
-@patch('formica.loader.glob')
-class TestLoader(unittest.TestCase):
-    def setUp(self):
-        self.loader = loader.Loader()
+def write_and_test(example, load, tmpdir):
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps(example))
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == example
 
-    def test_load_uses_current_path_as_default(self, glob):
-        self.loader.load()
-        glob.glob.assert_called_with('./*.fc')
 
-    def test_load_uses_configured_path_and_module(self, glob):
-        self.loader.load('/some/path', 'module.fc')
-        glob.glob.assert_called_with('/some/path/module.fc')
+def test_supported_formats(load, tmpdir):
+    json_example = {'Resources': {'TestJson': {'Type': 'AWS::S3::Bucket'}}}
+    yaml_example = {'Resources': {'TestYaml': {'Type': 'AWS::S3::Bucket'}}}
+    yml_example = {'Resources': {'TestYml': {'Type': 'AWS::S3::Bucket'}}}
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps(json_example))
+        with open('test.template.yaml', 'w') as f:
+            f.write(yaml.dump(yaml_example))
+        with open('test.template.yml', 'w') as f:
+            f.write(yaml.dump(yml_example))
+        load.load()
+        actual = json.loads(load.template())
+    result = {'Resources': {'TestJson': {'Type': 'AWS::S3::Bucket'}, 'TestYaml': {'Type': 'AWS::S3::Bucket'},
+                            'TestYml': {'Type': 'AWS::S3::Bucket'}}}
+    assert actual == result
 
-    def test_opens_globbed_files(self, glob):
-        glob.glob.return_value = ['some-file']
-        with patch('formica.loader.open', mock_open()) as m:
-            self.loader.load('/some/path', 'module')
-        m.assert_called_with('some-file')
 
-    @openpatch('resource(s3.Bucket("TestName"))')
-    def test_successfully_adds_resources_to_template(self, glob):
-        glob.glob.return_value = ['some-file']
-        self.loader.load('/some/path', 'module')
-        expected = {'Resources': {'TestName': {'Type': 'AWS::S3::Bucket'}}}
-        actual = json.loads(self.loader.template())
-        self.assertEqual(actual, expected)
+def test_successfully_adds_resources_to_template(load, tmpdir):
+    example = {'Resources': {'TestName': {'Type': 'AWS::S3::Bucket'}}}
+    write_and_test(example, load, tmpdir)
 
-    @openpatch('description("TestDescription")')
-    def test_successfully_adds_description_to_template(self, glob):
-        glob.glob.return_value = ['some-file']
-        self.loader.load('/some/path', 'module')
-        expected = {'Description': 'TestDescription', 'Resources': {}}
-        actual = json.loads(self.loader.template())
-        self.assertEqual(actual, expected)
 
-    @openpatch('metadata({"key": "value", "key2": "value2"})')
-    def test_successfully_adds_metadata_to_template(self, glob):
-        glob.glob.return_value = ['some-file']
-        self.loader.load('/some/path', 'module')
-        expected = {
-            'Metadata': {
-                'key': 'value',
-                'key2': 'value2'},
-            'Resources': {}}
-        actual = json.loads(self.loader.template())
-        self.assertEqual(actual, expected)
+def test_successfully_adds_description_to_template(load, tmpdir):
+    example = {'Description': 'TestDescription'}
+    write_and_test(example, load, tmpdir)
 
-    @openpatch('condition("Condition1", Equals(Ref("EnvType"), "prod"))')
-    def test_successfully_adds_condition_to_template(self, glob):
-        glob.glob.return_value = ['some-file']
-        self.loader.load('/some/path', 'module')
-        expected = {'Conditions': {'Condition1': {'Fn::Equals': [{'Ref': 'EnvType'}, 'prod']}}, 'Resources': {}}
-        actual = json.loads(self.loader.template())
-        self.assertEqual(actual, expected)
 
-    @openpatch('mapping("RegionMap", {"us-east-1": {"AMI": "ami-7f418316"}})')
-    def test_successfully_adds_mapping_to_template(self, glob):
-        glob.glob.return_value = ['some-file']
-        self.loader.load('/some/path', 'module')
-        expected = {'Mappings': {'RegionMap': {
-            'us-east-1': {"AMI": "ami-7f418316"}}}, 'Resources': {}}
-        actual = json.loads(self.loader.template())
-        self.assertEqual(actual, expected)
+def test_successfully_adds_metadata_to_template(load, tmpdir):
+    example = {
+        'Metadata': {
+            'key': 'value',
+            'key2': 'value2'}}
+    write_and_test(example, load, tmpdir)
 
-    @openpatch('parameter(Parameter("param", Type="String"))')
-    def test_successfully_adds_parameter_to_template(self, glob):
-        glob.glob.return_value = ['some-file']
-        self.loader.load('/some/path', 'module')
-        expected = {'Parameters': {'param': {'Type': 'String'}},
-                    'Resources': {}}
-        actual = json.loads(self.loader.template())
-        self.assertEqual(actual, expected)
 
-    @openpatch('output(Output("Output", Value="value"))')
-    def test_successfully_adds_output_to_template(self, glob):
-        glob.glob.return_value = ['some-file']
-        self.loader.load('/some/path', 'module')
-        expected = {'Outputs': {'Output': {'Value': 'value'}},
-                    'Resources': {}}
-        actual = json.loads(self.loader.template())
-        self.assertEqual(actual, expected)
+def test_successfully_adds_condition_to_template(load, tmpdir):
+    example = {'Conditions': {'Condition1': {'Fn::Equals': [{'Ref': 'EnvType'}, 'prod']}}}
+    write_and_test(example, load, tmpdir)
+
+
+def test_successfully_adds_mapping_to_template(load, tmpdir):
+    example = {'Mappings': {'RegionMap': {
+        'us-east-1': {"AMI": "ami-7f418316"}}}}
+    write_and_test(example, load, tmpdir)
+
+
+def test_successfully_adds_parameter_to_template(load, tmpdir):
+    example = {'Parameters': {'param': {'Type': 'String'}}}
+    write_and_test(example, load, tmpdir)
+
+
+def test_successfully_adds_output_to_template(load, tmpdir):
+    example = {'Outputs': {'Output': {'Value': 'value'}}}
+    write_and_test(example, load, tmpdir)
+
+
+def test_supports_jinja_templates(load, tmpdir):
+    example = '{"Description": "{{ \'test\' | title }}"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "Test"}
+
+
+def test_supports_resouce_command(load, tmpdir):
+    example = '{"Description": "{{ \'ABC%123.\' | resource }}"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "Abc123"}
+
+
+def test_template_loads_submodules(load, tmpdir):
+    example = '{"Description": "{{ \'test\'}}"}'
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Modules': [{'path': 'moduledir'}]}))
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "test"}
+
+
+def test_template_loads_submodules_with_specific_file(load, tmpdir):
+    example = '{"Description": "{{ \'test\'}}"}'
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/test.template.json', 'w') as f:
+            f.write(example)
+        with open('moduledir/test2.template.yml', 'w') as f:
+            f.write('Sometestthing: does not fail')
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Modules': [{'path': 'moduledir', 'template': 'test'}]}))
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "test"}
+
+
+def test_template_submodule_loads_variables(load, tmpdir):
+    example = '{"Description": "{{ test }}"}'
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Modules': [{'path': 'moduledir', 'vars': {'test': 'Variable'}}]}))
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "Variable"}
+
+
+def test_template_submodule_loads_further_modules(load, tmpdir):
+    example = '{"Description": "Description"}'
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/test.template.json', 'w') as f:
+            f.write(example)
+        with open('moduledir/module.template.json', 'w') as f:
+            f.write(json.dumps({'Modules': [{'path': '.', 'template': 'test'}]}))
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Modules': [{'path': 'moduledir', 'template': 'module'}]}))
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "Description"}
+
+
+def test_template_fails_with_nonexistent_module(load, tmpdir):
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Modules': [{'path': 'moduledir'}]}))
+        with pytest.raises(SystemExit):
+            load.load()
+
+
+def test_template_fails_with_nonexistent_module_file(load, tmpdir):
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Modules': [{'path': 'moduledir'}]}))
+        with pytest.raises(SystemExit):
+            load.load()
+
+
+def test_template_syntax_exception_gets_caught(load, tmpdir):
+    example = '{"Description": "{{ test }"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with pytest.raises(SystemExit):
+            load.load()
+
+
+def test_mandatory_filter_throws_exception(load, tmpdir):
+    example = '{"Description": "{{ test | mandatory }}"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with pytest.raises(SystemExit):
+            load.load()
+
+
+def test_wrong_key_throws_exception(load, tmpdir):
+    example = '{"SomeKey": "test"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with pytest.raises(SystemExit):
+            load.load()
+
+
+def test_mandatory_filter_passes_through_text(load, tmpdir):
+    example = '{"Description": "{{ "test" | mandatory }}"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "test"}
+
+
+def test_code_includes_and_escapes_code(load, tmpdir):
+    example = '{"Description": "{{ code("test.py") }}"}'
+    pycode = "test\n\"something\""
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.py', 'w') as f:
+            f.write(pycode)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "test\n\"something\""}

@@ -1,0 +1,17 @@
+Resources:
+  TestBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      NotificationConfiguration:
+        LambdaConfigurations:
+        - Event: s3:ObjectCreated:*
+          Function:
+            Fn::GetAtt:
+            - TestFunction
+            - Arn
+        - Event: s3:ObjectRemoved:*
+          Function:
+            Fn::GetAtt:
+            - TestFunction
+            - Arn
+

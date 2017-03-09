@@ -1,107 +1,163 @@
 ## Template file reference
 
-Formica template files are simple python files with an `*.fc` extension. This means you can write any python code inside of the template files, but should be cautios.
+All templates in formica are defined in CloudFormation template files. The files have to follow the naming convention
+of `*.template.(json|yaml|yml)`. This means we support your template files in either json or yaml/yml. Any existing
+CloudFormation template is valid in Formica, so you can easily import an existing stack.
+
+When formica is started it will load all `*.template.(json|yaml|yml)` files from the current directory and merge
+them into one CloudFormation stack. This makes your CloudFormation stack more modular and helps you to keep an overview. 
+[`formica template`](commands/template.md) can be used to print that template to the console.
+
+To be able to change files dynamically we use [Jinja2](http://jinja.pocoo.org/docs/2.9/templates/), a widely used templating
+engine. It allows you to iterate over values, define variables or use filters to change text, e.g. when a value has to 
+be alphanumeric and you want to strip special characters.
 
 ## Available AWS Resources
 
-Formica uses [Troposphere](https://github.com/cloudtools/troposphere) to compile `*.fc` files into CloudFormation templates.
+As Formica uses the official CloudFormation syntax directly all CloudFormation resources or options are supported.
 
-All Troposphere modules that implement different AWS services are available in your template files without you having to import them specifically. For example you can use the following to create an S3 bucket that hosts static pages:
+In the following example we're creating an S3 bucket that can be used for hosting static pages.
 
-```python
-resource(s3.Bucket(
-    name(domain, 'Bucket'),
-    BucketName= domain,
-    AccessControl= s3.PublicRead,
-    WebsiteConfiguration= s3.WebsiteConfiguration(
-        IndexDocument='index.html'
-    )
-))
+```yaml
+Resources:
+  WebBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: flomotlik.me
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
 ```
 
-As you can see in this examples we have to prepend `s3.` for the different classes here. Formica only makes the modules directly available but not their respective classes because that might lead to clashes between different modules, e.g. different modules implement a `Tag` class.
+## Additional template functions
 
-To see all the different modules and classes available in troposphere check out [their modules](https://github.com/cloudtools/troposphere/tree/master/troposphere).
+The following functions can be used in your templates:
 
-## Built-in functions
+### resource
 
-The following functions follow the [CloudFormation template anatomy docs](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-anatomy.html) to give you access to all the different parts of a template.
+This function will remove any non-alphanumeric characters and convert the first character to uppercase. This is
+especially helpful when you want to set logicalIds in your template from a variable:
 
-### name
-
-The name function joins together all arguments and replaces any special characters. This is helpful for creating the resource LogicalId 
-
-```python
-variable = 'some.bucket'
-resource(s3.Bucket(
-    name(variable, 'Bucket')
-))
+```yaml
+{% set domain = 'flomotlik.me' %}
+Resources:
+  {{ domain | resource }}:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: {{ domain }}
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
 ```
 
 will result in
 
-```shell
+```json
 {
     "Resources": {
-        "SomeBucketBucket": {
+        "FlomotlikMe": {
+            "Properties": {
+                "AccessControl": "PublicRead",
+                "BucketName": "flomotlik.me",
+                "WebsiteConfiguration": {
+                    "IndexDocument": "index.html"
+                }
+            },
             "Type": "AWS::S3::Bucket"
         }
     }
 }
 ```
 
-### resource
+### mandatory
 
-Add a Resource to the template:
+Set a variable to mandatory so if its not set the template building will fail. This is especially important
+when writing a module that expects variables:
 
-```python
-resource(s3.Bucket("TestName"))
+```yaml
+Resources:
+  {{ domain | mandatory | resource }}:
+    Type: "AWS::S3::Bucket"
 ```
 
-### description
-
-Set the description of the template:
-
-```python
-description("TestDescription")
+```shell
+root@62d81801cc09:/app/examples/s3-bucket# formica template
+FormicaArgumentException: Mandatory variable not set.
+For Template: "./example.template.yml"
+If you use it as a template make sure you're setting all necessary vars
 ```
 
-### mapping
+### code
 
-Add a mapping to the template
+Import code from a file and escape newlines and apostrophes. It will load the file from the same folder that
+your template is in. You can even use the templating syntax inside of that included file.
 
-```python
-mapping("RegionMap", {"us-east-1": {"AMI": "ami-7f418316"}})
+In the following example we create a LambdaFunction and want to inline the code. This is great for simple functions
+as you're able to test your code as a standard python file, but can include it directly into the CloudFormation template.
+
+```yaml
+Resources:
+  LambdaTestFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Handler: "index.handler"
+      Role:
+        Fn::GetAtt:
+          - "LambdaExecutionRole"
+          - "Arn"
+      Code:
+        Zipfile: {{ code('code.py') }}
+      Runtime: "python2.7"
 ```
 
-## parameter
-
-Add a parameter to the template
-
 ```python
-parameter(Parameter("param", Type="String"))
+def handler(event, context):
+    print(event)
+    return event
 ```
 
-## output
+Running `formica template` in the same directory will result in the following CloudFormation template:
 
-Add an Output to the template
-
-```python
-output(Output("Output", Value="value"))
+```json
+{
+    "Resources": {
+        "LambdaTestFunction": {
+            "Properties": {
+                "Code": {
+                    "Zipfile": "def handler(event, context):\n    print(event)\n    return event\n"
+                },
+                "Handler": "index.handler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaExecutionRole",
+                        "Arn"
+                    ]
+                },
+                "Runtime": "python2.7"
+            },
+            "Type": "AWS::Lambda::Function"
+        }
+    }
+}
 ```
 
-## condition
+### code_escape
 
-Add a condition to the template
+In case you want to pass code around in variables it can be helpful to use code_escape to make sure newlines
+and apostrophes are properly escaped so you can inline any kind of files:
 
-```python
-condition("Condition1", Equals(Ref("EnvType"), "prod"))
-```
 
-## metadata
-
-Add metadata to the template
-
-```python
-metadata({"key": "value", "key2": "value2"})
+```yaml
+Resources:
+  LambdaTestFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Handler: "index.handler"
+      Role:
+        Fn::GetAtt:
+          - "LambdaExecutionRole"
+          - "Arn"
+      Code:
+        Zipfile: {{ code | code_escape }}
+      Runtime: "python2.7"
 ```

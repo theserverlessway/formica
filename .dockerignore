@@ -1,0 +1,7 @@
+tests
+.cache
+.git
+.formica_cli.egg-info
+scripts
+tmp
+docs

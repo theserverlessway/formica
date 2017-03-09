@@ -1,0 +1,2 @@
+class FormicaArgumentException(Exception):
+    pass

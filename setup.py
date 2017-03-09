@@ -38,8 +38,7 @@ setup(
     ],
     keywords='cloudformation, aws, cloud',
     packages=['formica'],
-    install_requires=['troposphere==1.9.2', 'boto3==1.4.4', 'click==6.7', 'texttable==0.8.7', 'awacs==0.6.1',
-                      'future==0.16.0'],
+    install_requires=['boto3==1.4.4', 'click==6.7', 'texttable==0.8.7', 'jinja2==2.9.5', 'pyyaml'],
     entry_points={
         'console_scripts': [
             'formica=formica.cli:main',
