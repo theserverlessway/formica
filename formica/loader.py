@@ -38,7 +38,7 @@ ALLOWED_ATTRIBUTES = {
 
 
 def code_escape(source):
-    return '"' + source.replace('\n', '\\n').replace('"', '\\"') + '"'
+    return source.replace('\n', '\\n').replace('"', '\\"')
 
 
 def mandatory(a):

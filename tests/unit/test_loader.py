@@ -188,3 +188,35 @@ def test_mandatory_filter_throws_exception(load, tmpdir):
             f.write(example)
         with pytest.raises(SystemExit):
             load.load()
+
+
+def test_wrong_key_throws_exception(load, tmpdir):
+    example = '{"SomeKey": "test"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with pytest.raises(SystemExit):
+            load.load()
+
+
+def test_mandatory_filter_passes_through_text(load, tmpdir):
+    example = '{"Description": "{{ "test" | mandatory }}"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "test"}
+
+
+def test_code_includes_and_escapes_code(load, tmpdir):
+    example = '{"Description": "{{ code("test.py") }}"}'
+    pycode = "test\n\"something\""
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.py', 'w') as f:
+            f.write(pycode)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "test\n\"something\""}
