@@ -23,4 +23,4 @@
 * [S3 Bucket that runs Lambda on File upload/remove](examples/s3-lambda)
 
 # Custom Resources
-* [Custom Resource](custom-resource)
+* [Custom Resource](examples/custom-resource)
