@@ -1,7 +1,9 @@
 version: '2'
 services:
   formica:
-    build: .
+    build:
+      dockerfile: Dockerfile.dev
+      context: .
     volumes:
       - .:/app
       - ~/.aws/:/root/.aws
