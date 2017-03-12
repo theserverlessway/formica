@@ -1,0 +1,15 @@
+Resources:
+  MyStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      DefinitionString:
+        Fn::Sub:
+          -  "{{ code('state-machine.json') }}"
+          - lambda:
+              Fn::GetAtt:
+                - StepFunctionLambdaFunction
+                - Arn
+      RoleArn:
+        Fn::GetAtt:
+          - StepFunctionExecutionRole
+          - Arn

@@ -1,0 +1,18 @@
+{% set num = 10%}
+{
+  "StartAt": "Hello0",
+  "States": {
+  {% for i in range(num) %}
+    "Hello{{ i }}": {
+      "Type": "Task",
+      "Resource": "${lambda}",
+      "Next": "Hello{{i+1}}"
+    },
+  {% endfor %}
+    "Hello{{num}}": {
+      "Type": "Task",
+      "Resource": "${lambda}",
+      "End": true
+    }
+  }
+}
