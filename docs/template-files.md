@@ -90,10 +90,15 @@ If you use it as a template make sure you're setting all necessary vars
 ### code
 
 Import code from a file and escape newlines and apostrophes. It will load the file from the same folder that
-your template is in. You can even use the templating syntax inside of that included file.
+your template is in. You can even use the templating syntax inside of that included file, including the code command
+described here.
 
 In the following example we create a LambdaFunction and want to inline the code. This is great for simple functions
 as you're able to test your code as a standard python file, but can include it directly into the CloudFormation template.
+
+If you use yaml make sure to add apostrophes around the `{{ code('something.file) }}` call, otherwise escaped newlines
+might be escaped or treated differently by the yaml parser. You can see the right way to do this in the following example
+as well.
 
 ```yaml
 Resources:
@@ -106,7 +111,7 @@ Resources:
           - "LambdaExecutionRole"
           - "Arn"
       Code:
-        Zipfile: {{ code('code.py') }}
+        Zipfile: "{{ code('code.py') }}"
       Runtime: "python2.7"
 ```
 
