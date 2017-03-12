@@ -220,3 +220,32 @@ def test_code_includes_and_escapes_code(load, tmpdir):
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "test\n\"something\""}
+
+
+def test_code_includes_additional_variables(load, tmpdir):
+    example = '{"Description": "{{ code("test.py", testvar=\'teststring\') }}"}'
+    pycode = "test\n{{testvar}}"
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.py', 'w') as f:
+            f.write(pycode)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "test\nteststring"}
+
+
+def test_code_includes_supports_nested_code_arguments(load, tmpdir):
+    example = '{% set nested_var = "nested" %}{"Description": "{{ code("test.one", nested_var=nested_var) }}"}'
+    one = '{{ code("test.two", nested_var=nested_var) }}'
+    two = '{{ nested_var }}-test'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.one', 'w') as f:
+            f.write(one)
+        with open('test.two', 'w') as f:
+            f.write(two)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "nested-test"}

@@ -55,37 +55,71 @@ def resource(name):
 
 
 class Loader(object):
-    def __init__(self):
+    def __init__(self, path='.', file='*', variables=None):
+        if variables is None:
+            variables = {}
         self.cftemplate = {}
+        self.path = path
+        self.file = file
+        self.env = Environment(loader=FileSystemLoader(path))
+        self.env.filters.update({
+            'code_escape': code_escape,
+            'mandatory': mandatory,
+            'resource': resource
+        })
+        self.variables = variables
+
+    def include_file(self, filename, **args):
+        source = self.render(filename, **args)
+        value = code_escape(source)
+        return value
+
+    def render(self, filename, **args):
+        return self.env.get_template(filename).render(code=self.include_file, **args)
 
     def template(self, indent=4, sort_keys=True, separators=(',', ': ')):
         return json.dumps(self.cftemplate, indent=indent, sort_keys=sort_keys, separators=separators)
 
-    def load(self, path='.', file='*', variables=None):
-        if not variables:
-            variables = {}
-        env = Environment()
-        env.filters['code_escape'] = code_escape
-        env.filters['mandatory'] = mandatory
-        env.filters['resource'] = resource
-        env.loader = FileSystemLoader(path)
+    def template_dictionary(self):
+        return self.cftemplate
 
-        def include_file(filename):
-            source = env.loader.get_source(env, filename)[0]
-            return code_escape(source)
+    def merge(self, template, file):
+        for key in template.keys():
+            new = template[key]
+            if key in ALLOWED_ATTRIBUTES.keys() and isinstance(new, ALLOWED_ATTRIBUTES[key]):
+                if ALLOWED_ATTRIBUTES[key] == basestring:
+                    self.cftemplate[key] = new
+                elif ALLOWED_ATTRIBUTES[key] == dict:
+                    for element in template[key].keys():
+                        self.cftemplate.setdefault(key, {})[element] = template[key][element]
+                elif key == MODULES_ATTRIBUTE and ALLOWED_ATTRIBUTES[key] == list:
+                    for module in template[key]:
+                        module_path = module.get('path')
+                        file_name = module.get('template', '*')
+                        vars = module.get('vars', {})
+                        loader = Loader(self.path + '/' + module_path, file_name, vars)
+                        loader.load()
+                        self.merge(loader.template_dictionary(), file=file_name)
+                else:
+                    click.echo("Key '{}' in file {} is not valid".format(key, file))
+                    sys.exit(1)
+            else:
+                click.echo("Key '{}' in file {} is not valid".format(key, file))
+                sys.exit(1)
 
+    def load(self):
         files = []
 
         for file_type in FILE_TYPES:
-            files.extend(glob.glob('{}/{}.template.{}'.format(path, file, file_type)))
+            files.extend(glob.glob('{}/{}.template.{}'.format(self.path, self.file, file_type)))
 
         if not files:
-            click.echo("Could not find any template files in {}".format(path))
+            click.echo("Could not find any template files in {}".format(self.path))
             sys.exit(1)
 
         for file in files:
             try:
-                result = str(env.get_template(os.path.basename(file)).render(code=include_file, **variables))
+                result = str(self.render(os.path.basename(file), **self.variables))
             except TemplateSyntaxError as e:
                 click.echo(e.__class__.__name__ + ': ' + e.message)
                 click.echo(
@@ -104,24 +138,4 @@ class Loader(object):
                 template = json.loads(result)
             else:
                 template = {}
-
-            for key in template.keys():
-                new = template[key]
-                if key in ALLOWED_ATTRIBUTES.keys() and isinstance(new, ALLOWED_ATTRIBUTES[key]):
-                    if ALLOWED_ATTRIBUTES[key] == basestring:
-                        self.cftemplate[key] = new
-                    elif ALLOWED_ATTRIBUTES[key] == dict:
-                        for element in template[key].keys():
-                            self.cftemplate.setdefault(key, {})[element] = template[key][element]
-                    elif key == MODULES_ATTRIBUTE and ALLOWED_ATTRIBUTES[key] == list:
-                        for module in template[key]:
-                            module_path = module.get('path')
-                            file_name = module.get('template', '*')
-                            vars = module.get('vars', {})
-                            self.load(path + '/' + module_path, file_name, vars)
-                    else:
-                        click.echo("Key '{}' in file {} is not valid".format(key, file))
-                        sys.exit(1)
-                else:
-                    click.echo("Key '{}' in file {} is not valid".format(key, file))
-                    sys.exit(1)
+            self.merge(template, file)
