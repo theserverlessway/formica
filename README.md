@@ -35,7 +35,7 @@ AWS CloudFormation provides a great service for automatically deploying and upda
 
 Our goal is that you should never have to log into the AWS Console to look at your CloudFormation stacks, because Formica gives you all the info you need right in your shell.
 
-##Quick Start Guide
+## Quick Start Guide
 
 You can also jump to the [in-depth docs](docs) for more information.
 
