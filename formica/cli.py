@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-import logging
-
 import click
+import logging
 from texttable import Texttable
 
 from formica import CHANGE_SET_FORMAT
 from formica.aws import AWS
 from formica.change_set import ChangeSet
+from formica.diff import Diff
 from formica.helper import aws_exceptions, session_wrapper
 from formica.stack_waiter import StackWaiter
 from .loader import Loader
@@ -174,7 +174,7 @@ def remove(stack):
 
 
 @main.command()
-@stack('The stack see the resources for.')
+@stack('The stack to see the resources for.')
 @aws_exceptions
 @aws_options
 def resources(stack):
@@ -195,3 +195,12 @@ def resources(stack):
                  ])
 
     click.echo(table.draw() + "\n")
+
+
+@main.command()
+@stack('The stack to diff with.')
+@aws_exceptions
+@aws_options
+def diff(stack):
+    """Print a diff between the local and deployed template"""
+    Diff(AWS.current_session()).run(stack)
