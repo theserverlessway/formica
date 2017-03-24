@@ -91,6 +91,21 @@ class TestChangeSet(unittest.TestCase):
         click.echo.assert_called_with('StatusReason')
         sys.exit.assert_called_with(1)
 
+    @patch('formica.change_set.click')
+    @patch('formica.change_set.sys')
+    def test_prints_error_message_but_exits_successfully_for_no_changes(self, sys, click):
+        cf_client_mock = Mock()
+        change_set = ChangeSet(STACK, cf_client_mock)
+        status_reason = "The submitted information didn't contain changes. " \
+                        "Submit different information to create a change set."
+
+        error = WaiterError('name', 'reason', {'StatusReason': status_reason})
+        cf_client_mock.get_waiter.return_value.wait.side_effect = error
+
+        change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE)
+        click.echo.assert_called_with(status_reason)
+        sys.exit.assert_called_with(0)
+
     @patch('formica.change_set.sys')
     @patch.object(ChangeSet, 'describe')
     def test_remove_existing_changeset_for_update_type(self, describe, sys):

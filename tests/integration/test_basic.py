@@ -48,7 +48,11 @@ class TestIntegrationBasic():
         deploy = run_formica('deploy', *stack_args)
         assert 'UPDATE_COMPLETE' in deploy
 
-        # Deploy changes to existing stack
+        # Add Changes again without failing
+        change = run_formica('change', *stack_args)
+        assert "The submitted information didn't contain changes." in change
+
+        # List Resources after deployment
         resources = run_formica('resources', *stack_args)
         assert 'TestNameUpdate' in resources
 
