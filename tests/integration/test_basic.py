@@ -36,6 +36,14 @@ class TestIntegrationBasic():
 
         f.write(json.dumps({'Resources': {'TestNameUpdate': {'Type': 'AWS::S3::Bucket'}}}))
 
+        # Diff the current stack
+        diff = run_formica('diff', *stack_args)
+        print(diff)
+        assert 'Resources > TestName' in diff
+        assert 'Dictionary Item Removed' in diff
+        assert 'Resources > TestNameUpdate' in diff
+        assert 'Dictionary Item Added' in diff
+
         # Change Resources in existing stack
         change = run_formica('change', *stack_args)
         assert 'TestNameUpdate' in change

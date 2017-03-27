@@ -61,7 +61,7 @@ class Loader(object):
         self.cftemplate = {}
         self.path = path
         self.file = file
-        self.env = Environment(loader=FileSystemLoader(path))
+        self.env = Environment(loader=FileSystemLoader(path, followlinks=True))
         self.env.filters.update({
             'code_escape': code_escape,
             'mandatory': mandatory,
