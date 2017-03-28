@@ -4,6 +4,7 @@
   * [change:](commands/change.md) Create a change set for an existing stack
   * [deploy:](commands/deploy.md) Deploy the latest change set for a stack
   * [describe:](commands/describe.md) Describe the latest change set
+  * [diff](commands/diff.md) Print a diff between local and deployed stack
   * [new:](commands/new.md) Create a change set for a new stack
   * [remove:](commands/remove.md) Remove the configured stack
   * [resources:](commands/resources.md) List all resources of a stack
@@ -21,6 +22,9 @@
 # S3
 * [Simple S3 Bucket](examples/s3-bucket)
 * [S3 Bucket that runs Lambda on File upload/remove](examples/s3-lambda)
+
+# Step Functions
+* [Lambda Step functions with dynamic steps](examples/lambda-step-function)
 
 # Custom Resources
 * [Custom Resource](examples/custom-resource)

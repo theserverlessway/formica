@@ -153,7 +153,7 @@ def stacks():
 @aws_exceptions
 @aws_options
 def describe(stack):
-    """Describe the latest change set of the specified stack"""
+    """Describe the latest change-set of the stack"""
     client = AWS.current_session().client('cloudformation')
     change_set = ChangeSet(stack=stack, client=client)
     change_set.describe()
@@ -202,5 +202,5 @@ def resources(stack):
 @aws_exceptions
 @aws_options
 def diff(stack):
-    """Print a diff between the local and deployed template"""
+    """Print a diff between local and deployed stack"""
     Diff(AWS.current_session()).run(stack)
