@@ -1,0 +1,35 @@
+Resources:
+  CodeCommitAccessRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - 'codepipeline.amazonaws.com'
+          Action:
+          - 'sts:AssumeRole'
+      Path: "/"
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+              - "codecommit:GetBranch"
+              - "codecommit:GetCommit"
+              - "codecommit:UploadArchive"
+              - "codecommit:GetUploadArchiveStatus"
+              - "codecommit:CancelUploadArchive"
+            Effect: Allow
+            Resource: !GetAtt CodeCommitRepository.Arn
+          - Action:
+              - "s3:*"
+            Effect: Allow
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref PipelineBucket, '/*']]
+          - Action:
+              - "codebuild:*"
+            Effect: Allow
+            Resource: !GetAtt CodeBuildProject.Arn
+          Version: '2012-10-17'
+        PolicyName: root
+    Type: AWS::IAM::Role
