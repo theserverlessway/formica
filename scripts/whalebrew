@@ -3,3 +3,5 @@
 set -e
 
 docker build -t flomotlik/formica -f Dockerfile.whalebrew .
+
+whalebrew install -f flomotlik/formica
