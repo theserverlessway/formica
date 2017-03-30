@@ -1,0 +1,9 @@
+Resources:
+  CodeCommitRepository:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: formica-test-repo
+      RepositoryDescription: A Test Repository for Formica
+Outputs:
+  SSHURLCodeCommitRepository:
+    Value: !GetAtt CodeCommitRepository.CloneUrlSsh
