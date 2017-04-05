@@ -1,0 +1,13 @@
+Resources:
+  CodeCommitRepository:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: formica-commit-build-test-repo
+      RepositoryDescription: A Test Repository for Formica
+      Triggers:
+        - DestinationArn: !GetAtt PostPushHookLambdaFunction.Arn
+          Name: ChangeLambda
+          Events: ['all']
+Outputs:
+  SSHURLCodeCommitRepository:
+    Value: !GetAtt CodeCommitRepository.CloneUrlSsh
