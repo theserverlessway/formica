@@ -1,0 +1,50 @@
+Resources:
+  CodeBuildProject:
+    Type: 'AWS::CodeBuild::Project'
+    Properties:
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Environment:
+        ComputeType: 'BUILD_GENERAL1_SMALL'
+        Image: 'python:3.6'
+        Type: 'LINUX_CONTAINER'
+      Name: !Sub '${AWS::StackName}-build'
+      ServiceRole: !GetAtt 'CodeBuildRole.Arn'
+      Source:
+        Type: CODECOMMIT
+        Location: !GetAtt CodeCommitRepository.CloneUrlHttp
+        BuildSpec: |
+          version: 0.1
+          phases:
+            build:
+              commands:
+              - 'ls'
+      TimeoutInMinutes: 10
+  CodeBuildRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - 'codebuild.amazonaws.com'
+          Action:
+          - 'sts:AssumeRole'
+      Policies:
+      - PolicyName: ServiceRole
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: CloudWatchLogsPolicy
+            Effect: Allow
+            Action:
+            - 'logs:CreateLogGroup'
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+            Resource: '*'
+          - Sid: CodeCommitPolicy
+            Effect: Allow
+            Action: 'codecommit:GitPull'
+            Resource: !GetAtt CodeCommitRepository.Arn
