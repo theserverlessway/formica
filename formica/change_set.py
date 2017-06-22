@@ -36,7 +36,7 @@ class ChangeSet:
             waiter.wait(ChangeSetName=self.name, StackName=self.stack)
             click.echo('Change set created successfully')
         except WaiterError as e:
-            status_reason = e.last_response.get('StatusReason','')
+            status_reason = e.last_response.get('StatusReason', '')
             click.echo(status_reason)
             if "didn't contain changes" in status_reason:
                 sys.exit(0)
