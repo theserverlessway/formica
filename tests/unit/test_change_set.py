@@ -93,6 +93,19 @@ class TestChangeSet(unittest.TestCase):
 
     @patch('formica.change_set.click')
     @patch('formica.change_set.sys')
+    def test_prints_error_message_and_does_not_fail_without_StatusReason(self, sys, click):
+        cf_client_mock = Mock()
+        change_set = ChangeSet(STACK, cf_client_mock)
+
+        error = WaiterError('name', 'reason', {})
+        cf_client_mock.get_waiter.return_value.wait.side_effect = error
+
+        change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE)
+        click.echo.assert_called()
+        sys.exit.assert_called_with(1)
+
+    @patch('formica.change_set.click')
+    @patch('formica.change_set.sys')
     def test_prints_error_message_but_exits_successfully_for_no_changes(self, sys, click):
         cf_client_mock = Mock()
         change_set = ChangeSet(STACK, cf_client_mock)
