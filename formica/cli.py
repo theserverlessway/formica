@@ -76,7 +76,7 @@ def template(yml):
     """Print the current template"""
     loader = Loader()
     loader.load()
-    if yaml:
+    if yml:
         click.echo(
             loader.template(
                 dumper=functools.partial(yaml.safe_dump, default_flow_style=False)
