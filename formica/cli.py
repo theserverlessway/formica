@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
+import yaml
 import click
 import logging
+import functools
 from texttable import Texttable
 
 from formica import CHANGE_SET_FORMAT
@@ -69,11 +71,19 @@ def main(debug):
 
 
 @main.command()
-def template():
+@click.option('--yml/--no-yml', default=False, help='Output in YAML instead')
+def template(yml):
     """Print the current template"""
     loader = Loader()
     loader.load()
-    click.echo(loader.template())
+    if yml:
+        click.echo(
+            loader.template(
+                dumper=functools.partial(yaml.safe_dump, default_flow_style=False)
+            ).strip()  # strip trailing newline to avoid blank line in output
+        )
+    else:
+        click.echo(loader.template())
 
 
 @main.command()
