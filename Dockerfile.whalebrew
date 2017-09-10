@@ -1,14 +1,15 @@
 FROM python:alpine
 
-LABEL io.whalebrew.name 'formica'
-LABEL io.whalebrew.config.environment '["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_DEFAULT_REGION", "FORMICA_STACK"]'
-LABEL io.whalebrew.config.volumes '["~/.aws:/.aws"]'
-ENTRYPOINT ["formica"]
-
 RUN apk add --no-cache groff less mailcap
 
-WORKDIR /app
+LABEL io.whalebrew.name 'formica'
+LABEL io.whalebrew.config.environment '["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_DEFAULT_REGION", "AWS_DEFAULT_PROFILE", "AWS_CONFIG_FILE", "FORMICA_STACK"]'
+LABEL io.whalebrew.config.volumes '["~/.aws:/.aws"]'
+
+WORKDIR /formica
 
 COPY ./ ./
 
 RUN pip install .
+
+ENTRYPOINT ["formica"]
