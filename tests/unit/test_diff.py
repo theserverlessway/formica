@@ -1,5 +1,6 @@
 import pytest
 import re
+import yaml
 from click.testing import CliRunner
 from formica import cli
 
@@ -95,6 +96,13 @@ def test_iterable_item_removed(loader, client, diff, click):
     loader_return(loader, {'Resources': [1]})
     diff.run(STACK)
     check_echo(click, ['Resources > 1', '2', 'Not Present', 'Iterable Item Removed'])
+
+
+def test_request_returns_string(loader, client, diff, click):
+    loader_return(loader, {'Resources': u'1234'})
+    template_return(client, yaml.dump({'Resources': '1234'}))
+    diff.run(STACK)
+    click.echo.assert_called_with('No Changes found')
 
 
 def test_diff_cli_call(mocker, session):

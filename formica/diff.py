@@ -1,5 +1,6 @@
 import collections
 import re
+import yaml
 from deepdiff import DeepDiff
 from texttable import Texttable
 
@@ -45,8 +46,11 @@ class Diff(AWSBase):
 
         loader = Loader()
         loader.load()
+        deployed_template = convert(result['TemplateBody'])
+        if isinstance(deployed_template, str):
+            deployed_template = yaml.load(deployed_template)
 
-        changes = DeepDiff(convert(result['TemplateBody']), convert(loader.template_dictionary()), ignore_order=False,
+        changes = DeepDiff(deployed_template, convert(loader.template_dictionary()), ignore_order=False,
                            report_repetition=True,
                            verbose_level=2, view='tree')
 
