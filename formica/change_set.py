@@ -15,15 +15,15 @@ class ChangeSet:
         self.stack = stack
         self.client = client
 
-    def create(self, template, change_set_type, parameters={}, tags={}, capabilities=[]):
+    def create(self, template, change_set_type, parameters=[], tags=[], capabilities=[]):
         optional_arguments = {}
         if parameters:
             optional_arguments['Parameters'] = [
-                {'ParameterKey': key, 'ParameterValue': value, 'UsePreviousValue': False} for (key, value) in
-                parameters.items()]
+                {'ParameterKey': key, 'ParameterValue': value, 'UsePreviousValue': False} for parameter
+                in parameters for (key, value) in parameter.items()]
         if tags:
-            optional_arguments['Tags'] = [{'Key': key, 'Value': value, } for (key, value) in
-                                          tags.items()]
+            optional_arguments['Tags'] = [{'Key': key, 'Value': value, } for tag in tags for (key, value) in
+                                          tag.items()]
         if capabilities:
             optional_arguments['Capabilities'] = capabilities
         if change_set_type == 'UPDATE':
