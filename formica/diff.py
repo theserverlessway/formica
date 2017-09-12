@@ -1,12 +1,14 @@
 import collections
 import re
 import yaml
+import logging
 from deepdiff import DeepDiff
 from texttable import Texttable
 
 from formica.aws_base import AWSBase
 from formica.loader import Loader
-import click
+
+logger = logging.getLogger(__name__)
 
 try:
     basestring
@@ -73,9 +75,9 @@ class Diff(AWSBase):
             )
 
         if print_diff:
-            click.echo(table.draw() + "\n")
+            logger.info(table.draw() + "\n")
         else:
-            click.echo('No Changes found')
+            logger.info('No Changes found')
 
     def __collect_changes(self, changes):
         results = []

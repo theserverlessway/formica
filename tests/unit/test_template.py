@@ -1,19 +1,19 @@
 import json
-import unittest
-
-from click.testing import CliRunner
+import pytest
+from path import Path
 
 from formica import cli
 
 
-class TestTemplate(unittest.TestCase):
-    def test_template_calls_template(self):
-        runner = CliRunner()
-        with runner.isolated_filesystem():
-            with open('test.template.json', 'w') as f:
-                f.write('{"Description": "{{ \'test\' | title }}"}')
+@pytest.fixture
+def logger(mocker):
+    return mocker.patch('formica.cli.logger')
 
-            result = runner.invoke(cli.template)
-            self.assertEqual(result.exit_code, 0)
-            expected = {"Description": "Test"}
-            self.assertEqual(json.loads(result.output), expected)
+
+def test_template_calls_template(tmpdir, logger):
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write('{"Description": "{{ \'test\' | title }}"}')
+        cli.main(['template'])
+        logger.info.assert_called()
+        assert {"Description": "Test"} == json.loads(logger.info.call_args[0][0])

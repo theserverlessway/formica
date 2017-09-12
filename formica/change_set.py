@@ -1,12 +1,14 @@
 import sys
 
-import click
+import logging
 from botocore.exceptions import ClientError, WaiterError
 from texttable import Texttable
 
 from formica import CHANGE_SET_FORMAT
 
 CHANGE_SET_HEADER = ['Action', 'LogicalId', 'PhysicalId', 'Type', 'Replacement', 'Changed']
+
+logger = logging.getLogger(__name__)
 
 
 class ChangeSet:
@@ -15,39 +17,37 @@ class ChangeSet:
         self.stack = stack
         self.client = client
 
-    def create(self, template, change_set_type, parameters={}, tags={}, capabilities=[]):
+    def create(self, template, change_set_type, parameters=[], tags=[], capabilities=[]):
         optional_arguments = {}
         if parameters:
             optional_arguments['Parameters'] = [
-                {'ParameterKey': key, 'ParameterValue': value, 'UsePreviousValue': False} for (key, value) in
-                parameters.items()]
+                {'ParameterKey': key, 'ParameterValue': value, 'UsePreviousValue': False} for parameter
+                in parameters for (key, value) in parameter.items()]
         if tags:
-            optional_arguments['Tags'] = [{'Key': key, 'Value': value, } for (key, value) in
-                                          tags.items()]
+            optional_arguments['Tags'] = [{'Key': key, 'Value': value, } for tag in tags for (key, value) in
+                                          tag.items()]
         if capabilities:
             optional_arguments['Capabilities'] = capabilities
         if change_set_type == 'UPDATE':
             self.remove_existing_changeset()
         self.client.create_change_set(StackName=self.stack, TemplateBody=template,
                                       ChangeSetName=self.name, ChangeSetType=change_set_type, **optional_arguments)
-        click.echo('Change set submitted, waiting for CloudFormation to calculate changes ...')
+        logger.info('Change set submitted, waiting for CloudFormation to calculate changes ...')
         waiter = self.client.get_waiter('change_set_create_complete')
         try:
             waiter.wait(ChangeSetName=self.name, StackName=self.stack)
-            click.echo('Change set created successfully')
+            logger.info('Change set created successfully')
         except WaiterError as e:
             status_reason = e.last_response.get('StatusReason', '')
-            click.echo(status_reason)
-            if "didn't contain changes" in status_reason:
-                sys.exit(0)
-            else:
+            logger.info(status_reason)
+            if "didn't contain changes" not in status_reason:
                 sys.exit(1)
 
     def describe(self):
         change_set = self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
         table = Texttable(max_width=150)
 
-        click.echo("Deployment metadata:")
+        logger.info("Deployment metadata:")
         parameters = ', '.join([parameter['ParameterKey'] + '=' + parameter['ParameterValue'] for parameter in
                                 change_set.get('Parameters', [])])
         table.add_row(['Parameters', parameters])
@@ -55,7 +55,7 @@ class ChangeSet:
                 change_set.get('Tags', [])]
         table.add_row(["Tags ", ', '.join(tags)])
         table.add_row(["Capabilities ", ', '.join(change_set.get('Capabilities', []))])
-        click.echo(table.draw() + '\n')
+        logger.info(table.draw() + '\n')
 
         table.reset()
         table = Texttable(max_width=150)
@@ -80,14 +80,14 @@ class ChangeSet:
                  ', '.join(sorted(set([__change_detail(c) for c in resource_change['Details']])))
                  ])
 
-        click.echo('Resource Changes:')
-        click.echo(table.draw())
+        logger.info('Resource Changes:')
+        logger.info(table.draw())
 
     def remove_existing_changeset(self):
         try:
             self.client.describe_change_set(StackName=self.stack,
                                             ChangeSetName=self.name)
-            click.echo('Removing existing change set')
+            logger.info('Removing existing change set')
             self.client.delete_change_set(StackName=self.stack,
                                           ChangeSetName=self.name)
         except ClientError as e:
