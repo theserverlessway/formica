@@ -24,16 +24,14 @@ addons:
     - pandoc
 
 install:
-- pip install -U -r build-requirements.txt
-- python setup.py develop
+- make install
 
 script:
-- if [[ -z "$INTEGRATION_TEST" ]]; then pycodestyle .; fi
-- if [[ -z "$INTEGRATION_TEST" ]]; then  pyflakes .; fi
-- if [[ -z "$INTEGRATION_TEST" ]]; then py.test --cov=formica tests/unit; fi
-- if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then py.test -s tests/integration; fi
+- if [[ -z "$INTEGRATION_TEST" ]]; then make check-code ; fi
+- if [[ -z "$INTEGRATION_TEST" ]]; then make test; fi
+- if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then make integration-test; fi
 
 after_success:
-- if [[ -z "$INTEGRATION_TEST" ]]; then coveralls; fi
+- if [[ -z "$INTEGRATION_TEST" ]]; then make coveralls; fi
 
 
