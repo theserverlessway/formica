@@ -4,6 +4,7 @@ import yaml
 import functools
 import argparse
 import sys
+import logging
 from texttable import Texttable
 
 from formica import CHANGE_SET_FORMAT
@@ -16,6 +17,8 @@ from botocore.exceptions import ProfileNotFound, NoCredentialsError, NoRegionErr
 
 STACK_HEADERS = ['Name', 'Created At', 'Updated At', 'Status']
 RESOURCE_HEADERS = ['Logical ID', 'Physical ID', 'Type', 'Status']
+
+logger = logging.getLogger(__name__)
 
 
 def equals_option(string):
@@ -32,7 +35,7 @@ def csv_option(string):
     string.split(',')
 
 
-def main():
+def main(cli_args=[]):
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(title='commands',
                                        help='--help')
@@ -96,7 +99,9 @@ def main():
     remove_parser.set_defaults(func=remove)
 
     # Argument Parsing
-    args = parser.parse_args()
+    if not cli_args:
+        cli_args = sys.argv[1:]
+    args = parser.parse_args(cli_args)
 
     try:
 
@@ -107,15 +112,15 @@ def main():
         # Execute Function
         args.func(args)
     except (ProfileNotFound, NoCredentialsError, NoRegionError, EndpointConnectionError) as e:
-        print('Please make sure your credentials, regions and profiles are properly set:')
-        print(e)
+        logger.info('Please make sure your credentials, regions and profiles are properly set:')
+        logger.info(e)
         sys.exit(1)
     except ClientError as e:
         if e.response['Error']['Code'] == 'ValidationError':
-            print(e.response['Error']['Message'])
+            logger.info(e.response['Error']['Message'])
             sys.exit(1)
         else:
-            print(e)
+            logger.info(e)
             sys.exit(2)
 
 
@@ -139,21 +144,21 @@ def add_stack_tags_argument(parser):
 
 
 def add_capabilities_argument(parser):
-    parser.add_argument('--capabilities', help='Set one or multiple stack capabilities', type=csv_option,
-                        metavar='Cap1,Cap2', required=False)
+    parser.add_argument('--capabilities', help='Set one or multiple stack capabilities',
+                        metavar='Cap1 Cap2', nargs='*', required=False)
 
 
 def template(args):
     loader = Loader()
     loader.load()
     if args.yaml:
-        print(
+        logger.info(
             loader.template(
                 dumper=functools.partial(yaml.safe_dump, default_flow_style=False)
             ).strip()  # strip trailing newline to avoid blank line in output
         )
     else:
-        print(loader.template())
+        logger.info(loader.template())
 
 
 def stacks(args):
@@ -170,7 +175,7 @@ def stacks(args):
              stack['StackStatus']
              ])
 
-    print("Current Stacks:\n" + table.draw() + "\n")
+    logger.info("Current Stacks:\n" + table.draw() + "\n")
 
 
 def diff(args):
@@ -199,7 +204,7 @@ def resources(args):
                  resource['ResourceStatus']
                  ])
 
-    print(table.draw() + "\n")
+    logger.info(table.draw() + "\n")
 
 
 def change(args):
@@ -223,7 +228,7 @@ def deploy(args):
 def remove(args):
     client = AWS.current_session().client('cloudformation')
     stack_id = client.describe_stacks(StackName=args.stack)['Stacks'][0]['StackId']
-    print('Removing Stack and waiting for it to be removed, ...')
+    logger.info('Removing Stack and waiting for it to be removed, ...')
     last_event = client.describe_stack_events(StackName=args.stack)['StackEvents'][0]['EventId']
     client.delete_stack(StackName=args.stack)
     StackWaiter(stack_id, client).wait(last_event)
@@ -233,9 +238,9 @@ def new(args):
     client = AWS.current_session().client('cloudformation')
     loader = Loader()
     loader.load()
-    print('Creating change set for new stack, ...')
+    logger.info('Creating change set for new stack, ...')
     change_set = ChangeSet(stack=args.stack, client=client)
     change_set.create(template=loader.template(), change_set_type='CREATE', parameters=args.parameters, tags=args.tags,
                       capabilities=args.capabilities)
     change_set.describe()
-    print('Change set created, please deploy')
+    logger.info('Change set created, please deploy')

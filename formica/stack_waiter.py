@@ -1,7 +1,7 @@
 import sys
 import time
 
-import click
+import logging
 from texttable import Texttable
 
 EVENT_TABLE_HEADERS = ['Timestamp', 'Status', 'Type', 'Logical ID', 'Status reason']
@@ -11,6 +11,9 @@ TABLE_COLUMN_SIZE = [28, 24, 30, 30, 50]
 SUCCESSFUL_STATES = ['CREATE_COMPLETE', 'UPDATE_COMPLETE', 'DELETE_COMPLETE']
 FAILED_STATES = ['CREATE_FAILED', 'DELETE_FAILED', 'ROLLBACK_FAILED', 'ROLLBACK_COMPLETE', 'UPDATE_FAILED',
                  'UPDATE_ROLLBACK_FAILED', 'UPDATE_ROLLBACK_COMPLETE']
+
+
+logger = logging.getLogger(__name__)
 
 
 class StackWaiter:
@@ -44,7 +47,7 @@ class StackWaiter:
         table = self.__create_table()
         table.add_rows([EVENT_TABLE_HEADERS])
         table.set_deco(Texttable.BORDER | Texttable.VLINES)
-        click.echo(table.draw())
+        logger.info(table.draw())
 
     def print_events(self, events):
         table = self.__create_table()
@@ -57,4 +60,4 @@ class StackWaiter:
                 event['LogicalResourceId'],
                 event.get('ResourceStatusReason', '')
             ])
-        click.echo(table.draw())
+        logger.info(table.draw())
