@@ -13,6 +13,11 @@ def stack_waiter(mocker):
 
 
 @pytest.fixture
+def logger(mocker):
+    return mocker.patch('formica.cli.logger')
+
+
+@pytest.fixture
 def session(mocker):
     return mocker.patch('formica.aws.Session')
 
@@ -24,13 +29,15 @@ def test_catches_common_aws_exceptions(session, stack_waiter):
     assert pytest_wrapped_e.value.code == 1
 
 
-def test_fails_if_no_stack_given(capsys):
+def test_fails_if_no_stack_given(logger):
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         cli.main(['deploy'])
-    assert pytest_wrapped_e.value.code == 2
+    assert pytest_wrapped_e.value.code == 1
 
-    out, err = capsys.readouterr()
-    assert '--stack' in err
+    logger.error.assert_called()
+    out = logger.error.call_args[0][0]
+    assert '--stack' in out
+    assert '--config-file' in out
 
 
 def test_gets_cloudformation_client(session, stack_waiter):

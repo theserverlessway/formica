@@ -10,17 +10,6 @@ NO_STACK_METHODS = ['stacks']
 Exceptions = [ProfileNotFound, NoCredentialsError, NoRegionError, ClientError]
 
 
-# @patch('formica.cli.print')
-# @patch('formica.helper.sys')
-# def test_catches_common_aws_exceptions(sys):
-#     for e in [ProfileNotFound, NoCredentialsError, NoRegionError]:
-#         def testfunction():
-#             raise e(profile='test')
-
-#     sys.exit.assert_called_with(1)
-#     self.assertEquals(3, sys.exit.call_count)
-
-
 @pytest.fixture
 def session(mocker):
     return mocker.patch('formica.aws.Session')
@@ -58,7 +47,7 @@ def test_catches_client_errors(session, logger):
         assert pytest_wrapped_e.value.code == 1
 
 
-def test_arbitrary_clients_error(session, logger):
+def test_catches_arbitrary_client_error(session, logger):
     error = ClientError({'Error': {'Code': 'SOMEOTHER', 'Message': MESSAGE}}, 'ERROR_TEST')
     session.side_effect = error
     for method in METHODS:

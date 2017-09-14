@@ -21,11 +21,11 @@ class ChangeSet:
         optional_arguments = {}
         if parameters:
             optional_arguments['Parameters'] = [
-                {'ParameterKey': key, 'ParameterValue': value, 'UsePreviousValue': False} for parameter
-                in parameters for (key, value) in parameter.items()]
+                {'ParameterKey': key, 'ParameterValue': value, 'UsePreviousValue': False} for (key, value)
+                in parameters.items()]
         if tags:
-            optional_arguments['Tags'] = [{'Key': key, 'Value': value, } for tag in tags for (key, value) in
-                                          tag.items()]
+            optional_arguments['Tags'] = [{'Key': key, 'Value': value, } for (key, value) in
+                                          tags.items()]
         if capabilities:
             optional_arguments['Capabilities'] = capabilities
         if change_set_type == 'UPDATE':

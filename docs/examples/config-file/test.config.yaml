@@ -1,0 +1,7 @@
+stack: teststack
+parameters:
+  BucketName: formica-test-bucket-5453245
+  SomeParameter: now-for-something-different
+tags:
+  StackTag: formica
+region: us-east-1

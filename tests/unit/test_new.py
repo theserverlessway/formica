@@ -38,7 +38,7 @@ def test_new_uses_parameters_for_creation(change_set, session, loader):
     cli.main(['new', '--stack', STACK, '--parameters', 'A=B', 'C=D', '--profile', PROFILE, '--region', REGION])
     change_set.assert_called_with(stack=STACK, client=client_mock)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
-                                                           parameters=[{'A': 'B'}, {'C': 'D'}], tags=None,
+                                                           parameters={'A': 'B', 'C': 'D'}, tags=None,
                                                            capabilities=None)
 
 
@@ -50,7 +50,7 @@ def test_new_uses_tags_for_creation(change_set, session, loader):
     change_set.assert_called_with(stack=STACK, client=client_mock)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
                                                            parameters=None,
-                                                           tags=[{'A': 'B'}, {'C': 'D'}], capabilities=None)
+                                                           tags={'A': 'B', 'C': 'D'}, capabilities=None)
 
 
 def test_new_tests_parameter_format(capsys):

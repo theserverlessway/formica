@@ -30,6 +30,10 @@
 * [Custom Resource](examples/custom-resource)
 
 # CodeCommit, CodePipeline, CodeBuild
- 
+
  * [CodeCommit and CodeBuild for every push](examples/commit-build)
  * [CodeCommit -> CodePipeline -> CodeBuild for the master branch](examples/commit-build-pipeline)
+
+# Configuration File
+
+ * [Configuration File](examples/config-file)
