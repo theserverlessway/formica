@@ -22,5 +22,8 @@ Current Stacks:
 
 ## Options
 
-* `--profile PROFILE`         The AWS profile to use.
-* `--region REGION`           The AWS region to use.
+| Option                                             | Description  |
+| -------------------------------------------------- | ------------ |
+| --profile PROFILE                                  | The AWS profile to use. |
+| --region REGION                                    | The AWS region to use. |
+| --config-file (-c) CONFIG_FILE                     | Set the config file to use |

@@ -22,6 +22,9 @@ Removing Stack and waiting for it to be removed, ...
 
 ## Options
 
-* `--stack STACK`             The stack you want to remove.  [required]
-* `--profile PROFILE`         The AWS profile to use.
-* `--region REGION`           The AWS region to use.
+| Option                                             | Description  |
+| -------------------------------------------------- | ------------ |
+| --stack (-s) STACK                                 | The stack you want to create. |
+| --profile PROFILE                                  | The AWS profile to use. |
+| --region REGION                                    | The AWS region to use. |
+| --config-file (-c) CONFIG_FILE                     | Set the config file to use |

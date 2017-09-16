@@ -160,16 +160,16 @@ def add_aws_arguments(parser):
 
 
 def add_stack_argument(parser):
-    parser.add_argument('-s', '--stack', help='The Stack to use', metavar='STACK')
+    parser.add_argument('--stack', '-s', help='The Stack to use', metavar='STACK')
 
 
 def add_stack_parameters_argument(parser):
-    parser.add_argument('--parameters', help='Add a parameter. Repeat for multiple parameters',
+    parser.add_argument('--parameters', help='Add one or multiple stack parameters',
                         nargs='*', action=SplitEqualsAction, metavar='KEY=Value')
 
 
 def add_stack_tags_argument(parser):
-    parser.add_argument('--tags', help='Add a stack tag. Repeat for multipe tags', nargs='*',
+    parser.add_argument('--tags', help='Add one or multiple stack tags', nargs='*',
                         action=SplitEqualsAction, metavar='KEY=Value')
 
 
@@ -179,7 +179,7 @@ def add_capabilities_argument(parser):
 
 
 def add_config_file_argument(parser):
-    parser.add_argument('-c', '--config-file', type=argparse.FileType('r'))
+    parser.add_argument('--config-file', '-c', type=argparse.FileType('r'), help='Set the config file to use')
 
 
 def template(args):
