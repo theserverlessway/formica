@@ -5,11 +5,12 @@ of `*.template.(json|yaml|yml)`. This means we support your template files in ei
 CloudFormation template is valid in Formica, so you can easily import an existing stack.
 
 When formica is started it will load all `*.template.(json|yaml|yml)` files from the current directory and merge
-them into one CloudFormation stack. This makes your CloudFormation stack more modular and helps you to keep an overview. 
+them into one CloudFormation stack. You can mix `json` or `yaml` file in the same directory.
+This makes your CloudFormation stack more modular and helps you to keep an overview.
 [`formica template`](commands/template.md) can be used to print that template to the console.
 
 To be able to change files dynamically we use [Jinja2](http://jinja.pocoo.org/docs/2.9/templates/), a widely used templating
-engine. It allows you to iterate over values, define variables or use filters to change text, e.g. when a value has to 
+engine. It allows you to iterate over values, define variables or use filters to change text, e.g. when a value has to
 be alphanumeric and you want to strip special characters.
 
 ## Available AWS Resources

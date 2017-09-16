@@ -11,7 +11,8 @@
   * [stacks:](commands/stacks.md) List all stacks
   * [template:](commands/template.md) Print the current template
 2. [Template files reference](template-files.md)
-3. [Modules](modules.md)
+3. [Config files](config-files.md)
+3. [Module System](modules.md)
 
 
 ## Examples

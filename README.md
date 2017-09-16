@@ -25,21 +25,21 @@ python setup.py install
 
 After installing Formica take a look at the [quick start guide](#quick-start-guide) or the [in-depth documentation](docs#formica-documentation) and [examples](docs#examples)
 
-## AWS Credentials
-
-Formica supports all the standard AWS credential settings, so you can use profiles through the `--profile` option, provide no specific profile which will use the default profile or set environment variables like **AWS_ACCESS_KEY_ID**. Take a look at the [AWS credentials docs](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html) for more details on how to configure these credentials.
-
 ## Why
 
 AWS CloudFormation provides a great service for automatically deploying and updating your infrastructure. But while the service itself is great the tooling to deploy and manage CloudFormation has been lacking. This means that many teams aren't using CloudFormation or automating their infrastructure as much as they should. Formica tries to be a great CloudFormation client by making it easy to build modular templates, make parts of templates reusable and give you great tooling to deploy to and inspect your CloudFormation stacks.
 
 Our goal is that you should never have to log into the AWS Console to look at your CloudFormation stacks, because Formica gives you all the info you need right in your shell.
 
+## AWS Credentials
+
+Formica supports all the standard AWS credential settings, so you can use profiles through the `--profile` option and set the AWS region with `--region`. If you provide no specific profile Formica will use the default profile. You can also use environment variables like **AWS_ACCESS_KEY_ID**. Take a look at the [AWS credentials docs](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html) for more details on how to configure these credentials.
+
 ## Quick Start Guide
 
 You can also jump to the [in-depth docs](docs) for more information.
 
-You define your CloudFormation template through `*.template.(json/yaml/yml)` files. Those files will be automatically loaded from the current working directory and executed to create your template.
+You define your CloudFormation template through `*.template.(json/yaml/yml)` files. All files named `*.template.(json/yaml/yml)` in the current working directory will be loaded and merged into one large template file before being deployed. This makes it easy to split up your resource files and make each individual file smaller and easier to understand. You can mix `json` and `yaml` files in one directory, which is especially helpful when you start with an existing stack (e.g. one written in JSON) but want to slowly move resources into `yaml` files.
 
 In this example we'll create an S3 Bucket. We use jinja templating to set a variable and use it for the bucket logical name. Put the following into a `bucket.template.yml` file:
 
@@ -62,16 +62,12 @@ In the same folder run `formica template` which should show you the following te
 }
 ```
 
-Now we'll create a new stack with this template:
+### Create a new Stack
+
+`formica new` will create a ChangeSet for a new Stack in CloudFormation that we can deploy in a next step. It will also describe all the changes that will be done. It also shows CloudFormation `Parameters`, `Tags` and `Capabilities` which can be set through the `--parameters`, `--tags` and `--capabilities` options on the `new` and `change` command.
 
 ```shell
-formica new --stack formica-example-stack
-```
-
-This will create a new ChangeSet in CloudFormation that we can deploy in a next step. It will also describe all the changes that will be done. Instead of setting `--stack` for every command you can also set the `FORMICA_STACK` environment variable which will be picked up automatically.
-
-```shell
-root@62d81801cc09:/app/examples/s3-bucket# formica new --stack formica-example-stack
+# formica new --stack formica-example-stack
 Creating change set for new stack, ...
 Change set submitted, waiting for CloudFormation to calculate changes ...
 Change set created successfully
@@ -93,18 +89,16 @@ Resource Changes:
 Change set created, please deploy.
 ```
 
-For more detail on the ChangeSet description check out the [describe command documentation](TODO). 
+You can also use [`formica describe`](docs/commands/describe.md) to describe the changes a ChangeSet would perform in a later step. For more detail on the ChangeSet description check out the [describe command documentation](docs/commands/describe.md).
 
 All changes, whether you want to create a new stack or update an existing one, are done through [ChangeSets](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html). This makes sure you can inspect the specific actions that CloudFormation will take before deploying them. In a CI context you can of course simply run both commands one after the other to get a fully automated deployment.
 
-Now we can deploy the changes: 
+### Deploy the new Stack
 
-```formica deploy --stack formica-example-stack``` 
-
-The command will follow the CloudFormation stack events and print them to the command line. If the deployment fails, so will the command.
+`formica deploy` is used to deploy a previously created ChangeSet. The command will follow the CloudFormation stack events and print them to the command line. If the deployment fails, so will the command.
 
 ```shell
-root@62d81801cc09:/app/examples/s3-bucket# formica deploy --stack formica-example-stack
+# formica deploy --stack formica-example-stack
 +------------------------------+--------------------------+--------------------------------+--------------------------------+----------------------------------------------------+
 |          Timestamp           |          Status          |              Type              |           Logical ID           |                   Status reason                    |
 +------------------------------+--------------------------+--------------------------------+--------------------------------+----------------------------------------------------+
@@ -118,14 +112,26 @@ root@62d81801cc09:/app/examples/s3-bucket# formica deploy --stack formica-exampl
 After the deployment we will now see our new S3 Bucket. As we didn't set a name the name of the bucket is generated by S3:
 
 ```shell
-root@62d81801cc09:/app/examples/s3-bucket# aws s3 ls
+# aws s3 ls
 2017-02-15 11:21:18 formica-example-stack-deploymentbucket-57ouvt2o46yh
 ```
 
-We can also check out all the resources for a specific stack with the resources command: 
+### Creating a Config File
+
+So we don't have to specify the stack name for every command we can also create a config file. The `stack.config.yaml` file we create contains only the stack name but check out the [config file documentation](docs/config-file.md) for all available options. Add the following content to `stack.config.yaml`. While there is no fixed naming convention *.config.yaml is a best practice:
+
+```yaml
+stack: teststack
+```
+
+Now you can use the `--config-file` option (or `-c` for short) to set configuration options. CLI Arguments will take precedence over the config file.
+
+### Inspect Stack Resources
+
+We can also check out all the created resources for a stack with the resources command:
 
 ```
-root@67c57a89511a:/app/docs/examples/s3-bucket# formica resources --stack formica-example-stack
+root@67c57a89511a:/app/docs/examples/s3-bucket# formica resources -c stack.config.yaml
 +------------------+------------------------------------------------------+-----------------+-----------------+
 |    Logical ID    |                     Physical ID                      |      Type       |     Status      |
 +==================+======================================================+=================+=================+
@@ -133,7 +139,12 @@ root@67c57a89511a:/app/docs/examples/s3-bucket# formica resources --stack formic
 +------------------+------------------------------------------------------+-----------------+-----------------+
 ```
 
-If we want to add an additional bucket we can change add a second file `bucket2.template.json` file with the following content:
+
+### Changing the Stack
+
+To add additional resources you can either add it to the file we already created, or put it in a separate file for better modularity. Especially when you have many resources splitting them up into separate files can be very helpful. Check out the [template file documentation](template-files.md) for more documentation on template files and the [module system](docs/modules.md) for even more ways to split up your templates and make them reusable.
+
+If we want to add an additional bucket we can add a second file `bucket2.template.json` file with the following content:
 
 ```json
 {"Resources": {
@@ -159,25 +170,39 @@ Running `formica template` again will now result in both files being picked up a
 }
 ```
 
-and then run the change and deploy commands:
+
+`formica diff` allows us to compare the deployed and local template and show an in-depth diff:
+
+```shell
+# formica diff -c stack.config.yaml
++-------------------------------+-------------+-----------------------------+-----------------------+
+|             Path              |    From     |             To              |      Change Type      |
++===============================+=============+=============================+=======================+
+| Resources > DeploymentBucket2 | Not Present | {'Type': 'AWS::S3::Bucket'} | Dictionary Item Added |
++-------------------------------+-------------+-----------------------------+-----------------------+
+```
+
+To deploy this change we can now run the change and deploy command:
 
 ```
-formica change --stack formica-example-stack
-formica deploy --stack formica-example-stack
+formica change -c stack.config.yaml
+formica deploy -c stack.config.yaml
 ```
 
 And we can now see both buckets in S3:
 
 ```shell
-root@62d81801cc09:/app/examples/s3-bucket# aws s3 ls
+# aws s3 ls
 2017-02-15 11:21:18 formica-example-stack-deploymentbucket-57ouvt2o46yh
 2017-02-15 11:21:18 formica-example-stack-deploymentbucket2-1jv31cwqdh5gk
 ```
 
+### Listing all Stacks
+
 And we can list all the stacks to see the status with `formica stacks`:
 
 ```shell
-root@62d81801cc09:/app/examples/s3-bucket# formica stacks
+# formica stacks
 Current Stacks:
 +-------------------------------+----------------------------------+----------------------------------+-----------------+
 |             Name              |            Created At            |            Updated At            |     Status      |
@@ -186,10 +211,10 @@ Current Stacks:
 +-------------------------------+----------------------------------+----------------------------------+-----------------+
 ```
 
-Last but not least we'll remove the stack with `formica remove --stack formica-example-stack`
+Last but not least we'll remove the stack with `formica remove -c stack.config.yaml`
 
 ```shell
-root@62d81801cc09:/app/examples/s3-bucket# formica remove --stack formica-example-stack
+# formica remove -c stack.config.yaml
 Removing Stack and waiting for it to be removed, ...
 +------------------------------+--------------------------+--------------------------------+--------------------------------+----------------------------------------------------+
 |          Timestamp           |          Status          |              Type              |           Logical ID           |                   Status reason                    |
@@ -202,4 +227,4 @@ Removing Stack and waiting for it to be removed, ...
 
 And now you've created, inspected, updated, deployed and removed a CloudFormation stack with Formica.
 
-For more in-depth information check out [our documentation](docs)
+For more in-depth information check out [the documentation](docs)
