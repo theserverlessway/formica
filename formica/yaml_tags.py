@@ -1,5 +1,5 @@
 import yaml
-from yaml.nodes import MappingNode, SequenceNode, CollectionNode
+from yaml.nodes import SequenceNode, CollectionNode
 from yaml.resolver import BaseResolver
 
 
@@ -19,10 +19,6 @@ class BaseFunction(yaml.YAMLObject):
         if isinstance(node, CollectionNode):
             if kind is SequenceNode:
                 tag = BaseResolver.DEFAULT_SEQUENCE_TAG
-            elif kind is MappingNode:
-                tag = BaseResolver.DEFAULT_MAPPING_TAG
-            else:
-                tag = BaseResolver.DEFAULT_SCALAR_TAG
             new_node = type(node)(tag, node.value)
             result = loader.construct_object(new_node, deep=True)
         return {cls.fn_tag(node.tag): result}
