@@ -6,7 +6,7 @@ Through the deploy command you can execute a previously created ChangeSet. This 
 
 ## Example
 
-```shell
+```
 root@07e549506145:/app/docs/examples/s3-bucket# formica deploy --stack formica-examples-stack
 +------------------------------+--------------------------+--------------------------------+--------------------------------+----------------------------------------------------+
 |          Timestamp           |          Status          |              Type              |           Logical ID           |                   Status reason                    |
