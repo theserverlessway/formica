@@ -181,6 +181,15 @@ def test_template_syntax_exception_gets_caught(load, tmpdir):
             load.load()
 
 
+def test_yaml_json_syntax_exception_gets_caught(load, tmpdir):
+    example = '{"Description: "Description"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with pytest.raises(SystemExit):
+            load.load()
+
+
 def test_mandatory_filter_throws_exception(load, tmpdir):
     example = '{"Description": "{{ test | mandatory }}"}'
     with Path(tmpdir):

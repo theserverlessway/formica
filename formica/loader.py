@@ -18,9 +18,7 @@ logger = logging.getLogger(__name__)
 
 LINE_WHITESPACE_OFFSET = '  |'
 
-YAML_FILE_TYPES = ['yml', 'yaml']
-JSON_FILE_TYPES = ['json']
-FILE_TYPES = YAML_FILE_TYPES + JSON_FILE_TYPES
+FILE_TYPES = ['yml', 'yaml', 'json']
 
 MODULES_ATTRIBUTE = 'Modules'
 
@@ -108,9 +106,6 @@ class Loader(object):
                         loader = Loader(self.path + '/' + module_path, file_name, vars)
                         loader.load()
                         self.merge(loader.template_dictionary(), file=file_name)
-                else:
-                    logger.info("Key '{}' in file {} is not valid".format(key, file))
-                    sys.exit(1)
             else:
                 logger.info("Key '{}' in file {} is not valid".format(key, file))
                 sys.exit(1)
@@ -128,6 +123,7 @@ class Loader(object):
         for file in files:
             try:
                 result = str(self.render(os.path.basename(file), **self.variables))
+                template = yaml.load(result)
             except TemplateSyntaxError as e:
                 logger.info(e.__class__.__name__ + ': ' + e.message)
                 logger.info(
@@ -140,10 +136,7 @@ class Loader(object):
                     'For Template: "' + file + '"')
                 logger.info('If you use it as a template make sure you\'re setting all necessary vars')
                 sys.exit(1)
-            if file.endswith(tuple(YAML_FILE_TYPES)):
-                template = yaml.load(result)
-            elif file.endswith(tuple(JSON_FILE_TYPES)):
-                template = json.loads(result)
-            else:
-                template = {}
+            except yaml.YAMLError as e:
+                logger.error(e.__str__())
+                sys.exit(1)
             self.merge(template, file)
