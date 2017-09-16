@@ -4,7 +4,7 @@ Load the CloudFormation template from the `*.template.(yml|yaml|json)` files in 
 
 ## Example
 
-```shell
+```
  root@07e549506145:/app/docs/examples/s3-bucket# formica template
 {
     "Resources": {

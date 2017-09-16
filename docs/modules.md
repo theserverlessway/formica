@@ -41,7 +41,7 @@ Modules:
 	"Modules": [
 		{
 			"path": "moduledirectory",
-			"template": "sometemplate"			
+			"template": "sometemplate"
 		}
 	]
 }
@@ -69,7 +69,7 @@ In the module you can then use the variable:
 {{ source }}RecordSet:
   Type: AWS::Route53::RecordSet
   Properties:
-    HostedZoneName: 
+    HostedZoneName:
       Ref: {{ hostedZone }}
     Name: {{ source }}
     Type: CNAME
@@ -84,7 +84,7 @@ As modules are simply subfolders of the current directory you can use any tool t
 
 In the following example we'll add the `formica-modules` module into your project:
 
-```shell
+```
 git submodule add https://github.com/flomotlik/formica-modules modules/formica
 ```
 

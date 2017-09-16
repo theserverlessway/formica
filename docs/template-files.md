@@ -81,7 +81,7 @@ Resources:
     Type: "AWS::S3::Bucket"
 ```
 
-```shell
+```
 root@62d81801cc09:/app/examples/s3-bucket# formica template
 FormicaArgumentException: Mandatory variable not set.
 For Template: "./example.template.yml"

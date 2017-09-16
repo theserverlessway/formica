@@ -6,7 +6,7 @@ After starting to remove the stack it will follow the stack events until the rem
 
 ## Example
 
-```shell
+```
 root@07e549506145:/app/docs/examples/s3-bucket# formica remove --stack formica-examples-stack
 Removing Stack and waiting for it to be removed, ...
 +------------------------------+--------------------------+--------------------------------+--------------------------------+----------------------------------------------------+

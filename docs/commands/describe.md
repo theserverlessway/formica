@@ -18,7 +18,7 @@ After that a table with the following action will be printed:
 * **Changed**: Any attribute of that resource that will be changed when the ChangeSet gets deployed
 
 
-```shell
+```
 root@07e549506145:/app/docs/examples/s3-bucket# formica change  --stack formica-example-stack
 Removing existing change set
 Change set submitted, waiting for CloudFormation to calculate changes ...

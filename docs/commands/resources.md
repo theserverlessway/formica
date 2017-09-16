@@ -6,7 +6,7 @@ The command will print the logical id, physical id, type and status.
 
 ## Example
 
-```shell
+```
 root@67c57a89511a:/app/docs/examples/s3-bucket# formica resources --stack formica-example-stack
 +------------------+------------------------------------------------------+-----------------+-----------------+
 |    Logical ID    |                     Physical ID                      |      Type       |     Status      |

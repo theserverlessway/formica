@@ -4,7 +4,7 @@ Through the stack command you can get an overview over all the CloudFormation st
 
 ## Example
 
-```shell
+```
 root@07e549506145:/app# formica stacks
 Current Stacks:
 +-------------------------------+----------------------------------+----------------------------------+--------------------+
