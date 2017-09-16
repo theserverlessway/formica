@@ -289,11 +289,20 @@ def new(args):
 
 def load_config_file(args, config_file):
     args_dict = vars(args)
-    config_file_args = yaml.load(config_file.read())
-    for key, value in CONFIG_FILE_ARGUMENTS.items():
-        config_file_argument = config_file_args.get(key)
-        if not args_dict.get(key) and config_file_argument:
-            if isinstance(config_file_argument, value):
-                args_dict[key] = config_file_argument
-            else:
-                logger.error('Config file parameter %s needs to be of type %s' % key, value)
+    try:
+        config_file_args = yaml.load(config_file.read())
+    except yaml.YAMLError as e:
+        logger.error(e.__str__())
+        sys.exit(1)
+    for key, value in config_file_args.items():
+        if key in CONFIG_FILE_ARGUMENTS.keys():
+            config_type = CONFIG_FILE_ARGUMENTS[key]
+            if not args_dict.get(key) and value:
+                if isinstance(value, config_type):
+                    args_dict[key] = value
+                else:
+                    logger.error('Config file parameter {} needs to be of type {}'.format(key, config_type.__name__))
+                    sys.exit(2)
+        else:
+            logger.error('Config file parameter {} is not supported'.format(key))
+            sys.exit(2)
