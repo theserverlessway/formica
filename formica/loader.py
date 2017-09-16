@@ -18,9 +18,11 @@ logger = logging.getLogger(__name__)
 
 LINE_WHITESPACE_OFFSET = '  |'
 
-YAML_FILE_TYPES = ['yml', 'yaml']
-JSON_FILE_TYPES = ['json']
-FILE_TYPES = YAML_FILE_TYPES + JSON_FILE_TYPES
+FILE_TYPE_LOADERS = {
+  'yml': yaml.load,
+  'yaml': yaml.load,
+  'json': json.loads
+}
 
 MODULES_ATTRIBUTE = 'Modules'
 
@@ -108,9 +110,6 @@ class Loader(object):
                         loader = Loader(self.path + '/' + module_path, file_name, vars)
                         loader.load()
                         self.merge(loader.template_dictionary(), file=file_name)
-                else:
-                    logger.info("Key '{}' in file {} is not valid".format(key, file))
-                    sys.exit(1)
             else:
                 logger.info("Key '{}' in file {} is not valid".format(key, file))
                 sys.exit(1)
@@ -118,7 +117,7 @@ class Loader(object):
     def load(self):
         files = []
 
-        for file_type in FILE_TYPES:
+        for file_type in FILE_TYPE_LOADERS.keys():
             files.extend(glob.glob('{}/{}.template.{}'.format(self.path, self.file, file_type)))
 
         if not files:
@@ -140,10 +139,5 @@ class Loader(object):
                     'For Template: "' + file + '"')
                 logger.info('If you use it as a template make sure you\'re setting all necessary vars')
                 sys.exit(1)
-            if file.endswith(tuple(YAML_FILE_TYPES)):
-                template = yaml.load(result)
-            elif file.endswith(tuple(JSON_FILE_TYPES)):
-                template = json.loads(result)
-            else:
-                template = {}
+            template = FILE_TYPE_LOADERS[file.split('.')[-1]](result)
             self.merge(template, file)
