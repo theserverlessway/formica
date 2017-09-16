@@ -17,3 +17,9 @@ Load the CloudFormation template from the `*.template.(yml|yaml|json)` files in 
     }
 }
  ```
+
+## Options
+
+| Option                                             | Description  |
+| -------------------------------------------------- | ------------ |
+| --yaml (-y)                                        | Print output as Yaml |

@@ -46,9 +46,9 @@ Resource Changes:
 
 ## Options
 
-* `--stack STACK`             The stack to describe.  [required]
-* `--profile PROFILE`         The AWS profile to use.
-* `--region REGION`           The AWS region to use.
-* `--parameter KEY=Value`     Add a parameter. Repeat for multiple parameters
-* `--tag KEY=Value`           Add a stack tag. Repeat for multipe tags
-* `--capabilities CAPABILITY_IAM,CAPABILITY_NAMED_IAM`  Set one or multiple stack capabilities
+| Option                                             | Description  |
+| -------------------------------------------------- | ------------ |
+| --stack (-s) STACK                                 | The stack you want to create. |
+| --profile PROFILE                                  | The AWS profile to use. |
+| --region REGION                                    | The AWS region to use. |
+| --config-file (-c) CONFIG_FILE                     | Set the config file to use |
