@@ -18,11 +18,7 @@ logger = logging.getLogger(__name__)
 
 LINE_WHITESPACE_OFFSET = '  |'
 
-FILE_TYPE_LOADERS = {
-  'yml': yaml.load,
-  'yaml': yaml.load,
-  'json': json.loads
-}
+FILE_TYPES = ['yml', 'yaml', 'json']
 
 MODULES_ATTRIBUTE = 'Modules'
 
@@ -117,7 +113,7 @@ class Loader(object):
     def load(self):
         files = []
 
-        for file_type in FILE_TYPE_LOADERS.keys():
+        for file_type in FILE_TYPES:
             files.extend(glob.glob('{}/{}.template.{}'.format(self.path, self.file, file_type)))
 
         if not files:
@@ -127,6 +123,7 @@ class Loader(object):
         for file in files:
             try:
                 result = str(self.render(os.path.basename(file), **self.variables))
+                template = yaml.load(result)
             except TemplateSyntaxError as e:
                 logger.info(e.__class__.__name__ + ': ' + e.message)
                 logger.info(
@@ -139,5 +136,7 @@ class Loader(object):
                     'For Template: "' + file + '"')
                 logger.info('If you use it as a template make sure you\'re setting all necessary vars')
                 sys.exit(1)
-            template = FILE_TYPE_LOADERS[file.split('.')[-1]](result)
+            except yaml.YAMLError as e:
+                logger.error(e.__str__())
+                sys.exit(1)
             self.merge(template, file)
