@@ -7,7 +7,7 @@ import sys
 import logging
 from texttable import Texttable
 
-from formica import CHANGE_SET_FORMAT
+from formica import CHANGE_SET_FORMAT, __version__
 from formica.aws import AWS
 from formica.change_set import ChangeSet
 from formica.diff import Diff
@@ -46,8 +46,9 @@ class SplitEqualsAction(argparse.Action):
 
 def main(cli_args=[]):
     parser = argparse.ArgumentParser()
+    parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
     subparsers = parser.add_subparsers(title='commands',
-                                       help='--help', dest='subcommand')
+                                       help='Command to use', dest='subcommand')
 
     # Template Command Arguments
     template_parser = subparsers.add_parser('template', description='Print the current template')
@@ -129,7 +130,10 @@ def main(cli_args=[]):
         AWS.initialize(args_dict.get('region'), args_dict.get('profile'))
 
         # Execute Function
-        args.func(args)
+        if args_dict.get('func'):
+            args.func(args)
+        else:
+            parser.print_usage()
     except (ProfileNotFound, NoCredentialsError, NoRegionError, EndpointConnectionError) as e:
         logger.info('Please make sure your credentials, regions and profiles are properly set:')
         logger.info(e)
