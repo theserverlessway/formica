@@ -4,9 +4,3 @@ Resources:
     Type: "AWS::S3::Bucket"
   {{ bucket }}2:
     Type: "AWS::S3::Bucket"
-
-Parameters:
-  BucketName:
-    Type: String
-  SomeParameter:
-    Type: String
