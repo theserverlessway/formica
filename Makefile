@@ -32,8 +32,8 @@ release-test-pypi: build
 	twine upload dist/* --repository-url https://testpypi.python.org/pypi -r https://testpypi.python.org/pypi
 
 release-docker:
-	docker build -t flomotlik/formica:latest -f Dockerfile.release .
-	docker push flomotlik/formica:latest
+	docker build --no-cache -t flomotlik/formica -f Dockerfile.release .
+	docker push flomotlik/formica
 
 whalebrew:
 	docker build -t flomotlik/formica:whalebrew -f Dockerfile.whalebrew .
