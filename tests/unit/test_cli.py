@@ -24,14 +24,14 @@ def test_fails_for_no_arguments(capsys):
     with pytest.raises(SystemExit):
         cli.main([])
     out, err = capsys.readouterr()
-    assert 'too few arguments' in err
+    assert 'usage:' in err
 
 
 def test_prints_version(capsys):
     with pytest.raises(SystemExit):
         cli.main(['--version'])
-    out, err = capsys.readouterr()
-    assert __version__ in err
+    out = "\n".join(capsys.readouterr())
+    assert __version__ in out
 
 
 def test_commands_use_exception_handling(session, logger):

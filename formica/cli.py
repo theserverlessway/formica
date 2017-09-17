@@ -52,7 +52,8 @@ def main(cli_args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', action='version', version='{}'.format(__version__))
     subparsers = parser.add_subparsers(title='commands',
-                                       help='Command to use', dest='subcommand')
+                                       help='Command to use', dest='command')
+    subparsers.required = True
 
     # Template Command Arguments
     template_parser = subparsers.add_parser('template', description='Print the current template')

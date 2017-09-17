@@ -2,7 +2,6 @@ import subprocess
 import uuid
 import json
 from path import Path
-from formica import __version__
 
 import pytest
 
