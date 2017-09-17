@@ -1,3 +1,5 @@
+.PHONY: build
+
 install:
 	pip install -U -r build-requirements.txt
 	python setup.py develop
@@ -16,15 +18,18 @@ start-docker:
 	docker-compose build formica
 	docker-compose run formica bash
 
-build:
-	python setup.py sdist bdist_wheel
-	pandoc --from=markdown --to=rst --output=dist/README.rst README.md
-
-release-pypi: clean build
-	twine upload dist/* "$@"
-
 clean:
 	rm -fr dist
+
+build: clean
+	python setup.py sdist bdist_wheel
+	pandoc --from=markdown --to=rst --output=build/README.rst README.md
+
+release-pypi: build
+	twine upload dist/*
+
+release-test-pypi: build
+	twine upload dist/* --repository-url https://testpypi.python.org/pypi -r https://testpypi.python.org/pypi
 
 release-docker:
 	docker build -t flomotlik/formica:latest -f Dockerfile.release .

@@ -7,7 +7,7 @@ from setuptools import setup
 from formica import __version__
 
 this_dir = abspath(dirname(__file__))
-path = join(this_dir, 'README.rst')
+path = join(this_dir, 'build/README.rst')
 long_description = ''
 if isfile(path):
     with open(path) as file:
