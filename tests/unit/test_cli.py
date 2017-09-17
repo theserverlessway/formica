@@ -1,5 +1,5 @@
 import pytest
-from formica import cli
+from formica import cli, __version__
 from botocore.exceptions import ProfileNotFound, NoCredentialsError, NoRegionError, ClientError
 
 from tests.unit.constants import STACK, MESSAGE
@@ -18,6 +18,20 @@ def session(mocker):
 @pytest.fixture
 def logger(mocker):
     return mocker.patch('formica.cli.logger')
+
+
+def test_fails_for_no_arguments(capsys):
+    with pytest.raises(SystemExit):
+        cli.main([])
+    out, err = capsys.readouterr()
+    assert 'too few arguments' in err
+
+
+def test_prints_version(capsys):
+    with pytest.raises(SystemExit):
+        cli.main(['--version'])
+    out, err = capsys.readouterr()
+    assert __version__ in err
 
 
 def test_commands_use_exception_handling(session, logger):

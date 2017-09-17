@@ -42,7 +42,7 @@ setup(
                       'deepdiff==3.1.2'],
     entry_points={
         'console_scripts': [
-            'formica=formica.cli:main',
+            'formica=formica.cli:formica',
         ],
     }
 )

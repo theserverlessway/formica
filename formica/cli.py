@@ -44,9 +44,13 @@ class SplitEqualsAction(argparse.Action):
                 raise argparse.ArgumentError(self, '%r needs to be in format KEY=VALUE' % string)
 
 
-def main(cli_args=[]):
+def formica():
+    main(sys.argv[1:])
+
+
+def main(cli_args):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
+    parser.add_argument('--version', action='version', version='{}'.format(__version__))
     subparsers = parser.add_subparsers(title='commands',
                                        help='Command to use', dest='subcommand')
 
@@ -117,8 +121,6 @@ def main(cli_args=[]):
     remove_parser.set_defaults(func=remove)
 
     # Argument Parsing
-    if not cli_args:
-        cli_args = sys.argv[1:]
     args = parser.parse_args(cli_args)
     args_dict = vars(args)
 
