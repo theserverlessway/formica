@@ -58,6 +58,7 @@ def main(cli_args):
 
     # Template Command Arguments
     template_parser = subparsers.add_parser('template', description='Print the current template')
+    add_stack_variables_argument(template_parser)
     template_parser.add_argument('-y', '--yaml', help="print output as yaml", action="store_true")
     template_parser.set_defaults(func=template)
 
@@ -75,6 +76,7 @@ def main(cli_args):
     add_stack_tags_argument(new_parser)
     add_capabilities_argument(new_parser)
     add_config_file_argument(new_parser)
+    add_stack_variables_argument(new_parser)
     new_parser.set_defaults(func=new)
 
     # Change Command Arguments
@@ -85,6 +87,7 @@ def main(cli_args):
     add_stack_tags_argument(change_parser)
     add_capabilities_argument(change_parser)
     add_config_file_argument(change_parser)
+    add_stack_variables_argument(change_parser)
     change_parser.set_defaults(func=change)
 
     # Deploy Command Arguments
@@ -106,6 +109,7 @@ def main(cli_args):
     add_aws_arguments(diff_parser)
     add_stack_argument(diff_parser)
     add_config_file_argument(diff_parser)
+    add_stack_variables_argument(diff_parser)
     diff_parser.set_defaults(func=diff)
 
     # Resources Command Arguments
