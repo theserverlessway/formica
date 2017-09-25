@@ -89,6 +89,17 @@ def test_supports_jinja_templates(load, tmpdir):
     assert actual == {"Description": "Test"}
 
 
+def test_supports_extra_jinja_vars(tmpdir):
+    load = Loader(variables={'test': 'bar'})
+    example = '{"Description": "{{ test | title }}"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "Bar"}
+
+
 def test_supports_resouce_command(load, tmpdir):
     example = '{"Description": "{{ \'ABC%123.\' | resource }}"}'
     with Path(tmpdir):

@@ -231,7 +231,7 @@ def stacks(args):
 
 @requires_stack
 def diff(args):
-    Diff(AWS.current_session()).run(args.stack)
+    Diff(AWS.current_session()).run(args.stack, args.vars)
 
 
 @requires_stack

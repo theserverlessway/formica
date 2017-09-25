@@ -113,4 +113,17 @@ def test_diff_cli_call(mocker, session):
     cli.main(['diff', '--stack', STACK])
 
     diff.assert_called_with(session)
-    diff.return_value.run.assert_called_with(STACK)
+    diff.return_value.run.assert_called_with(STACK, mocker.ANY)
+
+
+def test_diff_cli_with_vars(mocker, session):
+    aws = mocker.patch('formica.cli.AWS')
+    aws.current_session.return_value = session
+    print(session)
+
+    diff = mocker.patch('formica.cli.Diff')
+
+    cli.main(['diff', '--stack', STACK, '--vars', 'abc=def'])
+
+    diff.assert_called_with(session)
+    diff.return_value.run.assert_called_with(STACK, {'abc': 'def'})
