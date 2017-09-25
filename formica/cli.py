@@ -27,7 +27,8 @@ CONFIG_FILE_ARGUMENTS = {
     'parameters': dict,
     'region': str,
     'profile': str,
-    'capabilities': list
+    'capabilities': list,
+    'vars': dict,
 }
 
 
@@ -175,6 +176,11 @@ def add_stack_parameters_argument(parser):
                         nargs='*', action=SplitEqualsAction, metavar='KEY=Value')
 
 
+def add_stack_variables_argument(parser):
+    parser.add_argument('--vars', help='Add one or multiple Jinja2 variables',
+                        nargs='*', action=SplitEqualsAction, metavar='KEY=Value')
+
+
 def add_stack_tags_argument(parser):
     parser.add_argument('--tags', help='Add one or multiple stack tags', nargs='*',
                         action=SplitEqualsAction, metavar='KEY=Value')
@@ -190,7 +196,7 @@ def add_config_file_argument(parser):
 
 
 def template(args):
-    loader = Loader()
+    loader = Loader(variables=args.vars)
     loader.load()
     if args.yaml:
         logger.info(
@@ -254,7 +260,7 @@ def resources(args):
 @requires_stack
 def change(args):
     client = AWS.current_session().client('cloudformation')
-    loader = Loader()
+    loader = Loader(variables=args.vars)
     loader.load()
 
     change_set = ChangeSet(stack=args.stack, client=client)
@@ -284,7 +290,7 @@ def remove(args):
 @requires_stack
 def new(args):
     client = AWS.current_session().client('cloudformation')
-    loader = Loader()
+    loader = Loader(variables=args.vars)
     loader.load()
     logger.info('Creating change set for new stack, ...')
     change_set = ChangeSet(stack=args.stack, client=client)
