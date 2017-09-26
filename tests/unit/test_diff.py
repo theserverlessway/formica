@@ -106,7 +106,6 @@ def test_request_returns_string(loader, client, diff, logger):
 def test_diff_cli_call(mocker, session):
     aws = mocker.patch('formica.cli.AWS')
     aws.current_session.return_value = session
-    print(session)
 
     diff = mocker.patch('formica.cli.Diff')
 
@@ -119,7 +118,6 @@ def test_diff_cli_call(mocker, session):
 def test_diff_cli_with_vars(mocker, session):
     aws = mocker.patch('formica.cli.AWS')
     aws.current_session.return_value = session
-    print(session)
 
     diff = mocker.patch('formica.cli.Diff')
 
