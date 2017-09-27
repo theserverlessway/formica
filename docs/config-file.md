@@ -21,4 +21,6 @@ capabilities:
   - CAPABILITY_NAMED_IAM
 region: us-east-1
 profile: production
+vars:
+  domain: flomotlik.me
 ```

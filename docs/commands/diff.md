@@ -26,4 +26,5 @@ Together with [`formica describe`](describe.md) you can understand exactly what 
 | --stack (-s) STACK                                 | The stack you want to create. |
 | --profile PROFILE                                  | The AWS profile to use. |
 | --region REGION                                    | The AWS region to use. |
+| --vars KEY1=Value KEY2=Value2                      | Add a variable for use in Jinja2 templates. |
 | --config-file (-c) CONFIG_FILE                     | Set the config file to use |

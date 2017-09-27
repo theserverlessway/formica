@@ -102,13 +102,21 @@ class Loader(object):
                     for module in template[key]:
                         module_path = module.get('path')
                         file_name = module.get('template', '*')
-                        vars = module.get('vars', {})
+                        vars = self.merge_variables(module.get('vars', {}))
                         loader = Loader(self.path + '/' + module_path, file_name, vars)
                         loader.load()
                         self.merge(loader.template_dictionary(), file=file_name)
             else:
                 logger.info("Key '{}' in file {} is not valid".format(key, file))
                 sys.exit(1)
+
+    def merge_variables(self, module_vars):
+        merged_vars = {}
+        for k, v in module_vars.items():
+            merged_vars[k] = v
+        for k, v in self.variables.items():
+            merged_vars[k] = v
+        return merged_vars
 
     def load(self):
         files = []

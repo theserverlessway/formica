@@ -13,6 +13,39 @@ To be able to change files dynamically we use [Jinja2](http://jinja.pocoo.org/do
 engine. It allows you to iterate over values, define variables or use filters to change text, e.g. when a value has to
 be alphanumeric and you want to strip special characters.
 
+## Enhancing Templates
+
+When using Formica, there are three places that variables can be set. The first is to use inline `{% set foo = "bar" %}`
+Jinja2 syntax. More commonly, you'll want to vary the values based on which stack you're deploying. All commands that
+take parameters and stack changes (`diff`, `new`, `change`, etc) accept a `--vars foo=bar baz=box` syntax. More
+complex or nested values can be specified in a stack config file:
+
+```
+stack: my-cool-resources
+vars:
+  foo: bar
+  complex_thing:
+    a:
+      - 1
+      - 2
+      - 3
+    b: something
+  max_size: 10
+```
+
+Any `--vars` CLI options will override the stack config, similar to parameters. You can then loop or base
+conditionals on these custom values.
+
+```
+{% for i in complex_thing.a %}myrsrc{{ i }}{% endfor %}
+
+{% if max_size > 3 %}
+  {{ max_size }}
+{% else %}
+  3
+{% endif %}
+```
+
 ## Available AWS Resources
 
 As Formica uses the official CloudFormation syntax directly all CloudFormation resources or options are supported.

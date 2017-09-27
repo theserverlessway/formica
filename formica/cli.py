@@ -27,7 +27,8 @@ CONFIG_FILE_ARGUMENTS = {
     'parameters': dict,
     'region': str,
     'profile': str,
-    'capabilities': list
+    'capabilities': list,
+    'vars': dict,
 }
 
 
@@ -57,6 +58,8 @@ def main(cli_args):
 
     # Template Command Arguments
     template_parser = subparsers.add_parser('template', description='Print the current template')
+    add_config_file_argument(template_parser)
+    add_stack_variables_argument(template_parser)
     template_parser.add_argument('-y', '--yaml', help="print output as yaml", action="store_true")
     template_parser.set_defaults(func=template)
 
@@ -74,6 +77,7 @@ def main(cli_args):
     add_stack_tags_argument(new_parser)
     add_capabilities_argument(new_parser)
     add_config_file_argument(new_parser)
+    add_stack_variables_argument(new_parser)
     new_parser.set_defaults(func=new)
 
     # Change Command Arguments
@@ -84,6 +88,7 @@ def main(cli_args):
     add_stack_tags_argument(change_parser)
     add_capabilities_argument(change_parser)
     add_config_file_argument(change_parser)
+    add_stack_variables_argument(change_parser)
     change_parser.set_defaults(func=change)
 
     # Deploy Command Arguments
@@ -105,6 +110,7 @@ def main(cli_args):
     add_aws_arguments(diff_parser)
     add_stack_argument(diff_parser)
     add_config_file_argument(diff_parser)
+    add_stack_variables_argument(diff_parser)
     diff_parser.set_defaults(func=diff)
 
     # Resources Command Arguments
@@ -175,6 +181,11 @@ def add_stack_parameters_argument(parser):
                         nargs='*', action=SplitEqualsAction, metavar='KEY=Value')
 
 
+def add_stack_variables_argument(parser):
+    parser.add_argument('--vars', help='Add one or multiple Jinja2 variables',
+                        nargs='*', action=SplitEqualsAction, metavar='KEY=Value')
+
+
 def add_stack_tags_argument(parser):
     parser.add_argument('--tags', help='Add one or multiple stack tags', nargs='*',
                         action=SplitEqualsAction, metavar='KEY=Value')
@@ -190,7 +201,7 @@ def add_config_file_argument(parser):
 
 
 def template(args):
-    loader = Loader()
+    loader = Loader(variables=args.vars)
     loader.load()
     if args.yaml:
         logger.info(
@@ -221,7 +232,7 @@ def stacks(args):
 
 @requires_stack
 def diff(args):
-    Diff(AWS.current_session()).run(args.stack)
+    Diff(AWS.current_session()).run(args.stack, args.vars)
 
 
 @requires_stack
@@ -254,7 +265,7 @@ def resources(args):
 @requires_stack
 def change(args):
     client = AWS.current_session().client('cloudformation')
-    loader = Loader()
+    loader = Loader(variables=args.vars)
     loader.load()
 
     change_set = ChangeSet(stack=args.stack, client=client)
@@ -284,7 +295,7 @@ def remove(args):
 @requires_stack
 def new(args):
     client = AWS.current_session().client('cloudformation')
-    loader = Loader()
+    loader = Loader(variables=args.vars)
     loader.load()
     logger.info('Creating change set for new stack, ...')
     change_set = ChangeSet(stack=args.stack, client=client)

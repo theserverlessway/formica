@@ -39,14 +39,14 @@ class Diff(AWSBase):
     def __init__(self, session):
         super(Diff, self).__init__(session)
 
-    def run(self, stack):
+    def run(self, stack, variables=None):
         client = self.cf_client()
 
         result = client.get_template(
             StackName=stack,
         )
 
-        loader = Loader()
+        loader = Loader(variables=variables)
         loader.load()
         deployed_template = convert(result['TemplateBody'])
         if isinstance(deployed_template, str):
