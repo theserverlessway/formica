@@ -210,6 +210,17 @@ def test_mandatory_filter_throws_exception(load, tmpdir):
             load.load()
 
 
+def test_mandatory_filter_throws_exception_in_module(load, tmpdir):
+    example = '{"Description": "{{ test | mandatory }}"}'
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.template.json', 'w') as f:
+            f.write('{"Modules": [{"path": "moduledir", "vars": {"test": {{ test }} }}]}')
+        with pytest.raises(SystemExit):
+          load.load()
+
 def test_wrong_key_throws_exception(load, tmpdir):
     example = '{"SomeKey": "test"}'
     with Path(tmpdir):

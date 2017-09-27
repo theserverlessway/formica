@@ -47,8 +47,7 @@ def code_escape(source):
 
 def mandatory(a):
     from jinja2.runtime import Undefined
-
-    if isinstance(a, Undefined):
+    if isinstance(a, Undefined) or a is None:
         raise FormicaArgumentException('Mandatory variable not set.')
     return a
 
