@@ -47,15 +47,16 @@ def code_escape(source):
 
 def mandatory(a):
     from jinja2.runtime import Undefined
-
-    if isinstance(a, Undefined):
+    if isinstance(a, Undefined) or a is None:
         raise FormicaArgumentException('Mandatory variable not set.')
     return a
 
 
 def resource(name):
-    name = ''.join(e for e in name.title() if e.isalnum())
-    return name
+    if name is None:
+        return ''
+    else:
+        return ''.join(e for e in name.title() if e.isalnum())
 
 
 class Loader(object):
@@ -112,9 +113,9 @@ class Loader(object):
 
     def merge_variables(self, module_vars):
         merged_vars = {}
-        for k, v in module_vars.items():
-            merged_vars[k] = v
         for k, v in self.variables.items():
+            merged_vars[k] = v
+        for k, v in module_vars.items():
             merged_vars[k] = v
         return merged_vars
 

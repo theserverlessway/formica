@@ -100,6 +100,20 @@ def test_supports_extra_jinja_vars(tmpdir):
     assert actual == {"Description": "Bar"}
 
 
+def test_module_vars_have_precedence_over_global(tmpdir):
+    load = Loader(variables={'test': 'bar'})
+    example = '{"Description": "{{ test }}"}'
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.template.json', 'w') as f:
+            f.write('{"Modules": [{"path": "moduledir", "vars": {"test": "baz"}}]}')
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "baz"}
+
+
 def test_supports_resouce_command(load, tmpdir):
     example = '{"Description": "{{ \'ABC%123.\' | resource }}"}'
     with Path(tmpdir):
@@ -108,6 +122,16 @@ def test_supports_resouce_command(load, tmpdir):
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "Abc123"}
+
+
+def test_resouce_command_supports_none_value(load, tmpdir):
+    example = '{"Description": "{{ None | resource }}"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": ""}
 
 
 def test_template_loads_submodules(load, tmpdir):
@@ -206,6 +230,18 @@ def test_mandatory_filter_throws_exception(load, tmpdir):
     with Path(tmpdir):
         with open('test.template.json', 'w') as f:
             f.write(example)
+        with pytest.raises(SystemExit):
+            load.load()
+
+
+def test_mandatory_filter_throws_exception_in_module(load, tmpdir):
+    example = '{"Description": "{{ test | mandatory }}"}'
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.template.json', 'w') as f:
+            f.write('{"Modules": [{"path": "moduledir", "vars": {"test": {{ test }} }}]}')
         with pytest.raises(SystemExit):
             load.load()
 

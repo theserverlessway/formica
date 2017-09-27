@@ -14,7 +14,7 @@ check-code:
 integration-test:
 	py.test -s tests/integration
 
-start-docker:
+dev:
 	docker-compose build formica
 	docker-compose run formica bash
 
