@@ -124,6 +124,16 @@ def test_supports_resouce_command(load, tmpdir):
     assert actual == {"Description": "Abc123"}
 
 
+def test_resouce_command_supports_none_value(load, tmpdir):
+    example = '{"Description": "{{ None | resource }}"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": ""}
+
+
 def test_template_loads_submodules(load, tmpdir):
     example = '{"Description": "{{ \'test\'}}"}'
     with Path(tmpdir):

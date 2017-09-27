@@ -53,8 +53,10 @@ def mandatory(a):
 
 
 def resource(name):
-    name = ''.join(e for e in name.title() if e.isalnum())
-    return name
+    if name is None:
+      return ''
+    else:
+      return ''.join(e for e in name.title() if e.isalnum())
 
 
 class Loader(object):
