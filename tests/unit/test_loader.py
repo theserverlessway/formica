@@ -100,6 +100,20 @@ def test_supports_extra_jinja_vars(tmpdir):
     assert actual == {"Description": "Bar"}
 
 
+def test_module_vars_have_precedence_over_global(tmpdir):
+    load = Loader(variables={'test': 'bar'})
+    example = '{"Description": "{{ test }}"}'
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.template.json', 'w') as f:
+            f.write('{"Modules": [{"path": "moduledir", "vars": {"test": "baz"}}]}')
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "baz"}
+
+
 def test_supports_resouce_command(load, tmpdir):
     example = '{"Description": "{{ \'ABC%123.\' | resource }}"}'
     with Path(tmpdir):

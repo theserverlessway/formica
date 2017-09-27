@@ -111,9 +111,9 @@ class Loader(object):
 
     def merge_variables(self, module_vars):
         merged_vars = {}
-        for k, v in module_vars.items():
-            merged_vars[k] = v
         for k, v in self.variables.items():
+            merged_vars[k] = v
+        for k, v in module_vars.items():
             merged_vars[k] = v
         return merged_vars
 
