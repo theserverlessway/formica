@@ -58,6 +58,7 @@ def main(cli_args):
 
     # Template Command Arguments
     template_parser = subparsers.add_parser('template', description='Print the current template')
+    add_config_file_argument(template_parser)
     add_stack_variables_argument(template_parser)
     template_parser.add_argument('-y', '--yaml', help="print output as yaml", action="store_true")
     template_parser.set_defaults(func=template)
