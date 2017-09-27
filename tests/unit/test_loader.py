@@ -243,7 +243,8 @@ def test_mandatory_filter_throws_exception_in_module(load, tmpdir):
         with open('test.template.json', 'w') as f:
             f.write('{"Modules": [{"path": "moduledir", "vars": {"test": {{ test }} }}]}')
         with pytest.raises(SystemExit):
-          load.load()
+            load.load()
+
 
 def test_wrong_key_throws_exception(load, tmpdir):
     example = '{"SomeKey": "test"}'
