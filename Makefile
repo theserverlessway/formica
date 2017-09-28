@@ -14,26 +14,27 @@ check-code:
 integration-test:
 	py.test -s tests/integration
 
-dev:
+build-dev:
 	docker-compose build formica
+
+dev: build-dev
 	docker-compose run formica bash
 
 clean:
 	rm -fr dist
 
-build: clean
-	python setup.py sdist bdist_wheel
-	pandoc --from=markdown --to=rst --output=build/README.rst README.md
+build: build-dev
+	docker-compose run formica python setup.py sdist bdist_wheel
+	docker-compose run formica pandoc --from=markdown --to=rst --output=build/README.rst README.md
 
-release-pypi: build
-	twine upload dist/*
-
-release-test-pypi: build
-	twine upload dist/* --repository-url https://testpypi.python.org/pypi -r https://testpypi.python.org/pypi
+release-pypi: build-dev build
+	docker-compose run formica twine upload dist/*
 
 release-docker:
 	docker build --no-cache -t flomotlik/formica -f Dockerfile.release .
 	docker push flomotlik/formica
+
+release: release-pypi release-docker
 
 whalebrew:
 	docker build -t flomotlik/formica:whalebrew -f Dockerfile.whalebrew .
