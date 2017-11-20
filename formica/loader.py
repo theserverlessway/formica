@@ -60,13 +60,16 @@ def resource(name):
 
 
 class Loader(object):
-    def __init__(self, path='.', file='*', variables=None):
+    def __init__(self, path='.', file='*', variables=None, parent_path=None):
         if variables is None:
             variables = {}
         self.cftemplate = {}
         self.path = path
         self.file = file
-        self.env = Environment(loader=FileSystemLoader(path, followlinks=True))
+        if parent_path is None:
+            self.env = Environment(loader=FileSystemLoader(path, followlinks=True))
+        else:
+            self.env = Environment(loader=FileSystemLoader([path, parent_path], followlinks=True))
         self.env.filters.update({
             'code_escape': code_escape,
             'mandatory': mandatory,
@@ -104,7 +107,7 @@ class Loader(object):
                         module_path = module.get('path')
                         file_name = module.get('template', '*')
                         vars = self.merge_variables(module.get('vars', {}))
-                        loader = Loader(self.path + '/' + module_path, file_name, vars)
+                        loader = Loader(self.path + '/' + module_path, file_name, vars, parent_path=self.path)
                         loader.load()
                         self.merge(loader.template_dictionary(), file=file_name)
             else:
