@@ -307,10 +307,10 @@ def test_code_includes_supports_nested_code_arguments(load, tmpdir):
     assert actual == {"Description": "nested-test"}
 
 
-def test_un_indents_large_templates(load, tmpdir):
+def test_un_indented_large_templates(load):
     # Generate a large dictionary that, with indent=4, is too large to deploy
-    # as a template. Loader supports autodetection of too-long templates and
-    # removes indentation.
+    # as a template. Loader supports passing the `indent` param as `None` to
+    # remove indentation.
     load.cftemplate = {'Resources': {i: 'a' * 84 for i in range(512)}}
-    assert len(json.dumps(load.cftemplate, indent=4)) > 51200
-    assert len(load.template()) < 51200
+    assert len(load.template()) > 51200
+    assert len(load.template(indent=None)) < 51200

@@ -85,11 +85,7 @@ class Loader(object):
     def template(self, indent=4, sort_keys=True, separators=(',', ': '), dumper=None):
         if dumper is not None:
             return dumper(self.cftemplate)
-        tpl = json.dumps(self.cftemplate, indent=indent, sort_keys=sort_keys, separators=separators)
-        if len(tpl) > 51200:
-            # CloudFormation's max template length limit is 51200 chars, as of November 2017
-            return json.dumps(self.cftemplate, sort_keys=sort_keys, separators=separators)
-        return tpl
+        return json.dumps(self.cftemplate, indent=indent, sort_keys=sort_keys, separators=separators)
 
     def template_dictionary(self):
         return self.cftemplate

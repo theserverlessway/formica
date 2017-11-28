@@ -210,7 +210,7 @@ def template(args):
             ).strip()  # strip trailing newline to avoid blank line in output
         )
     else:
-        logger.info(loader.template())
+        logger.info(loader.template(indent=4))
 
 
 def stacks(args):
@@ -269,8 +269,8 @@ def change(args):
     loader.load()
 
     change_set = ChangeSet(stack=args.stack, client=client)
-    change_set.create(template=loader.template(), change_set_type='UPDATE', parameters=args.parameters, tags=args.tags,
-                      capabilities=args.capabilities)
+    change_set.create(template=loader.template(indent=None), change_set_type='UPDATE', parameters=args.parameters,
+                      tags=args.tags, capabilities=args.capabilities)
     change_set.describe()
 
 
@@ -299,8 +299,8 @@ def new(args):
     loader.load()
     logger.info('Creating change set for new stack, ...')
     change_set = ChangeSet(stack=args.stack, client=client)
-    change_set.create(template=loader.template(), change_set_type='CREATE', parameters=args.parameters, tags=args.tags,
-                      capabilities=args.capabilities)
+    change_set.create(template=loader.template(indent=None), change_set_type='CREATE', parameters=args.parameters,
+                      tags=args.tags, capabilities=args.capabilities)
     change_set.describe()
     logger.info('Change set created, please deploy')
 
