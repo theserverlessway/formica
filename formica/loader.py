@@ -82,7 +82,7 @@ class Loader(object):
     def render(self, filename, **args):
         return self.env.get_template(filename).render(code=self.include_file, **args)
 
-    def template(self, indent=4, sort_keys=True, separators=(',', ': '), dumper=None):
+    def template(self, indent=4, sort_keys=True, separators=(',', ':'), dumper=None):
         if dumper is not None:
             return dumper(self.cftemplate)
         return json.dumps(self.cftemplate, indent=indent, sort_keys=sort_keys, separators=separators)
