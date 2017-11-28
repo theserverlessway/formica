@@ -210,7 +210,7 @@ def template(args):
             ).strip()  # strip trailing newline to avoid blank line in output
         )
     else:
-        logger.info(loader.template(indent=4))
+        logger.info(loader.template(indent=4, separators=(',', ': ')))
 
 
 def stacks(args):
