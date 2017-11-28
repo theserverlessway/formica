@@ -32,6 +32,6 @@ script:
 - if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then make integration-test; fi
 
 after_success:
-- if [[ -z "$INTEGRATION_TEST" ]]; then make coveralls; fi
+- if [[ -z "$INTEGRATION_TEST" ]]; then coveralls; fi
 
 
