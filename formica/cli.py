@@ -25,6 +25,7 @@ CONFIG_FILE_ARGUMENTS = {
     'stack': str,
     'tags': dict,
     'parameters': dict,
+    'role_arn': str,
     'region': str,
     'profile': str,
     'capabilities': list,
@@ -76,6 +77,7 @@ def main(cli_args):
     add_stack_parameters_argument(new_parser)
     add_stack_tags_argument(new_parser)
     add_capabilities_argument(new_parser)
+    add_role_arn_argument(new_parser)
     add_config_file_argument(new_parser)
     add_stack_variables_argument(new_parser)
     new_parser.set_defaults(func=new)
@@ -87,6 +89,7 @@ def main(cli_args):
     add_stack_parameters_argument(change_parser)
     add_stack_tags_argument(change_parser)
     add_capabilities_argument(change_parser)
+    add_role_arn_argument(change_parser)
     add_config_file_argument(change_parser)
     add_stack_variables_argument(change_parser)
     change_parser.set_defaults(func=change)
@@ -124,6 +127,7 @@ def main(cli_args):
     remove_parser = subparsers.add_parser('remove', description='Remove the configured stack')
     add_aws_arguments(remove_parser)
     add_stack_argument(remove_parser)
+    add_role_arn_argument(remove_parser)
     add_config_file_argument(remove_parser)
     remove_parser.set_defaults(func=remove)
 
@@ -194,6 +198,10 @@ def add_stack_tags_argument(parser):
 def add_capabilities_argument(parser):
     parser.add_argument('--capabilities', help='Set one or multiple stack capabilities',
                         metavar='Cap1 Cap2', nargs='*')
+
+
+def add_role_arn_argument(parser):
+    parser.add_argument('--role-arn', help='Set a separate role ARN to pass to the stack')
 
 
 def add_config_file_argument(parser):
@@ -288,7 +296,10 @@ def remove(args):
     stack_id = client.describe_stacks(StackName=args.stack)['Stacks'][0]['StackId']
     logger.info('Removing Stack and waiting for it to be removed, ...')
     last_event = client.describe_stack_events(StackName=args.stack)['StackEvents'][0]['EventId']
-    client.delete_stack(StackName=args.stack)
+    if args.role_arn:
+        client.delete_stack(StackName=args.stack, RoleArn=args.role_arn)
+    else:
+        client.delete_stack(StackName=args.stack)
     StackWaiter(stack_id, client).wait(last_event)
 
 
@@ -300,7 +311,7 @@ def new(args):
     logger.info('Creating change set for new stack, ...')
     change_set = ChangeSet(stack=args.stack, client=client)
     change_set.create(template=loader.template(indent=None), change_set_type='CREATE', parameters=args.parameters,
-                      tags=args.tags, capabilities=args.capabilities)
+                      tags=args.tags, capabilities=args.capabilities, role_arn=args.role_arn)
     change_set.describe()
     logger.info('Change set created, please deploy')
 

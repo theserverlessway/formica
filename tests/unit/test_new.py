@@ -27,7 +27,8 @@ def test_create_changeset_for_new_stack(change_set, session, loader):
     cli.main(['new', '--stack', STACK, '--profile', PROFILE, '--region', REGION])
     change_set.assert_called_with(stack=STACK, client=client_mock)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
-                                                           parameters=None, tags=None, capabilities=None)
+                                                           parameters=None, tags=None, capabilities=None,
+                                                           role_arn=None)
     change_set.return_value.describe.assert_called_once()
 
 
@@ -39,7 +40,7 @@ def test_new_uses_parameters_for_creation(change_set, session, loader):
     change_set.assert_called_with(stack=STACK, client=client_mock)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
                                                            parameters={'A': 'B', 'C': 'D'}, tags=None,
-                                                           capabilities=None)
+                                                           capabilities=None, role_arn=None)
 
 
 def test_new_uses_tags_for_creation(change_set, session, loader):
@@ -50,7 +51,20 @@ def test_new_uses_tags_for_creation(change_set, session, loader):
     change_set.assert_called_with(stack=STACK, client=client_mock)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
                                                            parameters=None,
-                                                           tags={'A': 'B', 'C': 'D'}, capabilities=None)
+                                                           tags={'A': 'B', 'C': 'D'}, capabilities=None,
+                                                           role_arn=None)
+
+
+def test_new_role_arn_for_creation(change_set, session, loader):
+    client_mock = Mock()
+    session.return_value.client.return_value = client_mock
+    loader.return_value.template.return_value = TEMPLATE
+    cli.main(['new', '--stack', STACK, '--profile', PROFILE, '--region', REGION, '--role-arn', 'arn:aws:foobarbaz'])
+    change_set.assert_called_with(stack=STACK, client=client_mock)
+    change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
+                                                           parameters=None,
+                                                           tags=None, capabilities=None,
+                                                           role_arn='arn:aws:foobarbaz')
 
 
 def test_new_tests_parameter_format(capsys):
@@ -69,5 +83,5 @@ def test_new_uses_capabilities_for_creation(change_set, session, loader):
     cli.main(['new', '--stack', STACK, '--capabilities', 'A', 'B'])
     change_set.assert_called_with(stack=STACK, client=client_mock)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
-                                                           parameters=None,
-                                                           tags=None, capabilities=['A', 'B'])
+                                                           parameters=None, tags=None,
+                                                           capabilities=['A', 'B'], role_arn=None)
