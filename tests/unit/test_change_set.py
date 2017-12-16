@@ -80,7 +80,7 @@ def test_submits_changeset_with_role_arn():
 
     cf_client_mock.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, RoleArn=ROLE_ARN)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, RoleARN=ROLE_ARN)
 
     cf_client_mock.get_waiter.assert_called_with(
         'change_set_create_complete')

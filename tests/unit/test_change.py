@@ -27,7 +27,7 @@ def test_change_creates_update_change_set(change_set, session, loader):
     change_set.assert_called_with(stack=STACK, client=client_mock)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
                                                            parameters=None,
-                                                           tags=None, capabilities=None)
+                                                           tags=None, capabilities=None, role_arn=None)
     change_set.return_value.describe.assert_called_once()
 
 
@@ -39,7 +39,7 @@ def test_change_uses_parameters_for_update(change_set, session, loader):
     change_set.assert_called_with(stack=STACK, client=client_mock)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
                                                            parameters={'A': 'B', 'C': 'D'}, tags=None,
-                                                           capabilities=None)
+                                                           capabilities=None, role_arn=None)
     change_set.return_value.describe.assert_called_once()
 
 
@@ -59,7 +59,7 @@ def test_change_uses_tags_for_creation(change_set, session, loader):
     change_set.assert_called_with(stack=STACK, client=client_mock)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
                                                            parameters=None,
-                                                           tags={'A': 'B', 'C': 'D'}, capabilities=None)
+                                                           tags={'A': 'B', 'C': 'D'}, capabilities=None, role_arn=None)
 
 
 def test_change_tests_tag_format(capsys):
@@ -79,4 +79,4 @@ def test_change_uses_capabilities_for_creation(change_set, session, loader):
     change_set.assert_called_with(stack=STACK, client=client_mock)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
                                                            parameters=None,
-                                                           tags=None, capabilities=['A', 'B'])
+                                                           tags=None, capabilities=['A', 'B'], role_arn=None)

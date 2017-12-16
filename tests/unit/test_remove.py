@@ -36,6 +36,6 @@ class TestRemove(unittest.TestCase):
         cli.main(['remove', '--stack', STACK, '--profile', PROFILE, '--region', REGION, '--role-arn', ROLE_ARN])
         client_mock.describe_stacks.assert_called_with(StackName=STACK)
         client_mock.describe_stack_events.assert_called_with(StackName=STACK)
-        client_mock.delete_stack.assert_called_with(StackName=STACK, RoleArn=ROLE_ARN)
+        client_mock.delete_stack.assert_called_with(StackName=STACK, RoleARN=ROLE_ARN)
         stack_waiter.assert_called_with(STACK_ID, client_mock)
         stack_waiter.return_value.wait.assert_called_with(EVENT_ID)
