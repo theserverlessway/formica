@@ -278,7 +278,7 @@ def change(args):
 
     change_set = ChangeSet(stack=args.stack, client=client)
     change_set.create(template=loader.template(indent=None), change_set_type='UPDATE', parameters=args.parameters,
-                      tags=args.tags, capabilities=args.capabilities)
+                      tags=args.tags, capabilities=args.capabilities, role_arn=args.role_arn)
     change_set.describe()
 
 
@@ -297,7 +297,7 @@ def remove(args):
     logger.info('Removing Stack and waiting for it to be removed, ...')
     last_event = client.describe_stack_events(StackName=args.stack)['StackEvents'][0]['EventId']
     if args.role_arn:
-        client.delete_stack(StackName=args.stack, RoleArn=args.role_arn)
+        client.delete_stack(StackName=args.stack, RoleARN=args.role_arn)
     else:
         client.delete_stack(StackName=args.stack)
     StackWaiter(stack_id, client).wait(last_event)
@@ -324,6 +324,7 @@ def load_config_file(args, config_file):
         logger.error(e.__str__())
         sys.exit(1)
     for key, value in config_file_args.items():
+        key = key.replace('-','_')
         if key in CONFIG_FILE_ARGUMENTS.keys():
             config_type = CONFIG_FILE_ARGUMENTS[key]
             if not args_dict.get(key) and value:

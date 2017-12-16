@@ -27,11 +27,12 @@ class ChangeSet:
             optional_arguments['Tags'] = [{'Key': key, 'Value': value, } for (key, value) in
                                           tags.items()]
         if role_arn:
-            optional_arguments['RoleArn'] = role_arn
+            optional_arguments['RoleARN'] = role_arn
         if capabilities:
             optional_arguments['Capabilities'] = capabilities
         if change_set_type == 'UPDATE':
             self.remove_existing_changeset()
+
         self.client.create_change_set(StackName=self.stack, TemplateBody=template,
                                       ChangeSetName=self.name, ChangeSetType=change_set_type,
                                       **optional_arguments)

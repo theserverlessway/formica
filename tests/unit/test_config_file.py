@@ -4,7 +4,8 @@ import yaml
 from formica import cli
 from tests.unit.constants import (REGION, PROFILE, STACK,
                                   CHANGE_SET_PARAMETERS, CHANGE_SET_STACK_TAGS,
-                                  FULL_CONFIG_FILE, CHANGE_SET_CAPABILITIES)
+                                  FULL_CONFIG_FILE, CHANGE_SET_CAPABILITIES,
+                                  CHANGE_SET_ROLE_ARN)
 
 
 @pytest.fixture
@@ -31,6 +32,7 @@ def test_loads_config_file(mocker, tmpdir, session):
         assert call_args.parameters == CHANGE_SET_PARAMETERS
         assert call_args.tags == CHANGE_SET_STACK_TAGS
         assert call_args.capabilities == CHANGE_SET_CAPABILITIES
+        assert call_args.role_arn == CHANGE_SET_ROLE_ARN
 
 
 def test_exception_with_wrong_config_type(mocker, tmpdir, session, logger):
