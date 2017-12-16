@@ -17,7 +17,7 @@ class ChangeSet:
         self.stack = stack
         self.client = client
 
-    def create(self, template, change_set_type, parameters=[], tags=[], capabilities=[]):
+    def create(self, template, change_set_type, parameters=[], tags=[], capabilities=[], role_arn=None):
         optional_arguments = {}
         if parameters:
             optional_arguments['Parameters'] = [
@@ -26,12 +26,16 @@ class ChangeSet:
         if tags:
             optional_arguments['Tags'] = [{'Key': key, 'Value': value, } for (key, value) in
                                           tags.items()]
+        if role_arn:
+            optional_arguments['RoleARN'] = role_arn
         if capabilities:
             optional_arguments['Capabilities'] = capabilities
         if change_set_type == 'UPDATE':
             self.remove_existing_changeset()
+
         self.client.create_change_set(StackName=self.stack, TemplateBody=template,
-                                      ChangeSetName=self.name, ChangeSetType=change_set_type, **optional_arguments)
+                                      ChangeSetName=self.name, ChangeSetType=change_set_type,
+                                      **optional_arguments)
         logger.info('Change set submitted, waiting for CloudFormation to calculate changes ...')
         waiter = self.client.get_waiter('change_set_create_complete')
         try:

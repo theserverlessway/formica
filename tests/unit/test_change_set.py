@@ -4,8 +4,11 @@ from mock import Mock
 from botocore.exceptions import WaiterError, ClientError
 
 from formica.change_set import ChangeSet, CHANGE_SET_HEADER
-from tests.unit.constants import STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES, \
-    CHANGE_SET_PARAMETERS, CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER, CHANGE_SET_STACK_TAGS
+from tests.unit.constants import (
+    STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES,
+    CHANGE_SET_PARAMETERS, ROLE_ARN, CHANGE_SET_STACK_TAGS,
+    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER,
+)
 
 
 @pytest.fixture
@@ -62,6 +65,22 @@ def test_submits_changeset_with_stack_tags():
     cf_client_mock.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Tags=Tags)
+
+    cf_client_mock.get_waiter.assert_called_with(
+        'change_set_create_complete')
+    cf_client_mock.get_waiter.return_value.wait.assert_called_with(
+        StackName=STACK, ChangeSetName=CHANGESETNAME)
+
+
+def test_submits_changeset_with_role_arn():
+    cf_client_mock = Mock()
+    change_set = ChangeSet(STACK, cf_client_mock)
+
+    change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, role_arn=ROLE_ARN)
+
+    cf_client_mock.create_change_set.assert_called_with(
+        StackName=STACK, TemplateBody=TEMPLATE,
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, RoleARN=ROLE_ARN)
 
     cf_client_mock.get_waiter.assert_called_with(
         'change_set_create_complete')
