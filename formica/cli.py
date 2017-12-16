@@ -324,7 +324,7 @@ def load_config_file(args, config_file):
         logger.error(e.__str__())
         sys.exit(1)
     for key, value in config_file_args.items():
-        key = key.replace('-','_')
+        key = key.replace('-', '_')
         if key in CONFIG_FILE_ARGUMENTS.keys():
             config_type = CONFIG_FILE_ARGUMENTS[key]
             if not args_dict.get(key) and value:
