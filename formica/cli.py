@@ -40,7 +40,7 @@ class SplitEqualsAction(argparse.Action):
             try:
                 for string in values:
                     key, value = string.split('=', 2)
-                    parameters[key] = value
+                    parameters[key] = yaml.load(value)
                     setattr(namespace, self.dest, parameters)
             except ValueError:
                 raise argparse.ArgumentError(self, '%r needs to be in format KEY=VALUE' % string)
