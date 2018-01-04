@@ -1,9 +1,8 @@
 Resources:
-  S3TestBucket:
+  {% for bucket in buckets %}
+  S3TestBucket{{ bucket }}:
     Type: AWS::S3::Bucket
-
-  S3TestBucket2:
-    Type: AWS::S3::Bucket
+  {% endfor %}
 
   TestRole1:
     Properties:
@@ -26,5 +25,12 @@ Resources:
               Effect: "Allow"
               Action: "*"
               Resource: "*"
-        PolicyName: TestRole1
+        PolicyName: {{ PolicyName }}
     Type: AWS::IAM::Role
+
+  Bucket1:
+    From: Modules
+    Properties:
+      BucketName: TestName
+  Bucket2:
+    From: Modules::Submodule::Submodule

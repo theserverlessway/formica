@@ -2,3 +2,8 @@ stack: formica-test-stack
 role-arn: arn:aws:iam::080551076419:role/test/1/formica-test-stack-TestRole1-NPMDYV78VC8J
 capabilities:
   - CAPABILITY_IAM
+vars:
+  buckets:
+    - 1
+    - 2
+  PolicyName: TestRolePolicy

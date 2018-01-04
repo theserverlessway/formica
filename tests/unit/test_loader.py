@@ -108,7 +108,7 @@ def test_module_vars_have_precedence_over_global(tmpdir):
         with open('moduledir/test.template.json', 'w') as f:
             f.write(example)
         with open('test.template.json', 'w') as f:
-            f.write('{"Modules": [{"path": "moduledir", "vars": {"test": "baz"}}]}')
+            f.write('{"Resources": {"TestResource": {"From": "Moduledir", "Properties": {"test": "baz" } }}}')
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "baz"}
@@ -141,7 +141,7 @@ def test_template_loads_submodules(load, tmpdir):
         with open('moduledir/test.template.json', 'w') as f:
             f.write(example)
         with open('test.template.json', 'w') as f:
-            f.write(json.dumps({'Modules': [{'path': 'moduledir'}]}))
+            f.write(json.dumps({'Resources': {'TestResource': {'From': 'Moduledir'}}}))
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "test"}
@@ -156,7 +156,7 @@ def test_template_loads_submodules_with_specific_file(load, tmpdir):
         with open('moduledir/test2.template.yml', 'w') as f:
             f.write('Sometestthing: does not fail')
         with open('test.template.json', 'w') as f:
-            f.write(json.dumps({'Modules': [{'path': 'moduledir', 'template': 'test'}]}))
+            f.write(json.dumps({'Resources': {'TestResource': {'From': 'Moduledir::Test'}}}))
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "test"}
@@ -169,7 +169,7 @@ def test_template_submodule_loads_variables(load, tmpdir):
         with open('moduledir/test.template.json', 'w') as f:
             f.write(example)
         with open('test.template.json', 'w') as f:
-            f.write(json.dumps({'Modules': [{'path': 'moduledir', 'vars': {'test': 'Variable'}}]}))
+            f.write(json.dumps({'Resources': {'TestResource': {'From': 'Moduledir', 'Properties': {'test': 'Variable'} }}}))
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "Variable"}
@@ -182,9 +182,9 @@ def test_template_submodule_loads_further_modules(load, tmpdir):
         with open('moduledir/test.template.json', 'w') as f:
             f.write(example)
         with open('moduledir/module.template.json', 'w') as f:
-            f.write(json.dumps({'Modules': [{'path': '.', 'template': 'test'}]}))
+            f.write(json.dumps({'Resources': {'TestResource': {'From': 'Test'}}}))
         with open('test.template.json', 'w') as f:
-            f.write(json.dumps({'Modules': [{'path': 'moduledir', 'template': 'module'}]}))
+            f.write(json.dumps({'Resources': {'TestResource': {'From': 'Moduledir::Module'}}}))
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "Description"}
@@ -193,16 +193,24 @@ def test_template_submodule_loads_further_modules(load, tmpdir):
 def test_template_fails_with_nonexistent_module(load, tmpdir):
     with Path(tmpdir):
         with open('test.template.json', 'w') as f:
-            f.write(json.dumps({'Modules': [{'path': 'moduledir'}]}))
+            f.write(json.dumps({'Resources': {'TestResource': {'From': 'Moduledir'}}}))
         with pytest.raises(SystemExit):
             load.load()
 
 
-def test_template_fails_with_nonexistent_module_file(load, tmpdir):
+def test_template_fails_with_no_files_in_module(load, tmpdir):
     with Path(tmpdir):
         os.mkdir('moduledir')
         with open('test.template.json', 'w') as f:
-            f.write(json.dumps({'Modules': [{'path': 'moduledir'}]}))
+            f.write(json.dumps({'Resources': {'TestResource': {'From': 'Moduledir'}}}))
+        with pytest.raises(SystemExit):
+            load.load()
+
+def test_template_fails_with_no_file_in_module_with_specified_template(load, tmpdir):
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Resources': {'TestResource': {'From': 'Moduledir::Test'}}}))
         with pytest.raises(SystemExit):
             load.load()
 
@@ -241,7 +249,7 @@ def test_mandatory_filter_throws_exception_in_module(load, tmpdir):
         with open('moduledir/test.template.json', 'w') as f:
             f.write(example)
         with open('test.template.json', 'w') as f:
-            f.write('{"Modules": [{"path": "moduledir", "vars": {"test": {{ test }} }}]}')
+            f.write('{"Resources": {"TestResource": {"From": "Moduledir::Test", "Properties": {"test": {{ test }} } }}}')
         with pytest.raises(SystemExit):
             load.load()
 

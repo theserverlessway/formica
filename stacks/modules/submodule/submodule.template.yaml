@@ -1,0 +1,5 @@
+Resources:
+  {{ module_name }}SubModuleBucket:
+    Type: AWS::S3::Bucket
+  OtherBucket:
+    From: ..
