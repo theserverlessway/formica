@@ -169,7 +169,9 @@ def test_template_submodule_loads_variables(load, tmpdir):
         with open('moduledir/test.template.json', 'w') as f:
             f.write(example)
         with open('test.template.json', 'w') as f:
-            f.write(json.dumps({'Resources': {'TestResource': {'From': 'Moduledir', 'Properties': {'test': 'Variable'} }}}))
+            f.write(json.dumps(
+                {'Resources': {'TestResource':
+                    {'From': 'Moduledir', 'Properties': {'test': 'Variable'}}}}))
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "Variable"}
@@ -205,6 +207,7 @@ def test_template_fails_with_no_files_in_module(load, tmpdir):
             f.write(json.dumps({'Resources': {'TestResource': {'From': 'Moduledir'}}}))
         with pytest.raises(SystemExit):
             load.load()
+
 
 def test_template_fails_with_no_file_in_module_with_specified_template(load, tmpdir):
     with Path(tmpdir):
@@ -249,7 +252,7 @@ def test_mandatory_filter_throws_exception_in_module(load, tmpdir):
         with open('moduledir/test.template.json', 'w') as f:
             f.write(example)
         with open('test.template.json', 'w') as f:
-            f.write('{"Resources": {"TestResource": {"From": "Moduledir::Test", "Properties": {"test": {{ test }} } }}}')
+            f.write('{"Resources": {"TestResource": {"From": "Moduledir::Test", "Properties": {"test":{{ test }}}}}}')
         with pytest.raises(SystemExit):
             load.load()
 
