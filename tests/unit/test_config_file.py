@@ -5,7 +5,7 @@ from formica import cli
 from tests.unit.constants import (REGION, PROFILE, STACK,
                                   CHANGE_SET_PARAMETERS, CHANGE_SET_STACK_TAGS,
                                   FULL_CONFIG_FILE, CHANGE_SET_CAPABILITIES,
-                                  ROLE_ARN)
+                                  ROLE_ARN, VARS)
 
 
 @pytest.fixture
@@ -33,6 +33,24 @@ def test_loads_config_file(mocker, tmpdir, session):
         assert call_args.tags == CHANGE_SET_STACK_TAGS
         assert call_args.capabilities == CHANGE_SET_CAPABILITIES
         assert call_args.role_arn == ROLE_ARN
+        assert call_args.vars == VARS
+
+
+def test_loads_multiple_config_file(mocker, tmpdir, session):
+    stacks = mocker.patch('formica.cli.stacks')
+    file_name = 'test.config.yaml'
+    overwrite_file = 'overwrite.config.yaml'
+    with Path(tmpdir):
+        with open(file_name, 'w') as f:
+            f.write(yaml.dump(FULL_CONFIG_FILE))
+        with open(overwrite_file, 'w') as f:
+            f.write(yaml.dump(dict(stack='someotherstacktestvalue', vars=dict(OtherVar=3))))
+        cli.main(['stacks', '-c', file_name, overwrite_file])
+        call_args = stacks.call_args[0][0]
+        assert call_args.stack == 'someotherstacktestvalue'
+        assert call_args.stack != STACK
+        assert call_args.vars['OtherVar'] == 3
+        assert call_args.vars['OtherVar'] != VARS['OtherVar']
 
 
 def test_exception_with_wrong_config_type(mocker, tmpdir, session, logger):
