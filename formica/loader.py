@@ -21,6 +21,8 @@ LINE_WHITESPACE_OFFSET = '  |'
 FILE_TYPES = ['yml', 'yaml', 'json']
 
 MODULES_ATTRIBUTE = 'Modules'
+RESOURCES_KEY = "Resources"
+MODULE_KEY = "From"
 
 try:
     basestring
@@ -35,7 +37,7 @@ ALLOWED_ATTRIBUTES = {
     "Mappings": dict,
     "Conditions": dict,
     "Transform": dict,
-    "Resources": dict,
+    RESOURCES_KEY: dict,
     "Outputs": dict,
     MODULES_ATTRIBUTE: list
 }
@@ -97,19 +99,30 @@ class Loader(object):
                 if ALLOWED_ATTRIBUTES[key] == basestring:
                     self.cftemplate[key] = new
                 elif ALLOWED_ATTRIBUTES[key] == dict:
-                    for element in template[key].keys():
-                        self.cftemplate.setdefault(key, {})[element] = template[key][element]
-                elif key == MODULES_ATTRIBUTE and ALLOWED_ATTRIBUTES[key] == list:
-                    for module in template[key]:
-                        module_path = module.get('path')
-                        file_name = module.get('template', '*')
-                        vars = self.merge_variables(module.get('vars', {}))
-                        loader = Loader(self.path + '/' + module_path, file_name, vars)
-                        loader.load()
-                        self.merge(loader.template_dictionary(), file=file_name)
+                    for element_key, element_value in template[key].items():
+                        if key == RESOURCES_KEY and isinstance(element_value, dict) and MODULE_KEY in element_value:
+                            self.load_module(element_value[MODULE_KEY], element_key, element_value)
+                        else:
+                            self.cftemplate.setdefault(key, {})[element_key] = element_value
             else:
                 logger.info("Key '{}' in file {} is not valid".format(key, file))
                 sys.exit(1)
+
+    def load_module(self, module_path, element_key, element_value):
+        module_path = self.path + '/' + '/'.join(module_path.lower().split('::'))
+        file_name = "*"
+
+        if not os.path.isdir(module_path):
+            file_name = module_path.split('/')[-1]
+            module_path = '/'.join(module_path.split('/')[:-1])
+
+        properties = element_value.get('Properties', {})
+        properties['module_name'] = element_key
+        vars = self.merge_variables(properties)
+
+        loader = Loader(module_path, file_name, vars)
+        loader.load()
+        self.merge(loader.template_dictionary(), file=file_name)
 
     def merge_variables(self, module_vars):
         merged_vars = {}
