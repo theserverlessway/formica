@@ -1,0 +1,3 @@
+vars:
+  PolicyName: OtherPolicyName
+stack: some-other-stack

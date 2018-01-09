@@ -136,7 +136,7 @@ def main(cli_args):
     args_dict = vars(args)
 
     if args_dict.get('config_file'):
-        load_config_file(args, args.config_file)
+        load_config_files(args, args.config_file)
 
     try:
         # Initialise the AWS Profile and Region
@@ -182,22 +182,22 @@ def add_stack_argument(parser):
 
 def add_stack_parameters_argument(parser):
     parser.add_argument('--parameters', help='Add one or multiple stack parameters',
-                        nargs='*', action=SplitEqualsAction, metavar='KEY=Value')
+                        nargs='+', action=SplitEqualsAction, metavar='KEY=Value')
 
 
 def add_stack_variables_argument(parser):
     parser.add_argument('--vars', help='Add one or multiple Jinja2 variables',
-                        nargs='*', action=SplitEqualsAction, metavar='KEY=Value')
+                        nargs='+', action=SplitEqualsAction, metavar='KEY=Value')
 
 
 def add_stack_tags_argument(parser):
-    parser.add_argument('--tags', help='Add one or multiple stack tags', nargs='*',
+    parser.add_argument('--tags', help='Add one or multiple stack tags', nargs='+',
                         action=SplitEqualsAction, metavar='KEY=Value')
 
 
 def add_capabilities_argument(parser):
     parser.add_argument('--capabilities', help='Set one or multiple stack capabilities',
-                        metavar='Cap1 Cap2', nargs='*')
+                        metavar='Cap1 Cap2', nargs='+')
 
 
 def add_role_arn_argument(parser):
@@ -205,7 +205,10 @@ def add_role_arn_argument(parser):
 
 
 def add_config_file_argument(parser):
-    parser.add_argument('--config-file', '-c', type=argparse.FileType('r'), help='Set the config file to use')
+    parser.add_argument('--config-file', '-c',
+                        type=argparse.FileType('r'),
+                        help='Set the config files to use',
+                        nargs='+')
 
 
 def template(args):
@@ -316,13 +319,22 @@ def new(args):
     logger.info('Change set created, please deploy')
 
 
-def load_config_file(args, config_file):
+def load_config_files(args, config_files):
+    config_file_args = dict()
+    for config_file in config_files:
+        try:
+            file_items = yaml.load(config_file.read())
+            for key, value in file_items.items():
+                if key in config_file_args and isinstance(value, dict):
+                    subdict = config_file_args[key]
+                    for subkey, subvalue in value.items():
+                        subdict[subkey] = subvalue
+                else:
+                    config_file_args[key] = value
+        except yaml.YAMLError as e:
+            logger.error(e.__str__())
+            sys.exit(1)
     args_dict = vars(args)
-    try:
-        config_file_args = yaml.load(config_file.read())
-    except yaml.YAMLError as e:
-        logger.error(e.__str__())
-        sys.exit(1)
     for key, value in config_file_args.items():
         key = key.replace('-', '_')
         if key in CONFIG_FILE_ARGUMENTS.keys():
