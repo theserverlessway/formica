@@ -20,7 +20,6 @@ LINE_WHITESPACE_OFFSET = '  |'
 
 FILE_TYPES = ['yml', 'yaml', 'json']
 
-MODULES_ATTRIBUTE = 'Modules'
 RESOURCES_KEY = "Resources"
 MODULE_KEY = "From"
 
@@ -39,7 +38,6 @@ ALLOWED_ATTRIBUTES = {
     "Transform": dict,
     RESOURCES_KEY: dict,
     "Outputs": dict,
-    MODULES_ATTRIBUTE: list
 }
 
 
