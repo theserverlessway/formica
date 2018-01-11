@@ -80,6 +80,7 @@ def main(cli_args):
     add_role_arn_argument(new_parser)
     add_config_file_argument(new_parser)
     add_stack_variables_argument(new_parser)
+    add_s3_upload_argument(new_parser)
     new_parser.set_defaults(func=new)
 
     # Change Command Arguments
@@ -92,6 +93,7 @@ def main(cli_args):
     add_role_arn_argument(change_parser)
     add_config_file_argument(change_parser)
     add_stack_variables_argument(change_parser)
+    add_s3_upload_argument(change_parser)
     change_parser.set_defaults(func=change)
 
     # Deploy Command Arguments
@@ -211,6 +213,10 @@ def add_config_file_argument(parser):
                         nargs='+')
 
 
+def add_s3_upload_argument(parser):
+    parser.add_argument('--s3', help='Upload template to S3 before deployment', action='store_true')
+
+
 def template(args):
     loader = Loader(variables=args.vars)
     loader.load()
@@ -281,7 +287,7 @@ def change(args):
 
     change_set = ChangeSet(stack=args.stack, client=client)
     change_set.create(template=loader.template(indent=None), change_set_type='UPDATE', parameters=args.parameters,
-                      tags=args.tags, capabilities=args.capabilities, role_arn=args.role_arn)
+                      tags=args.tags, capabilities=args.capabilities, role_arn=args.role_arn, s3=args.s3)
     change_set.describe()
 
 
@@ -314,7 +320,7 @@ def new(args):
     logger.info('Creating change set for new stack, ...')
     change_set = ChangeSet(stack=args.stack, client=client)
     change_set.create(template=loader.template(indent=None), change_set_type='CREATE', parameters=args.parameters,
-                      tags=args.tags, capabilities=args.capabilities, role_arn=args.role_arn)
+                      tags=args.tags, capabilities=args.capabilities, role_arn=args.role_arn, s3=args.s3)
     change_set.describe()
     logger.info('Change set created, please deploy')
 

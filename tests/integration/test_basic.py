@@ -57,7 +57,7 @@ class TestIntegrationBasic():
             assert 'Dictionary Item Added' in diff
 
             # Change Resources in existing stack
-            change = run_formica('change', *stack_args)
+            change = run_formica('change', '--s3', *stack_args)
             assert 'TestNameUpdate' in change
 
             # Describe ChangeSet before deploying

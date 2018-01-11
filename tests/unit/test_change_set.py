@@ -7,13 +7,29 @@ from formica.change_set import ChangeSet, CHANGE_SET_HEADER
 from tests.unit.constants import (
     STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES,
     CHANGE_SET_PARAMETERS, ROLE_ARN, CHANGE_SET_STACK_TAGS,
-    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER,
+    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER, REGION, UUID
 )
 
 
 @pytest.fixture
 def logger(mocker):
     return mocker.patch('formica.change_set.logger')
+
+
+@pytest.fixture
+def client(mocker):
+    AWS = mocker.patch('formica.change_set.AWS')
+    client_mock = mocker.Mock()
+    AWS.current_session.return_value.client.return_value = client_mock
+    AWS.current_session.return_value.region_name = REGION
+    return client_mock
+
+
+@pytest.fixture
+def uuid(mocker):
+    uuid = mocker.patch('formica.change_set.uuid')
+    uuid.uuid4.return_value = UUID
+    return uuid
 
 
 def test_submits_changeset_and_waits():
@@ -30,6 +46,26 @@ def test_submits_changeset_and_waits():
         'change_set_create_complete')
     cf_client_mock.get_waiter.return_value.wait.assert_called_with(
         StackName=STACK, ChangeSetName=CHANGESETNAME)
+
+
+def test_creates_and_removes_bucket_for_s3_flag(client, uuid):
+    change_set = ChangeSet(STACK, client)
+
+    change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, s3=True)
+    bucket_name = 'formica-deploy-{}'.format(UUID)
+    bucket_path = '{}-template.json'.format(STACK)
+    template_url = 'https://{}.s3.amazonaws.com/{}'.format(bucket_name, bucket_path)
+
+    client.create_bucket.assert_called_with(Bucket=bucket_name,
+                                            CreateBucketConfiguration=dict(LocationConstraint=REGION))
+    client.put_object.assert_called_with(Bucket=bucket_name, Key=bucket_path, Body=TEMPLATE)
+
+    client.create_change_set.assert_called_with(
+        StackName=STACK, TemplateURL=template_url,
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE)
+
+    client.delete_object.assert_called_with(Bucket=bucket_name, Key=bucket_path)
+    client.delete_bucket.assert_called_with(Bucket=bucket_name)
 
 
 def test_submits_changeset_with_parameters():

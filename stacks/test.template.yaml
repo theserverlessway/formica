@@ -31,6 +31,6 @@ Resources:
   Bucket1:
     From: Modules
     Properties:
-      BucketName: TestName
+      BucketName: formica-test-bucket-name-something-here
   Bucket2:
     From: Modules::Submodule::Submodule
