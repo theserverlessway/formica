@@ -1,6 +1,8 @@
 import sys
 
 import logging
+import uuid
+from formica.aws import AWS
 from botocore.exceptions import ClientError, WaiterError
 from texttable import Texttable
 
@@ -17,7 +19,7 @@ class ChangeSet:
         self.stack = stack
         self.client = client
 
-    def create(self, template, change_set_type, parameters=[], tags=[], capabilities=[], role_arn=None):
+    def create(self, template, change_set_type, parameters=[], tags=[], capabilities=[], role_arn=None, s3=False):
         optional_arguments = {}
         if parameters:
             optional_arguments['Parameters'] = [
@@ -33,12 +35,31 @@ class ChangeSet:
         if change_set_type == 'UPDATE':
             self.remove_existing_changeset()
 
-        self.client.create_change_set(StackName=self.stack, TemplateBody=template,
-                                      ChangeSetName=self.name, ChangeSetType=change_set_type,
-                                      **optional_arguments)
-        logger.info('Change set submitted, waiting for CloudFormation to calculate changes ...')
-        waiter = self.client.get_waiter('change_set_create_complete')
         try:
+            if s3:
+                session = AWS.current_session()
+                s3_client = session.client('s3')
+                bucket_name = 'formica-deploy-{}'.format(str(uuid.uuid4()).lower())
+                bucket_path = '{}-template.json'.format(self.stack)
+                logger.info('Creating Bucket: {}'.format(bucket_name))
+
+                s3_client.create_bucket(
+                    Bucket=bucket_name,
+                    CreateBucketConfiguration=dict(LocationConstraint=session.region_name)
+                )
+
+                logger.info('Uploading to bucket: {}/{}'.format(bucket_name, bucket_path))
+                s3_client.put_object(Bucket=bucket_name, Key=bucket_path, Body=template)
+                template_url = 'https://{}.s3.amazonaws.com/{}'.format(bucket_name, bucket_path)
+                optional_arguments['TemplateURL'] = template_url
+            else:
+                optional_arguments['TemplateBody'] = template
+
+            self.client.create_change_set(StackName=self.stack,
+                                          ChangeSetName=self.name, ChangeSetType=change_set_type,
+                                          **optional_arguments)
+            logger.info('Change set submitted, waiting for CloudFormation to calculate changes ...')
+            waiter = self.client.get_waiter('change_set_create_complete')
             waiter.wait(ChangeSetName=self.name, StackName=self.stack)
             logger.info('Change set created successfully')
         except WaiterError as e:
@@ -46,6 +67,11 @@ class ChangeSet:
             logger.info(status_reason)
             if "didn't contain changes" not in status_reason:
                 sys.exit(1)
+        finally:
+            if s3:
+                logger.info('Deleting Object and Bucket: {}/{}'.format(bucket_name, bucket_path))
+                s3_client.delete_object(Bucket=bucket_name, Key=bucket_path)
+                s3_client.delete_bucket(Bucket=bucket_name)
 
     def describe(self):
         change_set = self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.name)

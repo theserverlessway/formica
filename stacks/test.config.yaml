@@ -1,5 +1,5 @@
 stack: formica-test-stack
-role-arn: arn:aws:iam::080551076419:role/test/1/formica-test-stack-TestRole1-NPMDYV78VC8J
+# role-arn: arn:aws:iam::080551076419:role/test/1/formica-test-stack-2-TestRole1-1PGVZJ88QDVBD
 capabilities:
   - CAPABILITY_IAM
 vars:

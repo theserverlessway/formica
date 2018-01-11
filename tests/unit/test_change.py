@@ -15,31 +15,35 @@ def session(mocker):
 
 
 @pytest.fixture
+def client(session):
+    client_mock = Mock()
+    session.return_value.client.return_value = client_mock
+    return client_mock
+
+
+@pytest.fixture
 def loader(mocker):
     return mocker.patch('formica.cli.Loader')
 
 
-def test_change_creates_update_change_set(change_set, session, loader):
-    client_mock = Mock()
-    session.return_value.client.return_value = client_mock
+def test_change_creates_update_change_set(change_set, client, loader):
+    print(client)
     loader.return_value.template.return_value = TEMPLATE
     cli.main(['change', '--stack', STACK, '--profile', PROFILE, '--region', REGION])
-    change_set.assert_called_with(stack=STACK, client=client_mock)
+    change_set.assert_called_with(stack=STACK, client=client)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
                                                            parameters=None,
-                                                           tags=None, capabilities=None, role_arn=None)
+                                                           tags=None, capabilities=None, role_arn=None, s3=False)
     change_set.return_value.describe.assert_called_once()
 
 
-def test_change_uses_parameters_for_update(change_set, session, loader):
-    client_mock = Mock()
-    session.return_value.client.return_value = client_mock
+def test_change_uses_parameters_for_update(change_set, client, loader):
     loader.return_value.template.return_value = TEMPLATE
     cli.main(['change', '--stack', STACK, '--parameters', 'A=B', 'C=D', '--profile', PROFILE, '--region', REGION])
-    change_set.assert_called_with(stack=STACK, client=client_mock)
+    change_set.assert_called_with(stack=STACK, client=client)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
                                                            parameters={'A': 'B', 'C': 'D'}, tags=None,
-                                                           capabilities=None, role_arn=None)
+                                                           capabilities=None, role_arn=None, s3=False)
     change_set.return_value.describe.assert_called_once()
 
 
@@ -51,15 +55,13 @@ def test_change_tests_parameter_format(capsys):
     assert pytest_wrapped_e.value.code == 2
 
 
-def test_change_uses_tags_for_creation(change_set, session, loader):
-    client_mock = Mock()
-    session.return_value.client.return_value = client_mock
+def test_change_uses_tags_for_creation(change_set, client, loader):
     loader.return_value.template.return_value = TEMPLATE
     cli.main(['change', '--stack', STACK, '--tags', 'A=B', 'C=D', '--profile', PROFILE, '--region', REGION])
-    change_set.assert_called_with(stack=STACK, client=client_mock)
+    change_set.assert_called_with(stack=STACK, client=client)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
-                                                           parameters=None,
-                                                           tags={'A': 'B', 'C': 'D'}, capabilities=None, role_arn=None)
+                                                           parameters=None, tags={'A': 'B', 'C': 'D'},
+                                                           capabilities=None, role_arn=None, s3=False)
 
 
 def test_change_tests_tag_format(capsys):
@@ -71,12 +73,19 @@ def test_change_tests_tag_format(capsys):
     assert pytest_wrapped_e.value.code == 2
 
 
-def test_change_uses_capabilities_for_creation(change_set, session, loader):
-    client_mock = Mock()
-    session.return_value.client.return_value = client_mock
+def test_change_uses_capabilities_for_creation(change_set, client, loader):
     loader.return_value.template.return_value = TEMPLATE
     cli.main(['change', '--stack', STACK, '--capabilities', 'A', 'B'])
-    change_set.assert_called_with(stack=STACK, client=client_mock)
+    change_set.assert_called_with(stack=STACK, client=client)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
                                                            parameters=None,
-                                                           tags=None, capabilities=['A', 'B'], role_arn=None)
+                                                           tags=None, capabilities=['A', 'B'], role_arn=None, s3=False)
+
+
+def test_change_sets_s3_flag(change_set, client, loader):
+    loader.return_value.template.return_value = TEMPLATE
+    cli.main(['change', '--stack', STACK, '--s3'])
+    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
+                                                           parameters=None,
+                                                           tags=None, capabilities=None, role_arn=None, s3=True)
