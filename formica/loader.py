@@ -58,6 +58,7 @@ def resource(name):
     else:
         return ''.join(e for e in name.title() if e.isalnum())
 
+
 def novalue(variable):
     print('Var: {}'.format(variable))
     return variable or '{"Ref": "AWS::NoValue"}'
