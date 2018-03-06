@@ -1,7 +1,5 @@
 Resources:
   {{ module_name }}ModuleBucket:
     Type: AWS::S3::Bucket
-    {% if BucketName %}
     Properties:
-      BucketName: {{ BucketName }}
-      {% endif %}
+      BucketName: {{ BucketName | novalue }}

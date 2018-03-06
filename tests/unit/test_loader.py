@@ -318,6 +318,26 @@ def test_code_includes_supports_nested_code_arguments(load, tmpdir):
     assert actual == {"Description": "nested-test"}
 
 
+def test_novalue_uses_value_if_given(load, tmpdir):
+    example = '{% set Parameter = "description" %}{"Description": "{{ Parameter | novalue }}"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "description"}
+
+
+def test_novalue_uses_pseudoparameter_novalue_for_missing_variable(load, tmpdir):
+    example = '{"Resources": {{ Parameter | novalue }}}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Resources": {"Ref": "AWS::NoValue"}}
+
+
 def test_un_indented_large_templates(load):
     # Generate a large dictionary that, with indent=4, is too large to deploy
     # as a template. Loader supports passing the `indent` param as `None` to

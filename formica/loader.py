@@ -59,6 +59,11 @@ def resource(name):
         return ''.join(e for e in name.title() if e.isalnum())
 
 
+def novalue(variable):
+    print('Var: {}'.format(variable))
+    return variable or '{"Ref": "AWS::NoValue"}'
+
+
 class Loader(object):
     def __init__(self, path='.', file='*', variables=None):
         if variables is None:
@@ -70,7 +75,8 @@ class Loader(object):
         self.env.filters.update({
             'code_escape': code_escape,
             'mandatory': mandatory,
-            'resource': resource
+            'resource': resource,
+            'novalue': novalue
         })
         self.variables = variables
 
@@ -91,20 +97,23 @@ class Loader(object):
         return self.cftemplate
 
     def merge(self, template, file):
-        for key in template.keys():
-            new = template[key]
-            if key in ALLOWED_ATTRIBUTES.keys() and isinstance(new, ALLOWED_ATTRIBUTES[key]):
-                if ALLOWED_ATTRIBUTES[key] == basestring:
-                    self.cftemplate[key] = new
-                elif ALLOWED_ATTRIBUTES[key] == dict:
-                    for element_key, element_value in template[key].items():
-                        if key == RESOURCES_KEY and isinstance(element_value, dict) and MODULE_KEY in element_value:
-                            self.load_module(element_value[MODULE_KEY], element_key, element_value)
-                        else:
-                            self.cftemplate.setdefault(key, {})[element_key] = element_value
-            else:
-                logger.info("Key '{}' in file {} is not valid".format(key, file))
-                sys.exit(1)
+        if template:
+            for key in template.keys():
+                new = template[key]
+                if key in ALLOWED_ATTRIBUTES.keys() and isinstance(new, ALLOWED_ATTRIBUTES[key]):
+                    if ALLOWED_ATTRIBUTES[key] == basestring:
+                        self.cftemplate[key] = new
+                    elif ALLOWED_ATTRIBUTES[key] == dict:
+                        for element_key, element_value in template[key].items():
+                            if key == RESOURCES_KEY and isinstance(element_value, dict) and MODULE_KEY in element_value:
+                                self.load_module(element_value[MODULE_KEY], element_key, element_value)
+                            else:
+                                self.cftemplate.setdefault(key, {})[element_key] = element_value
+                else:
+                    logger.info("Key '{}' in file {} is not valid".format(key, file))
+                    sys.exit(1)
+        else:
+            logger.info('File {} is empty'.format(file))
 
     def load_module(self, module_path, element_key, element_value):
         module_path = self.path + '/' + '/'.join(module_path.lower().split('::'))
