@@ -36,7 +36,7 @@ for function in fn_functions:
 class SplitFunction(BaseFunction):
     @classmethod
     def from_yaml(cls, loader, node):
-        return ({cls.fn_tag(node.tag): node.value.split('.')})
+        return ({cls.fn_tag(node.tag): node.value.split('.', 1)})
 
 
 split_functions = [

@@ -32,6 +32,7 @@ def runner(loader, tmpdir):
     ('Resources: !FindInMap [ RegionMap, !Ref "A", 32 ]',
      {'Resources': {"Fn::FindInMap": ['RegionMap', {"Ref": "A"}, 32]}}),
     ('Resources: !GetAtt A.B', {'Resources': {"Fn::GetAtt": ['A', 'B']}}),
+    ('Resources: !GetAtt A.B.C', {'Resources': {"Fn::GetAtt": ['A', 'B.C']}}),
     ('Resources: !GetAZs us-east-1', {'Resources': {"Fn::GetAZs": 'us-east-1'}}),
     ('Resources: !ImportValue ABC', {'Resources': {"Fn::ImportValue": 'ABC'}}),
     ('Resources: !Join ["", "A", "B"]', {'Resources': {"Fn::Join": ['', 'A', 'B']}}),
