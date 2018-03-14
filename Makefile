@@ -23,7 +23,7 @@ dev: build-dev
 clean:
 	rm -fr dist
 
-build: build-dev
+build: clean build-dev
 	docker-compose run formica python setup.py sdist bdist_wheel
 	docker-compose run formica pandoc --from=markdown --to=rst --output=build/README.rst README.md
 
