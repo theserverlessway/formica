@@ -60,7 +60,6 @@ def resource(name):
 
 
 def novalue(variable):
-    print('Var: {}'.format(variable))
     return variable or '{"Ref": "AWS::NoValue"}'
 
 
