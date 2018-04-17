@@ -64,7 +64,7 @@ class Diff(AWSBase):
 
         for change in processed_changes:
             print_diff = True
-            path = re.findall("\['?(\w+)'?\]", change.path)
+            path = re.findall('\\[\'?(\\w+)\'?\\]', change.path)
             table.add_row(
                 [
                     ' > '.join(path),
