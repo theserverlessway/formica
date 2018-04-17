@@ -38,7 +38,7 @@ def loader_return(loader, template):
 
 
 def check_echo(logger, args):
-    regex = '\s+\|\s+'.join(args)
+    regex = '\\s+\\|\\s+'.join(args)
     assert re.search(regex, logger.info.call_args[0][0])
 
 

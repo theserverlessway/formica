@@ -8,5 +8,5 @@ def test_validate_examples_are_linked():
     with open('docs/README.md') as file:
         documentation = file.read()
     for dir in os.listdir(examples_directory):
-        to_find = '\(examples/{}\)'
+        to_find = '\\(examples/{}\\)'
         assert re.search(to_find.format(dir), documentation)
