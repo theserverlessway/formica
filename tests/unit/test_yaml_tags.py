@@ -40,6 +40,10 @@ def runner(loader, tmpdir):
     ('Resources: !Split ["." , "A.B" ]', {'Resources': {"Fn::Split": ['.', 'A.B']}}),
     ('Resources: !Sub ["${String}", {A: B} ]', {'Resources': {"Fn::Sub": ['${String}', {"A": "B"}]}}),
     ('Resources: !Ref ABC', {'Resources': {"Ref": 'ABC'}}),
+    ('Resources: !GetAZs\n           Ref: AWS::Region', {'Resources': {'Fn::GetAZs': {"Ref": 'AWS::Region'}}}),
+    ('Resources: !GetAtt ["abc", "def"]', {'Resources': {'Fn::GetAtt': ['abc', 'def']}}),
+
+
 ])
 def test_yaml_tag(runner, input, expected):
     runner(input, expected)

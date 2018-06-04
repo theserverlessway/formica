@@ -1,5 +1,5 @@
 import yaml
-from yaml.nodes import SequenceNode, CollectionNode
+from yaml.nodes import SequenceNode, ScalarNode, MappingNode, CollectionNode
 from yaml.resolver import BaseResolver
 
 
@@ -19,6 +19,8 @@ class BaseFunction(yaml.YAMLObject):
         if isinstance(node, CollectionNode):
             if kind is SequenceNode:
                 tag = BaseResolver.DEFAULT_SEQUENCE_TAG
+            elif kind is MappingNode:
+                tag = BaseResolver.DEFAULT_MAPPING_TAG
             new_node = type(node)(tag, node.value)
             result = loader.construct_object(new_node, deep=True)
         return {cls.fn_tag(node.tag): result}
@@ -36,7 +38,11 @@ for function in fn_functions:
 class SplitFunction(BaseFunction):
     @classmethod
     def from_yaml(cls, loader, node):
-        return ({cls.fn_tag(node.tag): node.value.split('.', 1)})
+        if type(node) is ScalarNode:
+            result = node.value.split('.', 1)
+        else:
+            result = [loader.construct_object(child, deep=True) for child in node.value]
+        return ({cls.fn_tag(node.tag): result})
 
 
 split_functions = [

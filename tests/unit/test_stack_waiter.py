@@ -54,7 +54,7 @@ def test_waits_until_successful(cf_client_mock, time, stack_waiter):
 def test_waits_until_failed_and_raises(cf_client_mock, time, stack_waiter):
     set_stack_status_returns(cf_client_mock, ['UPDATE_IN_PROGRESS', 'CREATE_FAILED'])
     set_stack_events(cf_client_mock)
-    with pytest.raises(SystemExit, msg='1'):
+    with pytest.raises(SystemExit, message='1'):
         stack_waiter.wait('0')
     assert time.sleep.call_count == 2
 
