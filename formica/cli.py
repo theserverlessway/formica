@@ -7,13 +7,14 @@ import sys
 import logging
 from texttable import Texttable
 
-from formica import CHANGE_SET_FORMAT, __version__
-from formica.aws import AWS
-from formica.change_set import ChangeSet
-from formica.diff import Diff
-from formica.stack_waiter import StackWaiter
+from . import CHANGE_SET_FORMAT, __version__
+from .aws import AWS
+from .change_set import ChangeSet
+from .diff import Diff
+from .stack_waiter import StackWaiter
 from .loader import Loader
 from botocore.exceptions import ProfileNotFound, NoCredentialsError, NoRegionError, ClientError, EndpointConnectionError
+from . import stack_set
 
 
 STACK_HEADERS = ['Name', 'Created At', 'Updated At', 'Status']
@@ -54,7 +55,7 @@ def main(cli_args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', action='version', version='{}'.format(__version__))
     subparsers = parser.add_subparsers(title='commands',
-                                       help='Command to use', dest='command')
+                                       help='Available commands', dest='command')
     subparsers.required = True
 
     # Template Command Arguments
@@ -133,6 +134,9 @@ def main(cli_args):
     add_config_file_argument(remove_parser)
     remove_parser.set_defaults(func=remove)
 
+    # Stack Set Configuration
+    stack_set_parser(subparsers)
+
     # Argument Parsing
     args = parser.parse_args(cli_args)
     args_dict = vars(args)
@@ -162,6 +166,55 @@ def main(cli_args):
             sys.exit(2)
 
 
+def stack_set_parser(parser):
+    # Stack Set Commang Arguments
+
+    stack_set_parser = parser.add_parser('stack-set', description='Manage Stack Sets')
+    stack_set_subparsers = stack_set_parser.add_subparsers(title='stack-set',
+                                                           help='Available commands', dest='command')
+
+    # Stack-Set
+    create_parser = stack_set_subparsers.add_parser('create', description='Create a Stack Set')
+    add_aws_arguments(create_parser)
+    add_stack_set_argument(create_parser)
+    add_stack_parameters_argument(create_parser)
+    add_stack_tags_argument(create_parser)
+    add_capabilities_argument(create_parser)
+    add_config_file_argument(create_parser)
+    add_stack_variables_argument(create_parser)
+    add_stack_set_role_argument(create_parser)
+    create_parser.set_defaults(func=stack_set.create_stack_set)
+
+    update_parser = stack_set_subparsers.add_parser('update', description='Update a Stack Set')
+    add_aws_arguments(update_parser)
+    add_stack_set_argument(update_parser)
+    add_stack_parameters_argument(update_parser)
+    add_stack_tags_argument(update_parser)
+    add_capabilities_argument(update_parser)
+    add_config_file_argument(update_parser)
+    add_stack_variables_argument(update_parser)
+    add_stack_set_role_argument(update_parser)
+    add_stack_set_instance_arguments(update_parser)
+    update_parser.set_defaults(func=stack_set.update_stack_set)
+
+    remove_parser = stack_set_subparsers.add_parser('remove', description='Remove a Stack Set')
+    add_stack_set_argument(remove_parser)
+    remove_parser.set_defaults(func=stack_set.remove_stack_set)
+
+    add_instances_parser = stack_set_subparsers.add_parser('add-instances',
+                                                           description='Add Stack Set Instances')
+    add_stack_set_argument(add_instances_parser)
+    add_stack_set_instance_arguments(add_instances_parser)
+    add_instances_parser.set_defaults(func=stack_set.add_stack_set_instances)
+
+    remove_instances_parser = stack_set_subparsers.add_parser('remove-instances',
+                                                              description='Remove Stack Set Instances')
+    add_stack_set_argument(remove_instances_parser)
+    add_stack_set_instance_arguments(remove_instances_parser)
+    add_stack_set_instance_retain_argument(remove_instances_parser)
+    remove_instances_parser.set_defaults(func=stack_set.remove_stack_set_instances)
+
+
 def requires_stack(function):
     def validate_stack(args):
         if not args.stack:
@@ -180,6 +233,10 @@ def add_aws_arguments(parser):
 
 def add_stack_argument(parser):
     parser.add_argument('--stack', '-s', help='The Stack to use', metavar='STACK')
+
+
+def add_stack_set_argument(parser):
+    parser.add_argument('--stack-set', '-s', help='The Stack Set to use', metavar='STACK-Set')
 
 
 def add_stack_parameters_argument(parser):
@@ -204,6 +261,20 @@ def add_capabilities_argument(parser):
 
 def add_role_arn_argument(parser):
     parser.add_argument('--role-arn', help='Set a separate role ARN to pass to the stack')
+
+
+def add_stack_set_role_argument(parser):
+    parser.add_argument('--administration-role-arn', help='The Administration Role to create the StackSet')
+    parser.add_argument('--execution-role-name', help='The Execution role name to use for the CloudFormation Stack')
+
+
+def add_stack_set_instance_arguments(parser):
+    parser.add_argument('--accounts', nargs='+', help='The Accounts to deploy to')
+    parser.add_argument('--regions', nargs='+', help='The Regions in your accounts to deploy to')
+
+
+def add_stack_set_instance_retain_argument(parser):
+    parser.add_argument('--retain', help='Retain stacks', action='store_true', default=False)
 
 
 def add_config_file_argument(parser):

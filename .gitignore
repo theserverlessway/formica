@@ -93,3 +93,5 @@ ENV/
 
 # Pypi
 README.rst
+
+.pytest_cache

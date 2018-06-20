@@ -5,7 +5,7 @@ install:
 	python setup.py develop
 
 test:
-	py.test --cov=formica tests/unit
+	py.test --cov-branch --cov-report html --cov-report term-missing --cov=formica tests/unit
 
 check-code:
 	pycodestyle .

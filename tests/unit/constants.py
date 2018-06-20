@@ -12,7 +12,15 @@ ROLE_ARN = 'arn:aws:iam::1234567890:role/some-stack-role'
 CHANGESETNAME = '{}-change-set'.format(STACK)
 CHANGE_SET_TYPE = 'WHATEVER'
 CHANGE_SET_PARAMETERS = {'A': 'B', 'B': 'C'}
+CLOUDFORMATION_PARAMETERS = [
+    {'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False},
+    {'ParameterKey': 'B', 'ParameterValue': 'C', 'UsePreviousValue': False}
+]
 CHANGE_SET_STACK_TAGS = {'A': 'B', 'B': 'C'}
+CLOUDFORMATION_TAGS = [
+    {'Key': 'A', 'Value': 'B'},
+    {'Key': 'B', 'Value': 'C'}
+]
 CHANGE_SET_CAPABILITIES = ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM']
 VARS = {'SomeVar': 'value', 'OtherVar': 2}
 UUID = str(uuid.uuid4())
