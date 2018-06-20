@@ -198,17 +198,20 @@ def stack_set_parser(parser):
     update_parser.set_defaults(func=stack_set.update_stack_set)
 
     remove_parser = stack_set_subparsers.add_parser('remove', description='Remove a Stack Set')
+    add_aws_arguments(remove_parser)
     add_stack_set_argument(remove_parser)
     remove_parser.set_defaults(func=stack_set.remove_stack_set)
 
     add_instances_parser = stack_set_subparsers.add_parser('add-instances',
                                                            description='Add Stack Set Instances')
+    add_aws_arguments(add_instances_parser)
     add_stack_set_argument(add_instances_parser)
     add_stack_set_instance_arguments(add_instances_parser)
     add_instances_parser.set_defaults(func=stack_set.add_stack_set_instances)
 
     remove_instances_parser = stack_set_subparsers.add_parser('remove-instances',
                                                               description='Remove Stack Set Instances')
+    add_aws_arguments(remove_instances_parser)
     add_stack_set_argument(remove_instances_parser)
     add_stack_set_instance_arguments(remove_instances_parser)
     add_stack_set_instance_retain_argument(remove_instances_parser)
@@ -269,8 +272,8 @@ def add_stack_set_role_argument(parser):
 
 
 def add_stack_set_instance_arguments(parser):
-    parser.add_argument('--accounts', nargs='+', help='The Accounts to deploy to')
-    parser.add_argument('--regions', nargs='+', help='The Regions in your accounts to deploy to')
+    parser.add_argument('--accounts', nargs='+', help='The Accounts for this operation')
+    parser.add_argument('--regions', nargs='+', help='The Regions for this operation')
 
 
 def add_stack_set_instance_retain_argument(parser):
