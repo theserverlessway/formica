@@ -65,6 +65,8 @@ def test_create_stack_set_without_arguments(client, logger, loader):
 
 
 def test_update_stack_set(client, loader):
+    client.update_stack_set.return_value = {'OperationId': '12345'}
+
     cli.main([
         'stack-set',
         'update',
