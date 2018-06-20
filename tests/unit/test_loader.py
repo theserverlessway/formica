@@ -218,6 +218,16 @@ def test_template_fails_with_no_file_in_module_with_specified_template(load, tmp
             load.load()
 
 
+def test_template_ignores_empty_module(load, tmpdir):
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/test.template.json', 'w') as f:
+            f.write('')
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Resources': {'TestResource': {'From': 'Moduledir::Test'}}}))
+        load.load()
+
+
 def test_template_syntax_exception_gets_caught(load, tmpdir):
     example = '{"Description": "{{ test }"}'
     with Path(tmpdir):

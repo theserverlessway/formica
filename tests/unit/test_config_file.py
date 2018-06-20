@@ -1,6 +1,7 @@
 import pytest
 from path import Path
 import yaml
+from uuid import uuid4
 from formica import cli
 from tests.unit.constants import (REGION, PROFILE, STACK,
                                   CHANGE_SET_PARAMETERS, CHANGE_SET_STACK_TAGS,
@@ -36,7 +37,7 @@ def test_loads_config_file(mocker, tmpdir, session):
         assert call_args.vars == VARS
 
 
-def test_loads_multiple_config_file(mocker, tmpdir, session):
+def test_loads_multiple_config_files(mocker, tmpdir, session):
     stacks = mocker.patch('formica.cli.stacks')
     file_name = 'test.config.yaml'
     overwrite_file = 'overwrite.config.yaml'
@@ -51,6 +52,19 @@ def test_loads_multiple_config_file(mocker, tmpdir, session):
         assert call_args.stack != STACK
         assert call_args.vars['OtherVar'] == 3
         assert call_args.vars['OtherVar'] != VARS['OtherVar']
+
+
+def test_prioritises_cli_args(mocker, tmpdir, session):
+    stacks = mocker.patch('formica.cli.new')
+    cli_stack = str(uuid4)
+    file_name = 'test.config.yaml'
+    with Path(tmpdir):
+        with open(file_name, 'w') as f:
+            f.write(yaml.dump(FULL_CONFIG_FILE))
+        cli.main(['new', '-s', cli_stack, '-c', file_name])
+        call_args = stacks.call_args[0][0]
+        assert call_args.stack == cli_stack
+        assert call_args.stack != STACK
 
 
 def test_exception_with_wrong_config_type(mocker, tmpdir, session, logger):
