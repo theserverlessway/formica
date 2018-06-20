@@ -53,14 +53,14 @@ def __manage_stack_set(args, create):
             TemplateBody=loader.template(),
             ** params
         )
+        logger.info('StackSet {} created'.format(args.stack_set))
     else:
         result = client.update_stack_set(
             StackSetName=args.stack_set,
             TemplateBody=loader.template(),
             ** params
         )
-        print(result)
-    logger.info('{} StackSet with name {}'.format('Created' if create else 'Updated', args.stack_set))
+        logger.info('StackSet {} updated in Operation {}'.format(args.stack_set, result['OperationId']))
 
 
 def parameters(parameters, tags, capabilities, accounts, regions, execution_role_name, administration_role_arn):
