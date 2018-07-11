@@ -236,6 +236,7 @@ def test_template_syntax_exception_gets_caught(load, tmpdir):
         with pytest.raises(SystemExit):
             load.load()
 
+
 def test_template_not_found_exception_gets_caught(load, tmpdir):
     example = '{"Description": "{{ code(\'testfile\') }}}'
     with Path(tmpdir):

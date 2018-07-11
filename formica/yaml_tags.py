@@ -54,10 +54,12 @@ for function in split_functions:
 
 non_fn_functions = ['Ref', 'Condition']
 
+
 class NonFnFunction(BaseFunction):
     @classmethod
     def from_yaml(cls, loader, node):
         return {cls.tag(node.tag): node.value}
+
 
 for function in non_fn_functions:
     type(function, (NonFnFunction,), {'yaml_tag': '!' + function})
