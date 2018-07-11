@@ -11,7 +11,7 @@ TEMPLATE = 'MYTEMPLATE'
 ROLE_ARN = 'arn:aws:iam::1234567890:role/some-stack-role'
 CHANGESETNAME = '{}-change-set'.format(STACK)
 CHANGE_SET_TYPE = 'WHATEVER'
-CHANGE_SET_PARAMETERS = {'A': 'B', 'B': 'C'}
+CHANGE_SET_PARAMETERS = {'A': 'B', 'B': 2, 'C': True}
 CLOUDFORMATION_PARAMETERS = [
     {'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False},
     {'ParameterKey': 'B', 'ParameterValue': 'C', 'UsePreviousValue': False}

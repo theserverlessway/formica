@@ -76,7 +76,8 @@ def test_submits_changeset_with_parameters():
 
     Parameters = [
         {'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False},
-        {'ParameterKey': 'B', 'ParameterValue': 'C', 'UsePreviousValue': False}
+        {'ParameterKey': 'B', 'ParameterValue': '2', 'UsePreviousValue': False},
+        {'ParameterKey': 'C', 'ParameterValue': 'True', 'UsePreviousValue': False},
     ]
     cf_client_mock.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,

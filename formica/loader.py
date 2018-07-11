@@ -16,8 +16,6 @@ assert yaml_tags
 
 logger = logging.getLogger(__name__)
 
-LINE_WHITESPACE_OFFSET = '  |'
-
 FILE_TYPES = ['yml', 'yaml', 'json']
 
 RESOURCES_KEY = "Resources"
@@ -160,8 +158,7 @@ class Loader(object):
             except TemplateSyntaxError as e:
                 logger.info(e.__class__.__name__ + ': ' + e.message)
                 logger.info(
-                    'File: "' + e.filename + '", line ' + str(e.lineno))
-                logger.info(LINE_WHITESPACE_OFFSET + e.source.rstrip('\n'))
+                    'File: "' + (e.filename or file) + '", line ' + str(e.lineno))
                 sys.exit(1)
             except FormicaArgumentException as e:
                 logger.info(e.__class__.__name__ + ': ' + e.args[0])
