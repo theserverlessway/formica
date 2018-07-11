@@ -42,6 +42,9 @@ def runner(loader, tmpdir):
     ('Resources: !Ref ABC', {'Resources': {"Ref": 'ABC'}}),
     ('Resources: !GetAZs\n           Ref: AWS::Region', {'Resources': {'Fn::GetAZs': {"Ref": 'AWS::Region'}}}),
     ('Resources: !GetAtt ["abc", "def"]', {'Resources': {'Fn::GetAtt': ['abc', 'def']}}),
+    ('Resources: !Condition TestCondition', {'Resources': {'Condition': 'TestCondition'}}),
+    ('Resources: !Cidr [ "A", "B", "C" ]', {'Resources': {'Fn::Cidr': [ "A", "B", "C" ]}}),
+
 
 
 ])
