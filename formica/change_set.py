@@ -23,7 +23,7 @@ class ChangeSet:
         optional_arguments = {}
         if parameters:
             optional_arguments['Parameters'] = [
-                {'ParameterKey': key, 'ParameterValue': value, 'UsePreviousValue': False} for (key, value)
+                {'ParameterKey': key, 'ParameterValue': str(value), 'UsePreviousValue': False} for (key, value)
                 in parameters.items()]
         if tags:
             optional_arguments['Tags'] = [{'Key': key, 'Value': value, } for (key, value) in
