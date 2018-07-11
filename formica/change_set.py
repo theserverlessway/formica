@@ -22,9 +22,9 @@ class ChangeSet:
     def create(self, template, change_set_type, parameters=[], tags=[], capabilities=[], role_arn=None, s3=False):
         optional_arguments = {}
         if parameters:
-            optional_arguments['Parameters'] = [
+            optional_arguments['Parameters'] = sorted([
                 {'ParameterKey': key, 'ParameterValue': str(value), 'UsePreviousValue': False} for (key, value)
-                in parameters.items()]
+                in parameters.items()], key=lambda param: param['ParameterKey'])
         if tags:
             optional_arguments['Tags'] = [{'Key': key, 'Value': value, } for (key, value) in
                                           tags.items()]
