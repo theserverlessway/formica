@@ -28,7 +28,7 @@ class BaseFunction(yaml.YAMLObject):
 
 fn_functions = [
     'Base64', 'And', 'Equals', 'If', 'Not', 'Or', 'FindInMap', 'GetAZs', 'ImportValue', 'Join', 'Select',
-    'Split', "Sub"
+    'Split', 'Sub', 'Cidr'
 ]
 
 for function in fn_functions:
@@ -52,10 +52,14 @@ split_functions = [
 for function in split_functions:
     type(function, (SplitFunction,), {'yaml_tag': '!' + function})
 
+non_fn_functions = ['Ref', 'Condition']
 
-class Ref(BaseFunction):
-    yaml_tag = "!Ref"
 
+class NonFnFunction(BaseFunction):
     @classmethod
     def from_yaml(cls, loader, node):
         return {cls.tag(node.tag): node.value}
+
+
+for function in non_fn_functions:
+    type(function, (NonFnFunction,), {'yaml_tag': '!' + function})
