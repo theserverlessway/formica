@@ -68,7 +68,7 @@ class Loader(object):
         self.cftemplate = {}
         self.path = path
         self.file = file
-        self.env = Environment(loader=FileSystemLoader(path, followlinks=True))
+        self.env = Environment(loader=FileSystemLoader('./', followlinks=True))
         self.env.filters.update({
             'code_escape': code_escape,
             'mandatory': mandatory,
@@ -83,7 +83,8 @@ class Loader(object):
         return value
 
     def render(self, filename, **args):
-        return self.env.get_template(filename).render(code=self.include_file, **args)
+        template_path = os.path.normpath("{}/{}".format(self.path, filename))
+        return self.env.get_template(template_path).render(code=self.include_file, **args)
 
     def template(self, indent=4, sort_keys=True, separators=(',', ':'), dumper=None):
         if dumper is not None:
