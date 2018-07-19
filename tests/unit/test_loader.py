@@ -317,6 +317,23 @@ def test_code_includes_and_escapes_code(load, tmpdir):
     assert actual == {"Description": "test\n\"something\""}
 
 
+def test_code_allows_to_include_files_from_parent(load, tmpdir):
+    parent = '{"Resources": {"Test": {"From": "Moduledir"}}}'
+    module = '{"Description": "{{ code("../test.txt") }}"}'
+    description = "someDescription"
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('test.template.json', 'w') as f:
+            f.write(parent)
+        with open('moduledir/test.template.json', 'w') as f:
+            f.write(module)
+        with open('test.txt', 'w') as f:
+            f.write(description)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": description}
+
+
 def test_code_includes_additional_variables(load, tmpdir):
     example = '{"Description": "{{ code("test.py", testvar=\'teststring\') }}"}'
     pycode = "test\n{{testvar}}"
