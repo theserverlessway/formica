@@ -419,12 +419,17 @@ def load_config_files(args, config_files):
         key = key.replace('-', '_')
         if key in CONFIG_FILE_ARGUMENTS.keys():
             config_type = CONFIG_FILE_ARGUMENTS[key]
-            if not args_dict.get(key) and value:
-                if isinstance(value, config_type):
-                    args_dict[key] = value
+            if isinstance(value, config_type):
+                if config_type == dict and args_dict.get(key):
+                    merged = value
+                    merged.update(args_dict[key])
+                    args_dict[key] = merged
                 else:
-                    logger.error('Config file parameter {} needs to be of type {}'.format(key, config_type.__name__))
-                    sys.exit(2)
+                    if not args_dict.get(key):
+                        args_dict[key] = value
+            else:
+                logger.error('Config file parameter {} needs to be of type {}'.format(key, config_type.__name__))
+                sys.exit(2)
         else:
             logger.error('Config file parameter {} is not supported'.format(key))
             sys.exit(2)
