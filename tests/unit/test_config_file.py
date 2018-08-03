@@ -56,7 +56,7 @@ def test_loads_multiple_config_files(mocker, tmpdir, session):
 
 def test_prioritises_cli_args(mocker, tmpdir, session):
     stacks = mocker.patch('formica.cli.new')
-    cli_stack = str(uuid4)
+    cli_stack = str(uuid4())
     file_name = 'test.config.yaml'
     with Path(tmpdir):
         with open(file_name, 'w') as f:
@@ -65,6 +65,19 @@ def test_prioritises_cli_args(mocker, tmpdir, session):
         call_args = stacks.call_args[0][0]
         assert call_args.stack == cli_stack
         assert call_args.stack != STACK
+
+
+def test_merges_cli_args_on_load(mocker, tmpdir, session):
+    stacks = mocker.patch('formica.cli.new')
+    param1 = str(uuid4())
+    param2 = str(uuid4())
+    file_name = 'test.config.yaml'
+    with Path(tmpdir):
+        with open(file_name, 'w') as f:
+            f.write(yaml.dump(FULL_CONFIG_FILE))
+        cli.main(['new', '--parameters', "A={}".format(param1), "D={}".format(param2), '-c', file_name])
+        call_args = stacks.call_args[0][0]
+        assert call_args.parameters == {"A": param1, "B": 2, 'C': True, 'D': param2}
 
 
 def test_exception_with_wrong_config_type(mocker, tmpdir, session, logger):

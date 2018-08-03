@@ -425,7 +425,8 @@ def load_config_files(args, config_files):
                     merged.update(args_dict[key])
                     args_dict[key] = merged
                 else:
-                    args_dict[key] = value
+                    if not args_dict.get(key):
+                        args_dict[key] = value
             else:
                 logger.error('Config file parameter {} needs to be of type {}'.format(key, config_type.__name__))
                 sys.exit(2)
