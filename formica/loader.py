@@ -7,6 +7,7 @@ import logging
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateSyntaxError, TemplateNotFound
+import arrow
 
 from .exceptions import FormicaArgumentException
 
@@ -84,7 +85,10 @@ class Loader(object):
 
     def render(self, filename, **args):
         template_path = os.path.normpath("{}/{}".format(self.path, filename))
-        return self.env.get_template(template_path).render(code=self.include_file, **args)
+        return self.env.get_template(template_path).render(code=self.include_file,
+                                                           now=arrow.now,
+                                                           utcnow=arrow.utcnow,
+                                                           ** args)
 
     def template(self, indent=4, sort_keys=True, separators=(',', ':'), dumper=None):
         if dumper is not None:
