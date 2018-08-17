@@ -6,6 +6,7 @@ import yaml
 from path import Path
 
 from formica.loader import Loader
+from datetime import datetime, timedelta
 
 
 @pytest.fixture()
@@ -171,7 +172,7 @@ def test_template_submodule_loads_variables(load, tmpdir):
         with open('test.template.json', 'w') as f:
             f.write(json.dumps(
                 {'Resources': {'TestResource':
-                    {'From': 'Moduledir', 'Properties': {'test': 'Variable'}}}}))
+                               {'From': 'Moduledir', 'Properties': {'test': 'Variable'}}}}))
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "Variable"}
@@ -390,3 +391,25 @@ def test_un_indented_large_templates(load):
     load.cftemplate = {'Resources': {i: 'a' * 84 for i in range(512)}}
     assert len(load.template()) > 51200
     assert len(load.template(indent=None)) < 51200
+
+
+def test_now(load, tmpdir):
+    example = '{"Resources": {"Test": "{{ now().shift(days=1).format("YYYY-MM-DD HH:mm") }}"}}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        print(load.template())
+        actual = json.loads(load.template())
+    assert actual == {"Resources": {"Test": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d %H:%M")}}
+
+
+def test_utcnow(load, tmpdir):
+    example = '{"Resources": {"Test": "{{ utcnow().shift(days=1).format("YYYY-MM-DD HH:mm") }}"}}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        print(load.template())
+        actual = json.loads(load.template())
+    assert actual == {"Resources": {"Test": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d %H:%M")}}
