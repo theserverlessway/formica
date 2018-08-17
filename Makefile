@@ -17,7 +17,7 @@ integration-test:
 build-dev:
 	docker-compose build formica
 
-dev: build-dev
+shell: build-dev
 	docker-compose run formica bash
 
 clean:
