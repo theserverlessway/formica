@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 CONFIG_FILE_ARGUMENTS = {
     'stack': str,
+    'stack_set': str,
     'tags': dict,
     'parameters': dict,
     'role_arn': str,
@@ -31,6 +32,8 @@ CONFIG_FILE_ARGUMENTS = {
     'profile': str,
     'capabilities': list,
     'vars': dict,
+    'administration_role_arn': str,
+    'execution_role_name': str
 }
 
 
@@ -200,6 +203,7 @@ def stack_set_parser(parser):
     remove_parser = stack_set_subparsers.add_parser('remove', description='Remove a Stack Set')
     add_aws_arguments(remove_parser)
     add_stack_set_argument(remove_parser)
+    add_config_file_argument(remove_parser)
     remove_parser.set_defaults(func=stack_set.remove_stack_set)
 
     add_instances_parser = stack_set_subparsers.add_parser('add-instances',
@@ -207,6 +211,7 @@ def stack_set_parser(parser):
     add_aws_arguments(add_instances_parser)
     add_stack_set_argument(add_instances_parser)
     add_stack_set_instance_arguments(add_instances_parser)
+    add_config_file_argument(add_instances_parser)
     add_instances_parser.set_defaults(func=stack_set.add_stack_set_instances)
 
     remove_instances_parser = stack_set_subparsers.add_parser('remove-instances',
@@ -215,6 +220,7 @@ def stack_set_parser(parser):
     add_stack_set_argument(remove_instances_parser)
     add_stack_set_instance_arguments(remove_instances_parser)
     add_stack_set_instance_retain_argument(remove_instances_parser)
+    add_config_file_argument(remove_instances_parser)
     remove_instances_parser.set_defaults(func=stack_set.remove_stack_set_instances)
 
 
