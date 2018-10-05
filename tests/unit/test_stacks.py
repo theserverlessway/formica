@@ -14,7 +14,7 @@ def logger(mocker):
 
 @pytest.fixture
 def session(mocker):
-    return mocker.patch('formica.aws.Session')
+    return mocker.patch('boto3.session.Session')
 
 
 def test_print_stacks(session, logger):

@@ -9,7 +9,7 @@ from tests.unit.constants import STACK, PROFILE, REGION, CHANGESETNAME, EVENT_ID
 
 @pytest.fixture
 def stack_waiter(mocker):
-    return mocker.patch('formica.cli.StackWaiter')
+    return mocker.patch('formica.stack_waiter.StackWaiter')
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def logger(mocker):
 
 @pytest.fixture
 def session(mocker):
-    return mocker.patch('formica.aws.Session')
+    return mocker.patch('boto3.session.Session')
 
 
 def test_catches_common_aws_exceptions(session, stack_waiter):

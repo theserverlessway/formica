@@ -6,10 +6,10 @@ from tests.unit.constants import REGION, PROFILE, STACK, EVENT_ID, STACK_ID, ROL
 
 
 class TestRemove(unittest.TestCase):
-    @patch('formica.cli.StackWaiter')
-    @patch('formica.cli.Loader')
-    @patch('formica.aws.Session')
-    @patch('formica.cli.ChangeSet')
+    @patch('formica.stack_waiter.StackWaiter')
+    @patch('formica.loader.Loader')
+    @patch('boto3.session.Session')
+    @patch('formica.change_set.ChangeSet')
     def test_removes_stack(self, change_set, session, loader, stack_waiter):
         client_mock = Mock()
         client_mock.describe_stacks.return_value = {'Stacks': [{'StackId': STACK_ID}]}
@@ -23,10 +23,10 @@ class TestRemove(unittest.TestCase):
         stack_waiter.assert_called_with(STACK_ID, client_mock)
         stack_waiter.return_value.wait.assert_called_with(EVENT_ID)
 
-    @patch('formica.cli.StackWaiter')
-    @patch('formica.cli.Loader')
-    @patch('formica.aws.Session')
-    @patch('formica.cli.ChangeSet')
+    @patch('formica.stack_waiter.StackWaiter')
+    @patch('formica.loader.Loader')
+    @patch('boto3.session.Session')
+    @patch('formica.change_set.ChangeSet')
     def test_removes_stack_with_role(self, change_set, session, loader, stack_waiter):
         client_mock = Mock()
         client_mock.describe_stacks.return_value = {'Stacks': [{'StackId': STACK_ID}]}

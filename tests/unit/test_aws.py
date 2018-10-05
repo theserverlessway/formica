@@ -6,7 +6,7 @@ from tests.unit.constants import REGION, PROFILE
 
 @pytest.fixture
 def session(mocker):
-    return mocker.patch('formica.aws.Session')
+    return mocker.patch('boto3.session.Session')
 
 
 def test_session_needs_to_be_set(session):

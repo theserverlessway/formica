@@ -11,7 +11,7 @@ def logger(mocker):
 
 @pytest.fixture
 def session(mocker):
-    return mocker.patch('formica.aws.Session')
+    return mocker.patch('boto3.session.Session')
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def client(session, mocker):
 
 @pytest.fixture
 def loader(mocker):
-    mock = mocker.patch('formica.stack_set.Loader')
+    mock = mocker.patch('formica.loader.Loader')
     mock.return_value.template.return_value = TEMPLATE
     return mock
 

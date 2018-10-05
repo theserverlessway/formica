@@ -7,12 +7,12 @@ from tests.unit.constants import STACK
 
 @pytest.fixture
 def change_set(mocker):
-    return mocker.patch('formica.cli.ChangeSet')
+    return mocker.patch('formica.change_set.ChangeSet')
 
 
 @pytest.fixture
 def session(mocker):
-    return mocker.patch('formica.aws.Session')
+    return mocker.patch('boto3.session.Session')
 
 
 def test_describes_change_set(session, change_set):
