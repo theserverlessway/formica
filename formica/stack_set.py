@@ -1,5 +1,4 @@
 from formica.aws import AWS
-from .loader import Loader
 import logging
 import sys
 
@@ -66,6 +65,7 @@ def remove_stack_set_instances(args):
 
 
 def __manage_stack_set(args, create):
+    from .loader import Loader
     client = AWS.current_session().client('cloudformation')
     params = parameters(parameters=args.parameters,
                         tags=args.tags,
@@ -74,6 +74,7 @@ def __manage_stack_set(args, create):
                         regions=vars(args).get('regions'),
                         execution_role_name=args.execution_role_name,
                         administration_role_arn=args.administration_role_arn)
+
     loader = Loader(variables=args.vars)
     loader.load()
     if create:

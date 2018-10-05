@@ -1,6 +1,3 @@
-from boto3.session import Session
-
-
 class AWS:
 
     __session = None
@@ -21,4 +18,5 @@ class AWS:
             params['region_name'] = region
         if profile:
             params['profile_name'] = profile
+        from boto3.session import Session
         AWS.__session = Session(**params)
