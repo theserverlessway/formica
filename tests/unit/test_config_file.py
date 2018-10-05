@@ -11,7 +11,7 @@ from tests.unit.constants import (REGION, PROFILE, STACK,
 
 @pytest.fixture
 def session(mocker):
-    return mocker.patch('formica.aws.Session')
+    return mocker.patch('boto3.session.Session')
 
 
 @pytest.fixture

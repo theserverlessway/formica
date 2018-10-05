@@ -1,6 +1,6 @@
 .PHONY: build
 
-install:
+dependencies:
 	pip install -U -r build-requirements.txt
 	python setup.py develop
 
@@ -36,6 +36,6 @@ release-docker:
 
 release: release-pypi release-docker
 
-whalebrew:
+install:
 	docker build -t flomotlik/formica:whalebrew -f Dockerfile.whalebrew .
 	whalebrew install -f flomotlik/formica:whalebrew

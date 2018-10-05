@@ -24,7 +24,7 @@ addons:
     - pandoc
 
 install:
-- make install
+- make dependencies
 
 script:
 - if [[ -z "$INTEGRATION_TEST" ]]; then make check-code ; fi
@@ -33,5 +33,3 @@ script:
 
 after_success:
 - if [[ -z "$INTEGRATION_TEST" ]]; then coveralls; fi
-
-

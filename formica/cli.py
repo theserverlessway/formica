@@ -1,19 +1,16 @@
 #!/usr/bin/env python
 
-import yaml
 import functools
 import argparse
+import argcomplete
 import sys
 import logging
-from texttable import Texttable
+
 
 from . import CHANGE_SET_FORMAT, __version__
 from .aws import AWS
-from .change_set import ChangeSet
-from .diff import Diff
-from .stack_waiter import StackWaiter
-from .loader import Loader
-from botocore.exceptions import ProfileNotFound, NoCredentialsError, NoRegionError, ClientError, EndpointConnectionError
+
+
 from . import stack_set
 
 
@@ -140,12 +137,19 @@ def main(cli_args):
     # Stack Set Configuration
     stack_set_parser(subparsers)
 
+    # Autocomplete
+    argcomplete.autocomplete(parser)
+
     # Argument Parsing
     args = parser.parse_args(cli_args)
+    print(args)
     args_dict = vars(args)
 
     if args_dict.get('config_file'):
         load_config_files(args, args.config_file)
+
+    from botocore.exceptions import NoRegionError, ClientError, EndpointConnectionError
+    from botocore.exceptions import ProfileNotFound, NoCredentialsError
 
     try:
         # Initialise the AWS Profile and Region
@@ -298,6 +302,8 @@ def add_s3_upload_argument(parser):
 
 
 def template(args):
+    from .loader import Loader
+    import yaml
     loader = Loader(variables=args.vars)
     loader.load()
     if args.yaml:
@@ -311,6 +317,7 @@ def template(args):
 
 
 def stacks(args):
+    from texttable import Texttable
     client = AWS.current_session().client('cloudformation')
     stacks = client.describe_stacks()
     table = Texttable(max_width=150)
@@ -329,11 +336,13 @@ def stacks(args):
 
 @requires_stack
 def diff(args):
+    from .diff import Diff
     Diff(AWS.current_session()).run(args.stack, args.vars)
 
 
 @requires_stack
 def describe(args):
+    from .change_set import ChangeSet
     client = AWS.current_session().client('cloudformation')
     change_set = ChangeSet(stack=args.stack, client=client)
     change_set.describe()
@@ -341,6 +350,7 @@ def describe(args):
 
 @requires_stack
 def resources(args):
+    from texttable import Texttable
     client = AWS.current_session().client('cloudformation')
     paginator = client.get_paginator('list_stack_resources').paginate(StackName=args.stack)
 
@@ -361,6 +371,8 @@ def resources(args):
 
 @requires_stack
 def change(args):
+    from .change_set import ChangeSet
+    from .loader import Loader
     client = AWS.current_session().client('cloudformation')
     loader = Loader(variables=args.vars)
     loader.load()
@@ -373,6 +385,7 @@ def change(args):
 
 @requires_stack
 def deploy(args):
+    from .stack_waiter import StackWaiter
     client = AWS.current_session().client('cloudformation')
     last_event = client.describe_stack_events(StackName=args.stack)['StackEvents'][0]['EventId']
     client.execute_change_set(ChangeSetName=(CHANGE_SET_FORMAT.format(stack=args.stack)), StackName=args.stack)
@@ -381,6 +394,7 @@ def deploy(args):
 
 @requires_stack
 def remove(args):
+    from .stack_waiter import StackWaiter
     client = AWS.current_session().client('cloudformation')
     stack_id = client.describe_stacks(StackName=args.stack)['Stacks'][0]['StackId']
     logger.info('Removing Stack and waiting for it to be removed, ...')
@@ -394,6 +408,8 @@ def remove(args):
 
 @requires_stack
 def new(args):
+    from .change_set import ChangeSet
+    from .loader import Loader
     client = AWS.current_session().client('cloudformation')
     loader = Loader(variables=args.vars)
     loader.load()
@@ -406,6 +422,7 @@ def new(args):
 
 
 def load_config_files(args, config_files):
+    import yaml
     config_file_args = dict()
     for config_file in config_files:
         try:

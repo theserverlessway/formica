@@ -6,12 +6,12 @@ from tests.unit.constants import REGION, PROFILE, STACK, TEMPLATE
 
 @pytest.fixture
 def change_set(mocker):
-    return mocker.patch('formica.cli.ChangeSet')
+    return mocker.patch('formica.change_set.ChangeSet')
 
 
 @pytest.fixture
 def session(mocker):
-    return mocker.patch('formica.aws.Session')
+    return mocker.patch('boto3.session.Session')
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def client(session):
 
 @pytest.fixture
 def loader(mocker):
-    return mocker.patch('formica.cli.Loader')
+    return mocker.patch('formica.loader.Loader')
 
 
 def test_change_creates_update_change_set(change_set, client, loader):
