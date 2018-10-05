@@ -29,12 +29,12 @@ except NameError:
 
 ALLOWED_ATTRIBUTES = {
     "AWSTemplateFormatVersion": basestring,
-    "Description": basestring,
+    "Description": [basestring, str],
     "Metadata": dict,
     "Parameters": dict,
     "Mappings": dict,
     "Conditions": dict,
-    "Transform": [basestring, list],
+    "Transform": [str, basestring, list],
     RESOURCES_KEY: dict,
     "Outputs": dict,
 }
@@ -104,8 +104,10 @@ class Loader(object):
                 new = template[key]
                 new_type = type(new)
                 types = ALLOWED_ATTRIBUTES.get(key)
-                if key in ALLOWED_ATTRIBUTES.keys() and (new_type == types or new_type in types):
-                    if new_type == basestring or new_type == list:
+                if type(types) != list:
+                    types = [types]
+                if key in ALLOWED_ATTRIBUTES.keys() and new_type in types:
+                    if new_type == basestring or new_type == str or new_type == list:
                         self.cftemplate[key] = new
                     elif new_type == dict:
                         for element_key, element_value in template[key].items():
