@@ -80,6 +80,16 @@ def test_successfully_adds_output_to_template(load, tmpdir):
     write_and_test(example, load, tmpdir)
 
 
+def test_successfully_adds_transform_to_template(load, tmpdir):
+    example = {'Transform': 'TestTransform'}
+    write_and_test(example, load, tmpdir)
+
+
+def test_successfully_adds_multiple_transforms_to_template(load, tmpdir):
+    example = {'Transform': ['TestTransform1', 'TestTransform2']}
+    write_and_test(example, load, tmpdir)
+
+
 def test_supports_jinja_templates(load, tmpdir):
     example = '{"Description": "{{ \'test\' | title }}"}'
     with Path(tmpdir):
