@@ -142,7 +142,6 @@ def main(cli_args):
 
     # Argument Parsing
     args = parser.parse_args(cli_args)
-    print(args)
     args_dict = vars(args)
 
     if args_dict.get('config_file'):

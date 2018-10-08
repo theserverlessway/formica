@@ -10,6 +10,7 @@ test:
 check-code:
 	pycodestyle .
 	pyflakes .
+	grep -r 'print(' formica; [ "$$?" -gt 0 ]
 
 integration-test:
 	py.test -s tests/integration
@@ -27,7 +28,7 @@ build: clean build-dev
 	docker-compose run formica python setup.py sdist bdist_wheel
 	docker-compose run formica pandoc --from=markdown --to=rst --output=build/README.rst README.md
 
-release-pypi: clean build-dev build 
+release-pypi: clean build-dev build
 	docker-compose run formica twine upload dist/*
 
 release-docker:
