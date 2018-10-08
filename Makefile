@@ -27,7 +27,7 @@ build: clean build-dev
 	docker-compose run formica python setup.py sdist bdist_wheel
 	docker-compose run formica pandoc --from=markdown --to=rst --output=build/README.rst README.md
 
-release-pypi: build-dev build
+release-pypi: clean build-dev build 
 	docker-compose run formica twine upload dist/*
 
 release-docker:
