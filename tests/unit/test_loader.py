@@ -374,6 +374,31 @@ def test_code_includes_supports_nested_code_arguments(load, tmpdir):
     assert actual == {"Description": "nested-test"}
 
 
+def test_file_adds_content_directly(load, tmpdir):
+    example = 'Description: |\n  {{ file("test.one") | indent(2)}}'
+    one = 'abc\ndef'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.one', 'w') as f:
+            f.write(one)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "abc\ndef"}
+
+
+def test_file_throws_exception_if_not_well_indented(load, tmpdir):
+    example = 'Description:  {{ file("test.one")}}'
+    one = 'abc\ndef'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.one', 'w') as f:
+            f.write(one)
+        with pytest.raises(SystemExit):
+            load.load()
+
+
 def test_novalue_uses_value_if_given(load, tmpdir):
     example = '{% set Parameter = "description" %}{"Description": "{{ Parameter | novalue }}"}'
     with Path(tmpdir):
