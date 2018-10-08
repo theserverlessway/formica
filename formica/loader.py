@@ -63,12 +63,12 @@ def novalue(variable):
 
 
 class Loader(object):
-    def __init__(self, path='.', file='*', variables=None):
+    def __init__(self, path='.', filename='*', variables=None):
         if variables is None:
             variables = {}
         self.cftemplate = {}
         self.path = path
-        self.file = file
+        self.filename = filename
         self.env = Environment(loader=FileSystemLoader('./', followlinks=True))
         self.env.filters.update({
             'code_escape': code_escape,
@@ -80,15 +80,21 @@ class Loader(object):
 
     def include_file(self, filename, **args):
         source = self.render(filename, **args)
-        value = code_escape(source)
-        return value
+        return code_escape(source)
+
+    def load_file(self, filename, **args):
+        with open(filename) as f:
+            return f.read()
 
     def render(self, filename, **args):
         template_path = os.path.normpath("{}/{}".format(self.path, filename))
-        return self.env.get_template(template_path).render(code=self.include_file,
-                                                           now=arrow.now,
-                                                           utcnow=arrow.utcnow,
-                                                           ** args)
+        template = self.env.get_template(template_path)
+        arguments = dict(code=self.include_file,
+                         file=self.load_file,
+                         now=arrow.now,
+                         utcnow=arrow.utcnow,
+                         **args)
+        return template.render(**arguments)
 
     def template(self, indent=4, sort_keys=True, separators=(',', ':'), dumper=None):
         if dumper is not None:
@@ -149,7 +155,7 @@ class Loader(object):
         files = []
 
         for file_type in FILE_TYPES:
-            files.extend(glob.glob('{}/{}.template.{}'.format(self.path, self.file, file_type)))
+            files.extend(glob.glob('{}/{}.template.{}'.format(self.path, self.filename, file_type)))
 
         if not files:
             logger.info("Could not find any template files in {}".format(self.path))
@@ -176,6 +182,10 @@ class Loader(object):
                 logger.info('If you use it as a template make sure you\'re setting all necessary vars')
                 sys.exit(1)
             except yaml.YAMLError as e:
-                logger.error(e.__str__())
+                logger.info(e.__str__())
+                logger.info('Following is the Yaml document formica is trying to load:')
+                logger.info('---------------------------------------------------------------------------')
+                logger.info(result)
+                logger.info('---------------------------------------------------------------------------')
                 sys.exit(1)
             self.merge(template, file)
