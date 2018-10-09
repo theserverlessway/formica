@@ -67,7 +67,14 @@ def remove_stack_set_instances(args):
 def __manage_stack_set(args, create):
     from .loader import Loader
     client = AWS.current_session().client('cloudformation')
-    params = parameters(parameters=args.parameters,
+    params = args.parameters or {}
+    main_account = args.main_account
+    if main_account:
+        sts = AWS.current_session().client('sts')
+        identity = sts.get_caller_identity()
+        params['MainAccount'] = identity['Account']
+
+    params = parameters(parameters=params,
                         tags=args.tags,
                         capabilities=args.capabilities,
                         accounts=vars(args).get('accounts'),
@@ -77,6 +84,11 @@ def __manage_stack_set(args, create):
 
     loader = Loader(variables=args.vars)
     loader.load()
+    template = loader.template()
+    if main_account:
+        template['Parameters'] = template.get('Parameters') or {}
+        template['Parameters']['MainAccount'] = {'Type': 'String'}
+
     if create:
         result = client.create_stack_set(
             StackSetName=args.stack_set,
