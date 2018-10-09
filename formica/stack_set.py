@@ -1,6 +1,7 @@
 from formica.aws import AWS
 import logging
 import sys
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -86,20 +87,22 @@ def __manage_stack_set(args, create):
     loader.load()
     template = loader.template()
     if main_account:
+        template = loader.template_dictionary()
         template['Parameters'] = template.get('Parameters') or {}
         template['Parameters']['MainAccount'] = {'Type': 'String'}
+        template = json.dumps(template)
 
     if create:
         result = client.create_stack_set(
             StackSetName=args.stack_set,
-            TemplateBody=loader.template(),
+            TemplateBody=template,
             ** params
         )
         logger.info('StackSet {} created'.format(args.stack_set))
     else:
         result = client.update_stack_set(
             StackSetName=args.stack_set,
-            TemplateBody=loader.template(),
+            TemplateBody=template,
             ** params
         )
         logger.info('StackSet {} updated in Operation {}'.format(args.stack_set, result['OperationId']))

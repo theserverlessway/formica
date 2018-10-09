@@ -1,4 +1,5 @@
 import pytest
+import json
 from uuid import uuid4
 
 from formica import cli
@@ -67,7 +68,7 @@ def test_create_stack_set_without_arguments(client, logger, loader):
 
 def test_create_stack_set_with_main_account(session, client, logger, mocker):
     mock = mocker.patch('formica.loader.Loader')
-    mock.return_value.template.return_value = {}
+    mock.return_value.template_dictionary.return_value = {}
     accountid = str(uuid4())
     client.get_caller_identity.return_value = {'Account': accountid}
     cli.main([
@@ -81,14 +82,14 @@ def test_create_stack_set_with_main_account(session, client, logger, mocker):
 
     client.create_stack_set.assert_called_with(
         StackSetName=STACK,
-        TemplateBody={'Parameters': {'MainAccount': {'Type': 'String'}}},
+        TemplateBody=json.dumps({'Parameters': {'MainAccount': {'Type': 'String'}}}),
         Parameters=[{'ParameterKey': 'MainAccount', 'ParameterValue': accountid, 'UsePreviousValue': False}]
     )
 
 
 def test_create_stack_set_with_main_account_and_existing_parameters(session, client, logger, mocker):
     mock = mocker.patch('formica.loader.Loader')
-    mock.return_value.template.return_value = {'Parameters': {'SomeParam': {'Type': 'String'}}}
+    mock.return_value.template_dictionary.return_value = {'Parameters': {'SomeParam': {'Type': 'String'}}}
     accountid = str(uuid4())
     client.get_caller_identity.return_value = {'Account': accountid}
     cli.main([
@@ -102,7 +103,7 @@ def test_create_stack_set_with_main_account_and_existing_parameters(session, cli
 
     client.create_stack_set.assert_called_with(
         StackSetName=STACK,
-        TemplateBody={'Parameters': {'MainAccount': {'Type': 'String'}, 'SomeParam': {'Type': 'String'}}},
+        TemplateBody=json.dumps({'Parameters': {'SomeParam': {'Type': 'String'}, 'MainAccount': {'Type': 'String'}}}),
         Parameters=[{'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False}, {
             'ParameterKey': 'MainAccount', 'ParameterValue': accountid, 'UsePreviousValue': False}]
     )
@@ -140,7 +141,7 @@ def test_update_stack_set(client, loader):
 def test_update_stack_set_with_main_account(session, client, logger, mocker):
     client.update_stack_set.return_value = {'OperationId': '12345'}
     mock = mocker.patch('formica.loader.Loader')
-    mock.return_value.template.return_value = {}
+    mock.return_value.template_dictionary.return_value = {}
     accountid = str(uuid4())
     client.get_caller_identity.return_value = {'Account': accountid}
     cli.main([
@@ -154,7 +155,7 @@ def test_update_stack_set_with_main_account(session, client, logger, mocker):
 
     client.update_stack_set.assert_called_with(
         StackSetName=STACK,
-        TemplateBody={'Parameters': {'MainAccount': {'Type': 'String'}}},
+        TemplateBody=json.dumps({'Parameters': {'MainAccount': {'Type': 'String'}}}),
         Parameters=[{'ParameterKey': 'MainAccount', 'ParameterValue': accountid, 'UsePreviousValue': False}]
     )
 

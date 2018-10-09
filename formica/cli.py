@@ -30,7 +30,8 @@ CONFIG_FILE_ARGUMENTS = {
     'capabilities': list,
     'vars': dict,
     'administration_role_arn': str,
-    'execution_role_name': str
+    'execution_role_name': str,
+    'main_account': bool
 }
 
 
