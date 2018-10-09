@@ -1,7 +1,7 @@
 import logging
 import sys
 
-__version__ = '0.8.12'
+__version__ = '0.8.13'
 
 CHANGE_SET_FORMAT = "{stack}-change-set"
 
