@@ -30,7 +30,8 @@ CONFIG_FILE_ARGUMENTS = {
     'capabilities': list,
     'vars': dict,
     'administration_role_arn': str,
-    'execution_role_name': str
+    'execution_role_name': str,
+    'main_account': bool
 }
 
 
@@ -184,6 +185,7 @@ def stack_set_parser(parser):
     add_aws_arguments(create_parser)
     add_stack_set_argument(create_parser)
     add_stack_parameters_argument(create_parser)
+    add_stack_set_main_account_parameter(create_parser)
     add_stack_tags_argument(create_parser)
     add_capabilities_argument(create_parser)
     add_config_file_argument(create_parser)
@@ -195,6 +197,7 @@ def stack_set_parser(parser):
     add_aws_arguments(update_parser)
     add_stack_set_argument(update_parser)
     add_stack_parameters_argument(update_parser)
+    add_stack_set_main_account_parameter(update_parser)
     add_stack_tags_argument(update_parser)
     add_capabilities_argument(update_parser)
     add_config_file_argument(update_parser)
@@ -287,6 +290,10 @@ def add_stack_set_instance_arguments(parser):
 
 def add_stack_set_instance_retain_argument(parser):
     parser.add_argument('--retain', help='Retain stacks', action='store_true', default=False)
+
+
+def add_stack_set_main_account_parameter(parser):
+    parser.add_argument('--main-account', help='Set MainAccount Parameter', action='store_true', default=False)
 
 
 def add_config_file_argument(parser):
