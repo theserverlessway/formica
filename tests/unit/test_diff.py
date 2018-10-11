@@ -3,25 +3,20 @@ import re
 import yaml
 from formica import cli
 
-from formica.diff import Diff
+from formica.diff import compare
 from tests.unit.constants import STACK
 
 
 @pytest.fixture
-def client(mocker):
-    return mocker.Mock()
+def client(session, mocker):
+    client_mock = mocker.Mock()
+    session.return_value.client.return_value = client_mock
+    return client_mock
 
 
 @pytest.fixture
-def session(client, mocker):
-    mock = mocker.Mock()
-    mock.client.return_value = client
-    return mock
-
-
-@pytest.fixture
-def diff(session):
-    return Diff(session)
+def session(mocker):
+    return mocker.patch('boto3.session.Session')
 
 
 @pytest.fixture
@@ -29,8 +24,11 @@ def loader(mocker):
     return mocker.patch('formica.diff.Loader')
 
 
-def template_return(client, template):
+@pytest.fixture
+def template(client, mocker):
+    template = mocker.Mock()
     client.get_template.return_value = {'TemplateBody': template}
+    return template
 
 
 def loader_return(loader, template):
@@ -47,81 +45,62 @@ def logger(mocker):
     return mocker.patch('formica.diff.logger')
 
 
-def test_unicode_string_no_diff(loader, client, diff, logger):
+def test_unicode_string_no_diff(loader, client, logger):
     loader_return(loader, {'Resources': u'1234'})
-    template_return(client, {'Resources': '1234'})
-    diff.run(STACK)
+    compare({'Resources': '1234'})
     logger.info.assert_called_with('No Changes found')
 
 
-def test_values_changed(loader, client, diff, logger):
-    template_return(client, {'Resources': '1234'})
+def test_values_changed(loader, client, logger):
     loader_return(loader, {'Resources': '5678'})
-    diff.run(STACK)
+    compare({'Resources': '1234'})
     check_echo(logger, ['Resources', '1234', '5678', 'Values Changed'])
 
 
-def test_dictionary_item_added(loader, client, diff, logger):
+def test_dictionary_item_added(loader, client, logger):
     loader_return(loader, {'Resources': '5678'})
-    template_return(client, {})
-    diff.run(STACK)
+    compare({})
     check_echo(logger, ['Resources', 'Not Present', '5678', 'Dictionary Item Added'])
 
 
-def test_dictionary_item_removed(loader, client, diff, logger):
+def test_dictionary_item_removed(loader, client, logger):
     loader_return(loader, {})
-    template_return(client, {'Resources': '5678'})
-    diff.run(STACK)
+    compare({'Resources': '5678'})
     check_echo(logger, ['Resources', '5678', 'Not Present', 'Dictionary Item Removed'])
 
 
-def test_type_changed(loader, client, diff, logger):
-    template_return(client, {'Resources': 'abcde'})
+def test_type_changed(loader, client, logger):
     loader_return(loader, {'Resources': 5})
-    diff.run(STACK)
+    compare({'Resources': 'abcde'})
     check_echo(logger, ['Resources', 'abcde', '5', 'Type Changes'])
 
 
-def test_iterable_item_added(loader, client, diff, logger):
-    template_return(client, {'Resources': [1]})
+def test_iterable_item_added(loader, client, logger):
     loader_return(loader, {'Resources': [1, 2]})
-    diff.run(STACK)
+    compare({'Resources': [1]})
     check_echo(logger, ['Resources > 1', 'Not Present', '2', 'Iterable Item Added'])
 
 
-def test_iterable_item_removed(loader, client, diff, logger):
-    template_return(client, {'Resources': [1, 2]})
+def test_iterable_item_removed(loader, client, logger):
     loader_return(loader, {'Resources': [1]})
-    diff.run(STACK)
+    compare({'Resources': [1, 2]})
     check_echo(logger, ['Resources > 1', '2', 'Not Present', 'Iterable Item Removed'])
 
 
-def test_request_returns_string(loader, client, diff, logger):
+def test_request_returns_string(loader, client, logger):
     loader_return(loader, {'Resources': u'1234'})
-    template_return(client, yaml.dump({'Resources': '1234'}))
-    diff.run(STACK)
+    compare(yaml.dump({'Resources': '1234'}))
     logger.info.assert_called_with('No Changes found')
 
 
-def test_diff_cli_call(mocker, session):
-    aws = mocker.patch('formica.cli.AWS')
-    aws.current_session.return_value = session
-
-    diff = mocker.patch('formica.diff.Diff')
-
+def test_diff_cli_call(template, mocker, client):
+    diff = mocker.patch('formica.diff.compare')
     cli.main(['diff', '--stack', STACK])
+    client.get_template.assert_called_with(StackName=STACK)
+    diff.assert_called_with(template, mocker.ANY)
 
-    diff.assert_called_with(session)
-    diff.return_value.run.assert_called_with(STACK, mocker.ANY)
 
-
-def test_diff_cli_with_vars(mocker, session):
-    aws = mocker.patch('formica.cli.AWS')
-    aws.current_session.return_value = session
-
-    diff = mocker.patch('formica.diff.Diff')
-
+def test_diff_cli_with_vars(template, mocker):
+    diff = mocker.patch('formica.diff.compare')
     cli.main(['diff', '--stack', STACK, '--vars', 'abc=def'])
-
-    diff.assert_called_with(session)
-    diff.return_value.run.assert_called_with(STACK, {'abc': 'def'})
+    diff.assert_called_with(template, {'abc': 'def'})
