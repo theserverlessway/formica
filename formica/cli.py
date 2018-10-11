@@ -232,6 +232,14 @@ def stack_set_parser(parser):
     add_stack_set_main_auto_regions_accounts(remove_instances_parser)
     remove_instances_parser.set_defaults(func=stack_set.remove_stack_set_instances)
 
+    diff_parser = stack_set_subparsers.add_parser('diff',
+                                                  description='Diff the StackSet template to the local template')
+    add_aws_arguments(diff_parser)
+    add_stack_set_argument(diff_parser)
+    add_config_file_argument(diff_parser)
+    add_stack_variables_argument(diff_parser)
+    diff_parser.set_defaults(func=stack_set.diff_stack_set)
+
 
 def requires_stack(function):
     def validate_stack(args):
@@ -352,8 +360,13 @@ def stacks(args):
 
 @requires_stack
 def diff(args):
-    from .diff import Diff
-    Diff(AWS.current_session()).run(args.stack, args.vars)
+    from .diff import compare
+    client = AWS.current_session().client('cloudformation')
+
+    template = client.get_template(
+        StackName=args.stack,
+    )
+    compare(template['TemplateBody'], args.vars)
 
 
 @requires_stack

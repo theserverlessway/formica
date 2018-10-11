@@ -30,6 +30,13 @@ def loader(mocker):
     return mock
 
 
+@pytest.fixture
+def template(client, mocker):
+    template = mocker.Mock()
+    client.describe_stack_set.return_value = {'StackSet': {'TemplateBody': template}}
+    return template
+
+
 def test_create_stack_set(client, logger, loader):
     cli.main([
         'stack-set',
@@ -282,3 +289,19 @@ def test_remove_stack_set(client, loader):
     client.delete_stack_set.assert_called_with(
         StackSetName=STACK
     )
+
+
+def test_diff_cli_call(template, mocker, client, session):
+    diff = mocker.patch('formica.diff.compare')
+    cli.main(['stack-set', 'diff', '--stack-set', STACK])
+    session.return_value.client.assert_called_with('cloudformation')
+    client.describe_stack_set.assert_called_with(StackSetName=STACK)
+    diff.assert_called_with(template, mocker.ANY)
+
+
+def test_diff_cli_call_with_vars(template, mocker, client, session):
+    diff = mocker.patch('formica.diff.compare')
+    cli.main(['stack-set', 'diff', '--stack-set', STACK, '--vars', 'abc=def'])
+    session.return_value.client.assert_called_with('cloudformation')
+    client.describe_stack_set.assert_called_with(StackSetName=STACK)
+    diff.assert_called_with(template, {'abc': 'def'})

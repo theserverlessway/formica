@@ -65,6 +65,14 @@ def remove_stack_set_instances(args):
     logger.info('Removed StackSet Instances for StackSet {}'.format(args.stack_set))
 
 
+@requires_stack_set
+def diff_stack_set(args):
+    from .diff import compare
+    client = AWS.current_session().client('cloudformation')
+    stack_set = client.describe_stack_set(StackSetName=args.stack_set)
+    compare(stack_set['StackSet']['TemplateBody'], args.vars)
+
+
 def accounts(args):
     if (vars(args).get('accounts')):
         return vars(args)['accounts']
