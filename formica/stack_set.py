@@ -19,7 +19,7 @@ def requires_stack_set(function):
 
 def requires_accounts_regions(function):
     def validate_stack_set(args):
-        if args.accounts and args.regions:
+        if (args.accounts or args.all_accounts or args.all_subaccounts) and (args.regions or args.all_regions):
             function(args)
         else:
             logger.error('You need to set the regions and accounts you want to update.')
@@ -49,8 +49,8 @@ def remove_stack_set(args):
 def add_stack_set_instances(args):
     client = AWS.current_session().client('cloudformation')
     client.create_stack_instances(StackSetName=args.stack_set,
-                                  Accounts=args.accounts,
-                                  Regions=args.regions)
+                                  Accounts=accounts(args),
+                                  Regions=regions(args))
     logger.info('Added StackSet Instances for StackSet {}'.format(args.stack_set))
 
 
@@ -59,10 +59,37 @@ def add_stack_set_instances(args):
 def remove_stack_set_instances(args):
     client = AWS.current_session().client('cloudformation')
     client.delete_stack_instances(StackSetName=args.stack_set,
-                                  Accounts=args.accounts,
-                                  Regions=args.regions,
+                                  Accounts=accounts(args),
+                                  Regions=regions(args),
                                   RetainStacks=args.retain)
     logger.info('Removed StackSet Instances for StackSet {}'.format(args.stack_set))
+
+
+def accounts(args):
+    if (vars(args).get('accounts')):
+        return vars(args)['accounts']
+    elif(args.all_subaccounts):
+        current_account = AWS.current_session().client('sts').get_caller_identity()['Account']
+        return [a for a in all_accounts() if a != current_account]
+    elif (args.all_accounts):
+        return all_accounts()
+
+
+def regions(args):
+    if (vars(args).get('regions')):
+        return vars(args)['regions']
+    elif(args.all_regions):
+        return all_regions()
+
+
+def all_accounts():
+    orgs = AWS.current_session().client('organizations')
+    return [acc['Id'] for acc in orgs.list_accounts()['Accounts'] if acc['Status'] == 'ACTIVE']
+
+
+def all_regions():
+    ec2 = AWS.current_session().client('ec2')
+    return [r['RegionName'] for r in ec2.describe_regions()['Regions']]
 
 
 def __manage_stack_set(args, create):
@@ -75,13 +102,19 @@ def __manage_stack_set(args, create):
         identity = sts.get_caller_identity()
         params['MainAccount'] = identity['Account']
 
+    account_regions = {}
+    if not create:
+        account_regions = dict(
+            accounts=accounts(args),
+            regions=regions(args)
+        )
+
     params = parameters(parameters=params,
                         tags=args.tags,
                         capabilities=args.capabilities,
-                        accounts=vars(args).get('accounts'),
-                        regions=vars(args).get('regions'),
                         execution_role_name=args.execution_role_name,
-                        administration_role_arn=args.administration_role_arn)
+                        administration_role_arn=args.administration_role_arn,
+                        **account_regions)
 
     loader = Loader(variables=args.vars)
     loader.load()
@@ -108,7 +141,7 @@ def __manage_stack_set(args, create):
         logger.info('StackSet {} updated in Operation {}'.format(args.stack_set, result['OperationId']))
 
 
-def parameters(parameters, tags, capabilities, accounts, regions, execution_role_name, administration_role_arn):
+def parameters(parameters, tags, capabilities, execution_role_name, administration_role_arn, accounts=[], regions=[]):
     optional_arguments = {}
     if parameters:
         optional_arguments['Parameters'] = [
