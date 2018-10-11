@@ -204,6 +204,7 @@ def stack_set_parser(parser):
     add_stack_variables_argument(update_parser)
     add_stack_set_role_argument(update_parser)
     add_stack_set_instance_arguments(update_parser)
+    add_stack_set_main_auto_regions_accounts(update_parser)
     update_parser.set_defaults(func=stack_set.update_stack_set)
 
     remove_parser = stack_set_subparsers.add_parser('remove', description='Remove a Stack Set')
@@ -218,6 +219,7 @@ def stack_set_parser(parser):
     add_stack_set_argument(add_instances_parser)
     add_stack_set_instance_arguments(add_instances_parser)
     add_config_file_argument(add_instances_parser)
+    add_stack_set_main_auto_regions_accounts(add_instances_parser)
     add_instances_parser.set_defaults(func=stack_set.add_stack_set_instances)
 
     remove_instances_parser = stack_set_subparsers.add_parser('remove-instances',
@@ -227,6 +229,7 @@ def stack_set_parser(parser):
     add_stack_set_instance_arguments(remove_instances_parser)
     add_stack_set_instance_retain_argument(remove_instances_parser)
     add_config_file_argument(remove_instances_parser)
+    add_stack_set_main_auto_regions_accounts(remove_instances_parser)
     remove_instances_parser.set_defaults(func=stack_set.remove_stack_set_instances)
 
 
@@ -294,6 +297,13 @@ def add_stack_set_instance_retain_argument(parser):
 
 def add_stack_set_main_account_parameter(parser):
     parser.add_argument('--main-account', help='Set MainAccount Parameter', action='store_true', default=False)
+
+
+def add_stack_set_main_auto_regions_accounts(parser):
+    parser.add_argument('--all-accounts', help='Use All Accounts of this Org', action='store_true', default=False)
+    parser.add_argument('--all-subaccounts', help='Use Only Subaccounts of this Org',
+                        action='store_true', default=False)
+    parser.add_argument('--all-regions', help='Use all Regions', action='store_true', default=False)
 
 
 def add_config_file_argument(parser):

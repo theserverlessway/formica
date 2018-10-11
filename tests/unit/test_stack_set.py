@@ -3,7 +3,7 @@ import json
 from uuid import uuid4
 
 from formica import cli
-from tests.unit.constants import STACK, CLOUDFORMATION_PARAMETERS, CLOUDFORMATION_TAGS, TEMPLATE
+from tests.unit.constants import STACK, CLOUDFORMATION_PARAMETERS, CLOUDFORMATION_TAGS, TEMPLATE, EC2_REGIONS, ACCOUNTS
 
 
 @pytest.fixture
@@ -160,6 +160,45 @@ def test_update_stack_set_with_main_account(session, client, logger, mocker):
     )
 
 
+def test_update_stack_set_with_all_regions_and_accounts(client, logger, loader):
+    client.update_stack_set.return_value = {'OperationId': '12345'}
+    client.list_accounts.return_value = ACCOUNTS
+    client.describe_regions.return_value = EC2_REGIONS
+    cli.main([
+        'stack-set',
+        'update',
+        '--stack-set', STACK,
+        '--all-regions',
+        '--all-accounts'
+    ])
+
+    client.update_stack_set.assert_called_with(
+        StackSetName=STACK,
+        TemplateBody=TEMPLATE,
+        Accounts=['1234', '5678'],
+        Regions=['us-west-1', 'us-west-2']
+    )
+
+
+def test_update_stack_set_with_all_subaccounts(client, logger, loader):
+    client.update_stack_set.return_value = {'OperationId': '12345'}
+    client.list_accounts.return_value = ACCOUNTS
+    client.get_caller_identity.return_value = {'Account': '5678'}
+    client.describe_regions.return_value = EC2_REGIONS
+    cli.main([
+        'stack-set',
+        'update',
+        '--stack-set', STACK,
+        '--all-subaccounts'
+    ])
+
+    client.update_stack_set.assert_called_with(
+        StackSetName=STACK,
+        TemplateBody=TEMPLATE,
+        Accounts=['1234']
+    )
+
+
 def test_add_stack_set_instances(client, loader):
     cli.main([
         'stack-set',
@@ -173,6 +212,25 @@ def test_add_stack_set_instances(client, loader):
         StackSetName=STACK,
         Accounts=['123456789', '987654321'],
         Regions=['eu-central-1', 'eu-west-1']
+    )
+
+
+def test_add_all_stack_set_instances(client, loader):
+    client.list_accounts.return_value = ACCOUNTS
+    client.get_caller_identity.return_value = {'Account': '5678'}
+    client.describe_regions.return_value = EC2_REGIONS
+    cli.main([
+        'stack-set',
+        'add-instances',
+        '--stack-set', STACK,
+        '--all-accounts',
+        '--all-regions',
+    ])
+
+    client.create_stack_instances.assert_called_with(
+        StackSetName=STACK,
+        Accounts=['1234', '5678'],
+        Regions=['us-west-1', 'us-west-2']
     )
 
 
@@ -191,6 +249,26 @@ def test_remove_stack_set_instances(client, loader):
         Accounts=['123456789', '987654321'],
         Regions=['eu-central-1', 'eu-west-1'],
         RetainStacks=True
+    )
+
+
+def test_remove_all_stack_set_instances(client, loader):
+    client.list_accounts.return_value = ACCOUNTS
+    client.get_caller_identity.return_value = {'Account': '5678'}
+    client.describe_regions.return_value = EC2_REGIONS
+    cli.main([
+        'stack-set',
+        'remove-instances',
+        '--stack-set', STACK,
+        '--all-accounts',
+        '--all-regions',
+    ])
+
+    client.delete_stack_instances.assert_called_with(
+        StackSetName=STACK,
+        Accounts=['1234', '5678'],
+        Regions=['us-west-1', 'us-west-2'],
+        RetainStacks=False
     )
 
 
