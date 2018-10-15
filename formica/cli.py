@@ -34,11 +34,11 @@ CONFIG_FILE_ARGUMENTS = {
     'main_account': bool,
     'accounts': list,
     'regions': list,
-    'region-order': list,
-    'failure-tolerance-count': int,
-    'failure-tolerance-percentage': int,
-    'max-concurrent-count': int,
-    'max-concurrent-percentage': int
+    'region_order': list,
+    'failure_tolerance_count': int,
+    'failure_tolerance_percentage': int,
+    'max_concurrent_count': int,
+    'max_concurrent_percentage': int
 }
 
 
