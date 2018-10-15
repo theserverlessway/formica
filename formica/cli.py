@@ -31,7 +31,14 @@ CONFIG_FILE_ARGUMENTS = {
     'vars': dict,
     'administration_role_arn': str,
     'execution_role_name': str,
-    'main_account': bool
+    'main_account': bool,
+    'accounts': list,
+    'regions': list,
+    'region-order': list,
+    'failure-tolerance-count': int,
+    'failure-tolerance-percentage': int,
+    'max-concurrent-count': int,
+    'max-concurrent-percentage': int
 }
 
 
@@ -205,6 +212,7 @@ def stack_set_parser(parser):
     add_stack_set_role_argument(update_parser)
     add_stack_set_instance_arguments(update_parser)
     add_stack_set_main_auto_regions_accounts(update_parser)
+    add_stack_set_operation_preferences(update_parser)
     update_parser.set_defaults(func=stack_set.update_stack_set)
 
     remove_parser = stack_set_subparsers.add_parser('remove', description='Remove a Stack Set')
@@ -220,6 +228,7 @@ def stack_set_parser(parser):
     add_stack_set_instance_arguments(add_instances_parser)
     add_config_file_argument(add_instances_parser)
     add_stack_set_main_auto_regions_accounts(add_instances_parser)
+    add_stack_set_operation_preferences(add_instances_parser)
     add_instances_parser.set_defaults(func=stack_set.add_stack_set_instances)
 
     remove_instances_parser = stack_set_subparsers.add_parser('remove-instances',
@@ -230,6 +239,7 @@ def stack_set_parser(parser):
     add_stack_set_instance_retain_argument(remove_instances_parser)
     add_config_file_argument(remove_instances_parser)
     add_stack_set_main_auto_regions_accounts(remove_instances_parser)
+    add_stack_set_operation_preferences(remove_instances_parser)
     remove_instances_parser.set_defaults(func=stack_set.remove_stack_set_instances)
 
     diff_parser = stack_set_subparsers.add_parser('diff',
@@ -312,6 +322,20 @@ def add_stack_set_main_auto_regions_accounts(parser):
     parser.add_argument('--all-subaccounts', help='Use Only Subaccounts of this Org',
                         action='store_true', default=False)
     parser.add_argument('--all-regions', help='Use all Regions', action='store_true', default=False)
+
+
+def add_stack_set_operation_preferences(parser):
+    parser.add_argument('--region-order', help='Order in which to deploy to regions', nargs='+', default=[])
+    failure_tolerance = parser.add_mutually_exclusive_group()
+    failure_tolerance.add_argument('--failure-tolerance-count',
+                                   help='Number of Stacks to fail before failing operation', type=int)
+    failure_tolerance.add_argument('--failure-tolerance-percentage',
+                                   help='Percentage of Stacks to fail before failing operation', type=int)
+    max_concurrent = parser.add_mutually_exclusive_group()
+    max_concurrent.add_argument('--max-concurrent-count',
+                                help='Max Number of concurrent accounts to deploy to', type=int)
+    max_concurrent.add_argument('--max-concurrent-percentage',
+                                help='Max Percentage of concurrent accounts to deploy to', type=int)
 
 
 def add_config_file_argument(parser):

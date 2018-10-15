@@ -130,6 +130,9 @@ def test_update_stack_set(client, loader):
         '--administration-role-arn', 'AdministrationRole',
         '--accounts', '123456789', '987654321',
         '--regions', 'eu-central-1', 'eu-west-1',
+        '--region-order', 'eu-central-1', 'eu-west-1',
+        '--failure-tolerance-count', '1',
+        '--max-concurrent-count', '1'
     ])
 
     client.update_stack_set.assert_called_with(
@@ -141,7 +144,12 @@ def test_update_stack_set(client, loader):
         ExecutionRoleName='ExecutionRole',
         AdministrationRoleARN='AdministrationRole',
         Accounts=['123456789', '987654321'],
-        Regions=['eu-central-1', 'eu-west-1']
+        Regions=['eu-central-1', 'eu-west-1'],
+        OperationPreferences={
+            'RegionOrder': ['eu-central-1', 'eu-west-1'],
+            'FailureToleranceCount': 1,
+            'MaxConcurrentCount': 1
+        }
     )
 
 
@@ -241,6 +249,28 @@ def test_add_all_stack_set_instances(client, loader):
     )
 
 
+def test_add_stack_set_instances_with_operation_preferences(client, loader):
+    cli.main([
+        'stack-set',
+        'add-instances',
+        '--accounts', '123456789', '987654321',
+        '--regions', 'eu-central-1', 'eu-west-1',
+        '--stack-set', STACK,
+        '--max-concurrent-percentage', '1',
+        '--failure-tolerance-percentage', '1',
+    ])
+
+    client.create_stack_instances.assert_called_with(
+        StackSetName=STACK,
+        Accounts=['123456789', '987654321'],
+        Regions=['eu-central-1', 'eu-west-1'],
+        OperationPreferences={
+            'FailureTolerancePercentage': 1,
+            'MaxConcurrentPercentage': 1
+        }
+    )
+
+
 def test_remove_stack_set_instances(client, loader):
     cli.main([
         'stack-set',
@@ -248,14 +278,22 @@ def test_remove_stack_set_instances(client, loader):
         '--stack-set', STACK,
         '--accounts', '123456789', '987654321',
         '--regions', 'eu-central-1', 'eu-west-1',
-        '--retain'
+        '--retain',
+        '--region-order', 'eu-central-1', 'eu-west-1',
+        '--max-concurrent-percentage', '1',
+        '--failure-tolerance-percentage', '1',
     ])
 
     client.delete_stack_instances.assert_called_with(
         StackSetName=STACK,
         Accounts=['123456789', '987654321'],
         Regions=['eu-central-1', 'eu-west-1'],
-        RetainStacks=True
+        RetainStacks=True,
+        OperationPreferences={
+            'RegionOrder': ['eu-central-1', 'eu-west-1'],
+            'FailureTolerancePercentage': 1,
+            'MaxConcurrentPercentage': 1
+        }
     )
 
 
