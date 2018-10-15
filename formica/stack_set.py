@@ -48,9 +48,11 @@ def remove_stack_set(args):
 @requires_accounts_regions
 def add_stack_set_instances(args):
     client = AWS.current_session().client('cloudformation')
+    preferences = operation_preferences(args)
     client.create_stack_instances(StackSetName=args.stack_set,
                                   Accounts=accounts(args),
-                                  Regions=regions(args))
+                                  Regions=regions(args),
+                                  **preferences)
     logger.info('Added StackSet Instances for StackSet {}'.format(args.stack_set))
 
 
@@ -58,10 +60,12 @@ def add_stack_set_instances(args):
 @requires_accounts_regions
 def remove_stack_set_instances(args):
     client = AWS.current_session().client('cloudformation')
+    preferences = operation_preferences(args)
     client.delete_stack_instances(StackSetName=args.stack_set,
                                   Accounts=accounts(args),
                                   Regions=regions(args),
-                                  RetainStacks=args.retain)
+                                  RetainStacks=args.retain,
+                                  **preferences)
     logger.info('Removed StackSet Instances for StackSet {}'.format(args.stack_set))
 
 
@@ -122,7 +126,11 @@ def __manage_stack_set(args, create):
                         capabilities=args.capabilities,
                         execution_role_name=args.execution_role_name,
                         administration_role_arn=args.administration_role_arn,
-                        **account_regions)
+                        ** account_regions)
+
+    preferences = operation_preferences(args)
+    # Necessary for python 2.7 as it can't merge dicts with **
+    params.update(preferences)
 
     loader = Loader(variables=args.vars)
     loader.load()
@@ -137,14 +145,14 @@ def __manage_stack_set(args, create):
         result = client.create_stack_set(
             StackSetName=args.stack_set,
             TemplateBody=template,
-            ** params
+            **params
         )
         logger.info('StackSet {} created'.format(args.stack_set))
     else:
         result = client.update_stack_set(
             StackSetName=args.stack_set,
             TemplateBody=template,
-            ** params
+            **params
         )
         logger.info('StackSet {} updated in Operation {}'.format(args.stack_set, result['OperationId']))
 
@@ -169,3 +177,28 @@ def parameters(parameters, tags, capabilities, execution_role_name, administrati
     if administration_role_arn:
         optional_arguments['AdministrationRoleARN'] = administration_role_arn
     return optional_arguments
+
+
+def operation_preferences(args):
+    operation_preferences = {}
+    varargs = vars(args)
+    region_order = varargs.get('region_order')
+    max_concurrent_count = varargs.get('max_concurrent_count')
+    max_concurrent_percentage = varargs.get('max_concurrent_percentage')
+    failure_tolerance_count = varargs.get('failure_tolerance_count')
+    failure_tolerance_percentage = varargs.get('failure_tolerance_percentage')
+
+    if region_order:
+        operation_preferences['RegionOrder'] = region_order
+    if max_concurrent_count:
+        operation_preferences['MaxConcurrentCount'] = max_concurrent_count
+    if max_concurrent_percentage:
+        operation_preferences['MaxConcurrentPercentage'] = max_concurrent_percentage
+    if failure_tolerance_count:
+        operation_preferences['FailureToleranceCount'] = failure_tolerance_count
+    if failure_tolerance_percentage:
+        operation_preferences['FailureTolerancePercentage'] = failure_tolerance_percentage
+    if operation_preferences:
+        return {'OperationPreferences': operation_preferences}
+    else:
+        return {}
