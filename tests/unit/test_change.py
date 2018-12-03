@@ -1,7 +1,7 @@
 import pytest
 from mock import Mock
 from formica import cli
-from tests.unit.constants import REGION, PROFILE, STACK, TEMPLATE
+from tests.unit.constants import REGION, PROFILE, STACK, TEMPLATE, ROLE_ARN, ACCOUNT_ID
 
 
 @pytest.fixture
@@ -89,3 +89,32 @@ def test_change_sets_s3_flag(change_set, client, loader):
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
                                                            parameters=None,
                                                            tags=None, capabilities=None, role_arn=None, s3=True)
+
+
+def test_change_with_role_arn(change_set, client, loader):
+    loader.return_value.template.return_value = TEMPLATE
+    cli.main(['change', '--stack', STACK, '--role-arn', ROLE_ARN])
+    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
+                                                           parameters=None,
+                                                           tags=None, capabilities=None, role_arn=ROLE_ARN, s3=False)
+
+
+def test_change_with_role_name(change_set, client, loader):
+    client.get_caller_identity.return_value = {'Account': ACCOUNT_ID}
+    loader.return_value.template.return_value = TEMPLATE
+    cli.main(['change', '--stack', STACK, '--role-name', 'some-stack-role'])
+    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
+                                                           parameters=None,
+                                                           tags=None, capabilities=None, role_arn=ROLE_ARN, s3=False)
+
+
+def test_change_with_role_name_and_arn(change_set, client, loader):
+    client.get_caller_identity.return_value = {'Account': ACCOUNT_ID}
+    loader.return_value.template.return_value = TEMPLATE
+    cli.main(['change', '--stack', STACK, '--role-name', 'UnusedRole', '--role-arn', ROLE_ARN])
+    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='UPDATE',
+                                                           parameters=None,
+                                                           tags=None, capabilities=None, role_arn=ROLE_ARN, s3=False)
