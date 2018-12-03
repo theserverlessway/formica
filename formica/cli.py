@@ -25,6 +25,7 @@ CONFIG_FILE_ARGUMENTS = {
     'tags': dict,
     'parameters': dict,
     'role_arn': str,
+    'role_name': str,
     'region': str,
     'profile': str,
     'capabilities': list,
@@ -153,10 +154,11 @@ def main(cli_args):
 
     # Argument Parsing
     args = parser.parse_args(cli_args)
-    args_dict = vars(args)
 
-    if args_dict.get('config_file'):
+    if vars(args).get('config_file'):
         load_config_files(args, args.config_file)
+
+    args_dict = vars(args)
 
     from botocore.exceptions import NoRegionError, ClientError, EndpointConnectionError
     from botocore.exceptions import ProfileNotFound, NoCredentialsError
@@ -164,6 +166,9 @@ def main(cli_args):
     try:
         # Initialise the AWS Profile and Region
         AWS.initialize(args_dict.get('region'), args_dict.get('profile'))
+
+        if args_dict.get('role_name') and not args_dict.get('role_arn'):
+            convert_role_name_to_arn(args)
 
         # Execute Function
         if args_dict.get('func'):
@@ -181,6 +186,11 @@ def main(cli_args):
         else:
             logger.info(e)
             sys.exit(2)
+
+
+def convert_role_name_to_arn(args):
+    account_id = AWS.current_session().client('sts').get_caller_identity()['Account']
+    args.role_arn = 'arn:aws:iam::{}:role/{}'.format(account_id, args.role_name)
 
 
 def stack_set_parser(parser):
@@ -300,6 +310,7 @@ def add_capabilities_argument(parser):
 
 def add_role_arn_argument(parser):
     parser.add_argument('--role-arn', help='Set a separate role ARN to pass to the stack')
+    parser.add_argument('--role-name', help='Set a role name that will be translated to the ARN')
 
 
 def add_stack_set_role_argument(parser):

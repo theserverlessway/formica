@@ -2,7 +2,7 @@ import pytest
 from mock import Mock
 
 from formica import cli
-from tests.unit.constants import REGION, PROFILE, STACK, TEMPLATE
+from tests.unit.constants import REGION, PROFILE, STACK, TEMPLATE, ACCOUNT_ID
 
 
 @pytest.fixture
@@ -62,6 +62,17 @@ def test_new_role_arn_for_creation(change_set, client, loader):
                                                            parameters=None,
                                                            tags=None, capabilities=None,
                                                            role_arn='arn:aws:foobarbaz', s3=False)
+
+
+def test_new_role_name_for_creation(change_set, client, loader):
+    client.get_caller_identity.return_value = {'Account': ACCOUNT_ID}
+    cli.main(['new', '--stack', STACK, '--profile', PROFILE, '--region', REGION, '--role-name', 'some-stack-role'])
+    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
+                                                           parameters=None,
+                                                           tags=None, capabilities=None,
+                                                           role_arn='arn:aws:iam::1234567890:role/some-stack-role',
+                                                           s3=False)
 
 
 def test_new_tests_parameter_format(capsys):

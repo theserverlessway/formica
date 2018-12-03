@@ -8,6 +8,7 @@ PROFILE = 'my-profile'
 STACK = 'my-stack'
 STACK_ID = 'my-stack-id'
 TEMPLATE = 'MYTEMPLATE'
+ACCOUNT_ID = '1234567890'
 ROLE_ARN = 'arn:aws:iam::1234567890:role/some-stack-role'
 CHANGESETNAME = '{}-change-set'.format(STACK)
 CHANGE_SET_TYPE = 'WHATEVER'
