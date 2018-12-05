@@ -3,7 +3,8 @@ import json
 from uuid import uuid4
 
 from formica import cli
-from tests.unit.constants import STACK, CLOUDFORMATION_PARAMETERS, CLOUDFORMATION_TAGS, TEMPLATE, EC2_REGIONS, ACCOUNTS
+from tests.unit.constants import STACK, CLOUDFORMATION_PARAMETERS, CLOUDFORMATION_TAGS
+from tests.unit.constants import TEMPLATE, EC2_REGIONS, ACCOUNTS, ACCOUNT_ID
 
 
 @pytest.fixture
@@ -57,6 +58,22 @@ def test_create_stack_set(client, logger, loader):
         Capabilities=['CAPABILITY_IAM'],
         ExecutionRoleName='ExecutionRole',
         AdministrationRoleARN='AdministrationRole'
+    )
+
+
+def test_create_stack_set_with_administration_name(client, logger, loader):
+    client.get_caller_identity.return_value = {'Account': ACCOUNT_ID}
+    cli.main([
+        'stack-set',
+        'create',
+        '--stack-set', STACK,
+        '--administration-role-name', 'AdministrationRole',
+    ])
+
+    client.create_stack_set.assert_called_with(
+        StackSetName=STACK,
+        TemplateBody=TEMPLATE,
+        AdministrationRoleARN='arn:aws:iam::1234567890:role/AdministrationRole'
     )
 
 
