@@ -31,6 +31,7 @@ CONFIG_FILE_ARGUMENTS = {
     'capabilities': list,
     'vars': dict,
     'administration_role_arn': str,
+    'administration_role_name': str,
     'execution_role_name': str,
     'main_account': bool,
     'accounts': list,
@@ -167,8 +168,7 @@ def main(cli_args):
         # Initialise the AWS Profile and Region
         AWS.initialize(args_dict.get('region'), args_dict.get('profile'))
 
-        if args_dict.get('role_name') and not args_dict.get('role_arn'):
-            convert_role_name_to_arn(args)
+        convert_role_name_to_arn(args)
 
         # Execute Function
         if args_dict.get('func'):
@@ -189,8 +189,14 @@ def main(cli_args):
 
 
 def convert_role_name_to_arn(args):
-    account_id = AWS.current_session().client('sts').get_caller_identity()['Account']
-    args.role_arn = 'arn:aws:iam::{}:role/{}'.format(account_id, args.role_name)
+    args_dict = vars(args)
+    sts = AWS.current_session().client('sts')
+    if args_dict.get('role_name') and not args_dict.get('role_arn'):
+        account_id = sts.get_caller_identity()['Account']
+        args.role_arn = 'arn:aws:iam::{}:role/{}'.format(account_id, args.role_name)
+    if args_dict.get('administration_role_name') and not args_dict.get('administration_role_arn'):
+        account_id = sts.get_caller_identity()['Account']
+        args.administration_role_arn = 'arn:aws:iam::{}:role/{}'.format(account_id, args.administration_role_name)
 
 
 def stack_set_parser(parser):
@@ -315,6 +321,8 @@ def add_role_arn_argument(parser):
 
 def add_stack_set_role_argument(parser):
     parser.add_argument('--administration-role-arn', help='The Administration Role to create the StackSet')
+    parser.add_argument('--administration-role-name',
+                        help='The Administration Role name that will be translated to the ARN')
     parser.add_argument('--execution-role-name', help='The Execution role name to use for the CloudFormation Stack')
 
 
