@@ -28,7 +28,7 @@ except NameError:
     basestring = str
 
 ALLOWED_ATTRIBUTES = {
-    "AWSTemplateFormatVersion": basestring,
+    "AWSTemplateFormatVersion": [basestring, str],
     "Description": [basestring, str],
     "Metadata": dict,
     "Parameters": dict,

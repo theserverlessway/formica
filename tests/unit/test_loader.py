@@ -51,6 +51,11 @@ def test_successfully_adds_description_to_template(load, tmpdir):
     write_and_test(example, load, tmpdir)
 
 
+def test_successfully_adds_aws_template_format_version_to_template(load, tmpdir):
+    example = {'AWSTemplateFormatVersion': '2010-09-09'}
+    write_and_test(example, load, tmpdir)
+
+
 def test_successfully_adds_metadata_to_template(load, tmpdir):
     example = {
         'Metadata': {
