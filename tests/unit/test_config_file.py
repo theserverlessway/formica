@@ -80,6 +80,20 @@ def test_merges_cli_args_on_load(mocker, tmpdir, session):
         assert call_args.parameters == {"A": param1, "B": 2, 'C': True, 'D': param2}
 
 
+def test_merges_vars(mocker, tmpdir, session):
+    stacks = mocker.patch('formica.cli.template')
+    param1 = str(uuid4())
+    file_name = 'test.config.yaml'
+    with Path(tmpdir):
+        with open(file_name, 'w') as f:
+            f.write(yaml.dump(FULL_CONFIG_FILE))
+        with open('test.template.yaml', 'w') as f:
+            f.write('{"Description": "{{ OtherVar }}"}')
+        cli.main(['template', '--vars', "OtherVar={}".format(param1), '-c', file_name])
+        call_args = stacks.call_args[0][0]
+        assert call_args.vars['OtherVar'] == param1
+
+
 def test_exception_with_wrong_config_type(mocker, tmpdir, session, logger):
     file_name = 'test.config.yaml'
     with Path(tmpdir):
