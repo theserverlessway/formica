@@ -78,12 +78,14 @@ def diff_stack_set(args):
 
 
 def accounts(args):
-    if (vars(args).get('accounts')):
-        return vars(args)['accounts']
-    elif(args.all_subaccounts):
+    if (type(args) != dict):
+        args = vars(args)
+    if (args.get('accounts')):
+        return [str(a) for a in args['accounts']]
+    elif(args['all_subaccounts']):
         current_account = AWS.current_session().client('sts').get_caller_identity()['Account']
         return [a for a in all_accounts() if a != current_account]
-    elif (args.all_accounts):
+    elif (args['all_accounts']):
         return all_accounts()
 
 

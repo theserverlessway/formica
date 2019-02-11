@@ -2,7 +2,7 @@ import pytest
 import json
 from uuid import uuid4
 
-from formica import cli
+from formica import cli, stack_set
 from tests.unit.constants import STACK, CLOUDFORMATION_PARAMETERS, CLOUDFORMATION_TAGS
 from tests.unit.constants import TEMPLATE, EC2_REGIONS, ACCOUNTS, ACCOUNT_ID
 
@@ -245,6 +245,10 @@ def test_add_stack_set_instances(client, loader):
         Accounts=['123456789', '987654321'],
         Regions=['eu-central-1', 'eu-west-1']
     )
+
+
+def test_stack_set_accounts_converts_to_string():
+    assert stack_set.accounts({'accounts': ['123', 12345, 54321]}) == ['123', '12345', '54321']
 
 
 def test_add_all_stack_set_instances(client, loader):
