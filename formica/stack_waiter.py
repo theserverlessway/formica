@@ -35,7 +35,9 @@ class StackWaiter:
             stack_status = self.client.describe_stacks(StackName=self.stack)['Stacks'][0]['StackStatus']
             if stack_status in SUCCESSFUL_STATES:
                 finished = True
+                logger.info("Stack Change Successful: {}".format(stack_status))
             elif stack_status in FAILED_STATES:
+                logger.info("Stack Change Failed: {}".format(stack_status))
                 sys.exit(1)
 
     def __create_table(self):

@@ -5,6 +5,7 @@ import argparse
 import argcomplete
 import sys
 import logging
+import signal
 
 
 from . import CHANGE_SET_FORMAT, __version__
@@ -64,7 +65,17 @@ def formica():
     main(sys.argv[1:])
 
 
+def signal_handler(sig, frame):
+    logger.info('Exiting because of ctrl-c')
+    sys.exit(0)
+
+
+def add_signal_handler():
+    signal.signal(signal.SIGINT, signal_handler)
+
+
 def main(cli_args):
+    add_signal_handler()
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', action='version', version='{}'.format(__version__))
     subparsers = parser.add_subparsers(title='commands',
@@ -116,6 +127,20 @@ def main(cli_args):
     add_stack_argument(deploy_parser)
     add_config_file_argument(deploy_parser)
     deploy_parser.set_defaults(func=deploy)
+
+    # Cancel Command Arguments
+    cancel_parser = subparsers.add_parser('cancel', description='Cancel a Stack Update')
+    add_aws_arguments(cancel_parser)
+    add_stack_argument(cancel_parser)
+    add_config_file_argument(cancel_parser)
+    cancel_parser.set_defaults(func=cancel)
+
+    # Wait Command Arguments
+    wait_parser = subparsers.add_parser('wait', description='Wait for a Stack to be deployed or removed')
+    add_aws_arguments(wait_parser)
+    add_stack_argument(wait_parser)
+    add_config_file_argument(wait_parser)
+    wait_parser.set_defaults(func=wait)
 
     # Describe Command Arguments
     describe_parser = subparsers.add_parser('describe', description='Describe the latest change-set of the stack')
@@ -458,27 +483,46 @@ def change(args):
     change_set.describe()
 
 
+def wait_for_stack(function):
+    def wait(args):
+        from .stack_waiter import StackWaiter
+        client = AWS.current_session().client('cloudformation')
+        stack_id = client.describe_stacks(StackName=args.stack)['Stacks'][0]['StackId']
+        last_event = client.describe_stack_events(StackName=args.stack)['StackEvents'][0]['EventId']
+        function(args, client)
+        StackWaiter(stack_id, client).wait(last_event)
+    return wait
+
+
 @requires_stack
-def deploy(args):
-    from .stack_waiter import StackWaiter
-    client = AWS.current_session().client('cloudformation')
-    last_event = client.describe_stack_events(StackName=args.stack)['StackEvents'][0]['EventId']
+@wait_for_stack
+def deploy(args, client):
+    logger.info('Deploying StackSet to {}'.format(args.stack))
     client.execute_change_set(ChangeSetName=(CHANGE_SET_FORMAT.format(stack=args.stack)), StackName=args.stack)
-    StackWaiter(args.stack, client).wait(last_event)
 
 
 @requires_stack
-def remove(args):
-    from .stack_waiter import StackWaiter
-    client = AWS.current_session().client('cloudformation')
-    stack_id = client.describe_stacks(StackName=args.stack)['Stacks'][0]['StackId']
+@wait_for_stack
+def cancel(args, client):
+    logger.info('Canceling update for stack {}'.format(args.stack))
+    client.cancel_update_stack(StackName=args.stack)
+
+
+@requires_stack
+@wait_for_stack
+def wait(args, client):
+    logger.info('Waiting for Stack {}'.format(args.stack))
+    pass
+
+
+@requires_stack
+@wait_for_stack
+def remove(args, client):
     logger.info('Removing Stack and waiting for it to be removed, ...')
-    last_event = client.describe_stack_events(StackName=args.stack)['StackEvents'][0]['EventId']
     if args.role_arn:
         client.delete_stack(StackName=args.stack, RoleARN=args.role_arn)
     else:
         client.delete_stack(StackName=args.stack)
-    StackWaiter(stack_id, client).wait(last_event)
 
 
 @requires_stack
