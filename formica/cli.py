@@ -7,13 +7,10 @@ import sys
 import logging
 import signal
 
-
 from . import CHANGE_SET_FORMAT, __version__
 from .aws import AWS
 
-
 from . import stack_set
-
 
 STACK_HEADERS = ['Name', 'Created At', 'Updated At', 'Status']
 RESOURCE_HEADERS = ['Logical ID', 'Physical ID', 'Type', 'Status']
@@ -52,13 +49,13 @@ class SplitEqualsAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         if values:
             parameters = {}
-            try:
-                for string in values:
+            for string in values:
+                try:
                     key, value = string.split('=', 2)
                     parameters[key] = value
                     setattr(namespace, self.dest, parameters)
-            except ValueError:
-                raise argparse.ArgumentError(self, '%r needs to be in format KEY=VALUE' % string)
+                except ValueError:
+                    raise argparse.ArgumentError(self, '{} needs to be in format KEY=VALUE'.format(string))
 
 
 def formica():
@@ -106,6 +103,7 @@ def main(cli_args):
     add_config_file_argument(new_parser)
     add_stack_variables_argument(new_parser)
     add_s3_upload_argument(new_parser)
+    add_resource_types(new_parser)
     new_parser.set_defaults(func=new)
 
     # Change Command Arguments
@@ -119,6 +117,7 @@ def main(cli_args):
     add_config_file_argument(change_parser)
     add_stack_variables_argument(change_parser)
     add_s3_upload_argument(change_parser)
+    add_resource_types(change_parser)
     change_parser.set_defaults(func=change)
 
     # Deploy Command Arguments
@@ -303,6 +302,7 @@ def requires_stack(function):
             sys.exit(1)
         else:
             function(args)
+
     return validate_stack
 
 
@@ -396,6 +396,10 @@ def add_s3_upload_argument(parser):
     parser.add_argument('--s3', help='Upload template to S3 before deployment', action='store_true')
 
 
+def add_resource_types(parser):
+    parser.add_argument('--resource-types', help='Add Resource Types to the ChangeSet', action='store_true')
+
+
 def template(args):
     from .loader import Loader
     import yaml
@@ -432,7 +436,7 @@ def stacks(args):
 @requires_stack
 def diff(args):
     from .diff import compare
-    client = AWS.current_session().client('cloudformation')
+    client = cloudformation_client()
 
     template = client.get_template(
         StackName=args.stack,
@@ -443,7 +447,7 @@ def diff(args):
 @requires_stack
 def describe(args):
     from .change_set import ChangeSet
-    client = AWS.current_session().client('cloudformation')
+    client = cloudformation_client()
     change_set = ChangeSet(stack=args.stack, client=client)
     change_set.describe()
 
@@ -451,7 +455,7 @@ def describe(args):
 @requires_stack
 def resources(args):
     from texttable import Texttable
-    client = AWS.current_session().client('cloudformation')
+    client = cloudformation_client()
     paginator = client.get_paginator('list_stack_resources').paginate(StackName=args.stack)
 
     table = Texttable(max_width=150)
@@ -473,25 +477,32 @@ def resources(args):
 def change(args):
     from .change_set import ChangeSet
     from .loader import Loader
-    client = AWS.current_session().client('cloudformation')
+    client = cloudformation_client()
     loader = Loader(variables=args.vars)
     loader.load()
 
     change_set = ChangeSet(stack=args.stack, client=client)
     change_set.create(template=loader.template(indent=None), change_set_type='UPDATE', parameters=args.parameters,
-                      tags=args.tags, capabilities=args.capabilities, role_arn=args.role_arn, s3=args.s3)
+                      tags=args.tags, capabilities=args.capabilities, role_arn=args.role_arn, s3=args.s3,
+                      resource_types=args.resource_types)
     change_set.describe()
 
 
+def cloudformation_client():
+    client = AWS.current_session().client('cloudformation')
+    return client
+
+
 def wait_for_stack(function):
-    def wait(args):
+    def stack_wait_handler(args):
         from .stack_waiter import StackWaiter
-        client = AWS.current_session().client('cloudformation')
+        client = cloudformation_client()
         stack_id = client.describe_stacks(StackName=args.stack)['Stacks'][0]['StackId']
         last_event = client.describe_stack_events(StackName=args.stack)['StackEvents'][0]['EventId']
         function(args, client)
         StackWaiter(stack_id, client).wait(last_event)
-    return wait
+
+    return stack_wait_handler
 
 
 @requires_stack
@@ -529,13 +540,14 @@ def remove(args, client):
 def new(args):
     from .change_set import ChangeSet
     from .loader import Loader
-    client = AWS.current_session().client('cloudformation')
+    client = cloudformation_client()
     loader = Loader(variables=args.vars)
     loader.load()
     logger.info('Creating change set for new stack, ...')
     change_set = ChangeSet(stack=args.stack, client=client)
     change_set.create(template=loader.template(indent=None), change_set_type='CREATE', parameters=args.parameters,
-                      tags=args.tags, capabilities=args.capabilities, role_arn=args.role_arn, s3=args.s3)
+                      tags=args.tags, capabilities=args.capabilities, role_arn=args.role_arn, s3=args.s3,
+                      resource_types=args.resource_types)
     change_set.describe()
     logger.info('Change set created, please deploy')
 

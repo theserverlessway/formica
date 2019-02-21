@@ -1,5 +1,6 @@
 import pytest
 from mock import Mock
+import json
 
 from botocore.exceptions import WaiterError, ClientError
 
@@ -7,7 +8,7 @@ from formica.change_set import ChangeSet, CHANGE_SET_HEADER
 from tests.unit.constants import (
     STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES,
     CHANGE_SET_PARAMETERS, ROLE_ARN, CHANGE_SET_STACK_TAGS,
-    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER, REGION, UUID
+    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER, REGION, UUID, RESOURCES
 )
 
 
@@ -249,3 +250,18 @@ def test_only_prints_unique_changed_parameters(logger):
     change_set_output = logger.info.call_args[0][0]
 
     assert change_set_output.count('BucketName') == 1
+
+
+def test_change_set_with_resource_types():
+    resources = {
+        'Resources': {resource: {'Type': resource} for resource in RESOURCES}
+    }
+    template = json.dumps(resources)
+    cf_client_mock = Mock()
+    change_set = ChangeSet(STACK, cf_client_mock)
+
+    change_set.create(template=template, change_set_type=CHANGE_SET_TYPE, resource_types=True)
+
+    cf_client_mock.create_change_set.assert_called_with(
+        StackName=STACK, TemplateBody=template,
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, ResourceTypes=RESOURCES)

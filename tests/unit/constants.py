@@ -8,6 +8,7 @@ PROFILE = 'my-profile'
 STACK = 'my-stack'
 STACK_ID = 'my-stack-id'
 TEMPLATE = 'MYTEMPLATE'
+RESOURCES = ['AWS::S3::Bucket', 'AWS::IAM::Role', 'AWS::DynamoDB::Table']
 ACCOUNT_ID = '1234567890'
 ROLE_ARN = 'arn:aws:iam::1234567890:role/some-stack-role'
 CHANGESETNAME = '{}-change-set'.format(STACK)

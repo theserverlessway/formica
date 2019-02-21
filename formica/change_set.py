@@ -1,3 +1,4 @@
+import json
 import sys
 
 import logging
@@ -5,6 +6,7 @@ import uuid
 from formica.aws import AWS
 from botocore.exceptions import ClientError, WaiterError
 from texttable import Texttable
+
 
 from formica import CHANGE_SET_FORMAT
 
@@ -19,7 +21,8 @@ class ChangeSet:
         self.stack = stack
         self.client = client
 
-    def create(self, template, change_set_type, parameters=[], tags=[], capabilities=[], role_arn=None, s3=False):
+    def create(self, template, change_set_type, parameters=None, tags=None, capabilities=None, role_arn=None, s3=False,
+               resource_types=False):
         optional_arguments = {}
         if parameters:
             optional_arguments['Parameters'] = sorted([
@@ -34,6 +37,9 @@ class ChangeSet:
             optional_arguments['Capabilities'] = capabilities
         if change_set_type == 'UPDATE':
             self.remove_existing_changeset()
+        if resource_types:
+            optional_arguments['ResourceTypes'] = [resource['Type'] for key, resource in
+                                                   json.loads(template)['Resources'].items()]
 
         try:
             if s3:
