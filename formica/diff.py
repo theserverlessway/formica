@@ -65,10 +65,13 @@ def __compare(template, stack, vars=None, parameters={}, tags={}):
     loader = Loader(variables=vars)
     loader.load()
     deployed_template = convert(template)
+    template_parameters = {key: str(value.get('Default')).lower() if type(value['Default']) == bool else str(value.get('Default'))
+                           for key, value in (
+                                   loader.template_dictionary()['Parameters'] or {}).items()}
     if isinstance(deployed_template, str):
         deployed_template = yaml.load(deployed_template)
 
-    __generate_table('Parameters', current_parameters, parameters)
+    __generate_table('Parameters', current_parameters, {**template_parameters, **parameters})
     __generate_table('Tags', current_tags, tags)
     __generate_table('Template', deployed_template, convert(loader.template_dictionary()))
 
