@@ -264,4 +264,4 @@ def test_change_set_with_resource_types():
 
     cf_client_mock.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=template,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, ResourceTypes=RESOURCES)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, ResourceTypes=list(set(RESOURCES)))

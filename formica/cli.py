@@ -41,7 +41,8 @@ CONFIG_FILE_ARGUMENTS = {
     'failure_tolerance_count': int,
     'failure_tolerance_percentage': int,
     'max_concurrent_count': int,
-    'max_concurrent_percentage': int
+    'max_concurrent_percentage': int,
+    'resource_types': bool
 }
 
 

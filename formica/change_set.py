@@ -7,7 +7,6 @@ from formica.aws import AWS
 from botocore.exceptions import ClientError, WaiterError
 from texttable import Texttable
 
-
 from formica import CHANGE_SET_FORMAT
 
 CHANGE_SET_HEADER = ['Action', 'LogicalId', 'PhysicalId', 'Type', 'Replacement', 'Changed']
@@ -38,8 +37,8 @@ class ChangeSet:
         if change_set_type == 'UPDATE':
             self.remove_existing_changeset()
         if resource_types:
-            optional_arguments['ResourceTypes'] = [resource['Type'] for key, resource in
-                                                   json.loads(template)['Resources'].items()]
+            optional_arguments['ResourceTypes'] = list(set([resource['Type'] for key, resource in
+                                                            json.loads(template)['Resources'].items()]))
 
         try:
             if s3:
