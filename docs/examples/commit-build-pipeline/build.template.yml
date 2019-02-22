@@ -1,3 +1,9 @@
+Parameters:
+  TimeoutInMinutes:
+    Type: Number
+    Default: 10
+
+
 Resources:
   CodeBuildProject:
     Type: 'AWS::CodeBuild::Project'
@@ -18,8 +24,8 @@ Resources:
             build:
               commands:
               - 'ls'
-      TimeoutInMinutes: 10
-  CodeBuildRole:
+      TimeoutInMinutes: !Ref TimeoutInMinutes
+  CodeBuildRole1:
     Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:

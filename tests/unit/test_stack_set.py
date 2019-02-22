@@ -351,16 +351,12 @@ def test_remove_stack_set(client, loader):
 
 
 def test_diff_cli_call(template, mocker, client, session):
-    diff = mocker.patch('formica.diff.compare')
+    diff = mocker.patch('formica.diff.compare_stack_set')
     cli.main(['stack-set', 'diff', '--stack-set', STACK])
-    session.return_value.client.assert_called_with('cloudformation')
-    client.describe_stack_set.assert_called_with(StackSetName=STACK)
-    diff.assert_called_with(template, mocker.ANY)
+    diff.assert_called_with(stack=STACK, parameters={}, vars=None, tags={})
 
 
 def test_diff_cli_call_with_vars(template, mocker, client, session):
-    diff = mocker.patch('formica.diff.compare')
-    cli.main(['stack-set', 'diff', '--stack-set', STACK, '--vars', 'abc=def'])
-    session.return_value.client.assert_called_with('cloudformation')
-    client.describe_stack_set.assert_called_with(StackSetName=STACK)
-    diff.assert_called_with(template, {'abc': 'def'})
+    diff = mocker.patch('formica.diff.compare_stack_set')
+    cli.main(['stack-set', 'diff', '--stack', STACK, '--vars', 'V=1', '--parameters', 'P=2', '--tags', 'T=3'])
+    diff.assert_called_with(stack=STACK, vars={'V': '1'}, parameters={'P': '2'}, tags={'T': '3'})

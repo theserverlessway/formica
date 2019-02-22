@@ -32,11 +32,11 @@ release-pypi: clean build-dev build
 	docker-compose run formica twine upload dist/*
 
 release-docker:
-	docker build --no-cache -t flomotlik/formica -f Dockerfile.release .
+	docker build --no-cache -t flomotlik/formica -f Release.Dockerfile .
 	docker push flomotlik/formica
 
 release: release-pypi release-docker
 
 install:
-	docker build -t flomotlik/formica:whalebrew -f Dockerfile.whalebrew .
+	docker build -t flomotlik/formica:whalebrew -f Whalebrew.Dockerfile .
 	whalebrew install -f flomotlik/formica:whalebrew

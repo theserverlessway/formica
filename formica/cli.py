@@ -154,6 +154,8 @@ def main(cli_args):
     add_stack_argument(diff_parser)
     add_config_file_argument(diff_parser)
     add_stack_variables_argument(diff_parser)
+    add_stack_parameters_argument(diff_parser)
+    add_stack_tags_argument(diff_parser)
     diff_parser.set_defaults(func=diff)
 
     # Resources Command Arguments
@@ -243,6 +245,7 @@ def stack_set_parser(parser):
     add_stack_set_role_argument(create_parser)
     create_parser.set_defaults(func=stack_set.create_stack_set)
 
+    # Update
     update_parser = stack_set_subparsers.add_parser('update', description='Update a Stack Set')
     add_aws_arguments(update_parser)
     add_stack_set_argument(update_parser)
@@ -258,12 +261,14 @@ def stack_set_parser(parser):
     add_stack_set_operation_preferences(update_parser)
     update_parser.set_defaults(func=stack_set.update_stack_set)
 
+    # Remove
     remove_parser = stack_set_subparsers.add_parser('remove', description='Remove a Stack Set')
     add_aws_arguments(remove_parser)
     add_stack_set_argument(remove_parser)
     add_config_file_argument(remove_parser)
     remove_parser.set_defaults(func=stack_set.remove_stack_set)
 
+    # Add Instances
     add_instances_parser = stack_set_subparsers.add_parser('add-instances',
                                                            description='Add Stack Set Instances')
     add_aws_arguments(add_instances_parser)
@@ -274,6 +279,7 @@ def stack_set_parser(parser):
     add_stack_set_operation_preferences(add_instances_parser)
     add_instances_parser.set_defaults(func=stack_set.add_stack_set_instances)
 
+    # Remove Instances
     remove_instances_parser = stack_set_subparsers.add_parser('remove-instances',
                                                               description='Remove Stack Set Instances')
     add_aws_arguments(remove_instances_parser)
@@ -285,11 +291,14 @@ def stack_set_parser(parser):
     add_stack_set_operation_preferences(remove_instances_parser)
     remove_instances_parser.set_defaults(func=stack_set.remove_stack_set_instances)
 
+    # Diff
     diff_parser = stack_set_subparsers.add_parser('diff',
                                                   description='Diff the StackSet template to the local template')
     add_aws_arguments(diff_parser)
     add_stack_set_argument(diff_parser)
     add_config_file_argument(diff_parser)
+    add_stack_parameters_argument(diff_parser)
+    add_stack_tags_argument(diff_parser)
     add_stack_variables_argument(diff_parser)
     diff_parser.set_defaults(func=stack_set.diff_stack_set)
 
@@ -321,7 +330,7 @@ def add_stack_set_argument(parser):
 
 def add_stack_parameters_argument(parser):
     parser.add_argument('--parameters', help='Add one or multiple stack parameters',
-                        nargs='+', action=SplitEqualsAction, metavar='KEY=Value')
+                        nargs='+', action=SplitEqualsAction, metavar='KEY=Value', default={})
 
 
 def add_stack_variables_argument(parser):
@@ -331,7 +340,7 @@ def add_stack_variables_argument(parser):
 
 def add_stack_tags_argument(parser):
     parser.add_argument('--tags', help='Add one or multiple stack tags', nargs='+',
-                        action=SplitEqualsAction, metavar='KEY=Value')
+                        action=SplitEqualsAction, metavar='KEY=Value', default={})
 
 
 def add_capabilities_argument(parser):
@@ -435,13 +444,8 @@ def stacks(args):
 
 @requires_stack
 def diff(args):
-    from .diff import compare
-    client = cloudformation_client()
-
-    template = client.get_template(
-        StackName=args.stack,
-    )
-    compare(template['TemplateBody'], args.vars)
+    from .diff import compare_stack
+    compare_stack(stack=args.stack, vars=args.vars, parameters=args.parameters, tags=args.tags)
 
 
 @requires_stack
