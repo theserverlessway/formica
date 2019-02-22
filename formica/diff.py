@@ -57,17 +57,18 @@ def compare_stack_set(stack, vars=None, parameters={}, tags={}):
 
 
 def __compare(template, stack, vars=None, parameters={}, tags={}):
-    current_parameters = {p['ParameterKey']: p['ParameterValue'] for p in (stack.get('Parameters') or [])}
+    current_parameters = {p['ParameterKey']: p['ParameterValue'] for p in (stack.get('Parameters', []))}
     parameters = {key: str(value) for key, value in parameters.items()}
     tags = {key: str(value) for key, value in tags.items()}
-    current_tags = {p['Key']: p['Value'] for p in (stack.get('Tags') or [])}
+    current_tags = {p['Key']: p['Value'] for p in (stack.get('Tags', []))}
 
     loader = Loader(variables=vars)
     loader.load()
     deployed_template = convert(template)
-    template_parameters = {key: str(value.get('Default')).lower() if type(value['Default']) == bool else str(value.get('Default'))
-                           for key, value in (
-                                   loader.template_dictionary()['Parameters'] or {}).items()}
+    template_parameters = {
+        key: str(value['Default']).lower() if type(value['Default']) == bool else str(value['Default'])
+        for key, value in (loader.template_dictionary().get('Parameters', {})).items() if 'Default' in value
+    }
     if isinstance(deployed_template, str):
         deployed_template = yaml.load(deployed_template)
 
