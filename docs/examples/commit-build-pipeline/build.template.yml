@@ -25,7 +25,7 @@ Resources:
               commands:
               - 'ls'
       TimeoutInMinutes: !Ref TimeoutInMinutes
-  CodeBuildRole1:
+  CodeBuildRole:
     Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:
