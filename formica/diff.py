@@ -3,6 +3,7 @@ import re
 import yaml
 import logging
 from deepdiff import DeepDiff
+from formica.aws import AWS
 from texttable import Texttable
 
 from formica.loader import Loader
@@ -34,26 +35,55 @@ def convert(data):
         return data
 
 
-def compare(template, variables=None):
-    loader = Loader(variables=variables)
+def compare_stack(stack, vars=None, parameters={}, tags={}):
+    client = AWS.current_session().client('cloudformation')
+    template = client.get_template(
+        StackName=stack,
+    )['TemplateBody']
+
+    stack = client.describe_stacks(
+        StackName=stack,
+    )['Stacks'][0]
+    __compare(template, stack, vars, parameters, tags)
+
+
+def compare_stack_set(stack, vars=None, parameters={}, tags={}):
+    client = AWS.current_session().client('cloudformation')
+
+    stack_set = client.describe_stack_set(
+        StackSetName=stack,
+    )['StackSet']
+    __compare(stack_set['TemplateBody'], stack_set, vars, parameters, tags)
+
+
+def __compare(template, stack, vars=None, parameters={}, tags={}):
+    current_parameters = {p['ParameterKey']: p['ParameterValue'] for p in (stack.get('Parameters') or [])}
+    parameters = {key: str(value) for key, value in parameters.items()}
+    tags = {key: str(value) for key, value in tags.items()}
+    current_tags = {p['Key']: p['Value'] for p in (stack.get('Tags') or [])}
+
+    loader = Loader(variables=vars)
     loader.load()
     deployed_template = convert(template)
     if isinstance(deployed_template, str):
         deployed_template = yaml.load(deployed_template)
 
-    changes = DeepDiff(deployed_template, convert(loader.template_dictionary()), ignore_order=False,
+    __generate_table('Parameters', current_parameters, parameters)
+    __generate_table('Tags', current_tags, tags)
+    __generate_table('Template', deployed_template, convert(loader.template_dictionary()))
+
+
+def __generate_table(header, current, new):
+    changes = DeepDiff(current, new, ignore_order=False,
                        report_repetition=True,
                        verbose_level=2, view='tree')
-
     table = Texttable(max_width=200)
     table.add_rows([['Path', 'From', 'To', 'Change Type']])
     print_diff = False
-
     processed_changes = __collect_changes(changes)
-
     for change in processed_changes:
         print_diff = True
-        path = re.findall('\\[\'?(\\w+)\'?\\]', change.path)
+        path = re.findall('\\[\'?([\\w-]+)\'?\\]', change.path)
         table.add_row(
             [
                 ' > '.join(path),
@@ -62,11 +92,11 @@ def compare(template, variables=None):
                 change.type.title().replace('_', ' ')
             ]
         )
-
+    logger.info(header + ' Diff:')
     if print_diff:
         logger.info(table.draw() + "\n")
     else:
-        logger.info('No Changes found')
+        logger.info('No Changes found' + "\n")
 
 
 def __collect_changes(changes):

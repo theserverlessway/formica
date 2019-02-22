@@ -33,8 +33,8 @@ def test_create_changeset_for_new_stack(change_set, client, loader):
     cli.main(['new', '--stack', STACK, '--profile', PROFILE, '--region', REGION])
     change_set.assert_called_with(stack=STACK, client=client)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
-                                                           parameters=None, tags=None, capabilities=None,
-                                                           role_arn=None, s3=False)
+                                                           parameters={}, tags={}, capabilities=None,
+                                                           role_arn=None, s3=False, resource_types=False)
     change_set.return_value.describe.assert_called_once()
 
 
@@ -42,26 +42,27 @@ def test_new_uses_parameters_for_creation(change_set, client, loader):
     cli.main(['new', '--stack', STACK, '--parameters', 'A=B', 'C=D', '--profile', PROFILE, '--region', REGION])
     change_set.assert_called_with(stack=STACK, client=client)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
-                                                           parameters={'A': 'B', 'C': 'D'}, tags=None,
-                                                           capabilities=None, role_arn=None, s3=False)
+                                                           parameters={'A': 'B', 'C': 'D'}, tags={},
+                                                           capabilities=None, role_arn=None, s3=False,
+                                                           resource_types=False)
 
 
 def test_new_uses_tags_for_creation(change_set, client, loader):
     cli.main(['new', '--stack', STACK, '--tags', 'A=B', 'C=D', '--profile', PROFILE, '--region', REGION])
     change_set.assert_called_with(stack=STACK, client=client)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
-                                                           parameters=None,
+                                                           parameters={},
                                                            tags={'A': 'B', 'C': 'D'}, capabilities=None,
-                                                           role_arn=None, s3=False)
+                                                           role_arn=None, s3=False, resource_types=False)
 
 
 def test_new_role_arn_for_creation(change_set, client, loader):
     cli.main(['new', '--stack', STACK, '--profile', PROFILE, '--region', REGION, '--role-arn', 'arn:aws:foobarbaz'])
     change_set.assert_called_with(stack=STACK, client=client)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
-                                                           parameters=None,
-                                                           tags=None, capabilities=None,
-                                                           role_arn='arn:aws:foobarbaz', s3=False)
+                                                           parameters={},
+                                                           tags={}, capabilities=None,
+                                                           role_arn='arn:aws:foobarbaz', s3=False, resource_types=False)
 
 
 def test_new_role_name_for_creation(change_set, client, loader):
@@ -69,10 +70,10 @@ def test_new_role_name_for_creation(change_set, client, loader):
     cli.main(['new', '--stack', STACK, '--profile', PROFILE, '--region', REGION, '--role-name', 'some-stack-role'])
     change_set.assert_called_with(stack=STACK, client=client)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
-                                                           parameters=None,
-                                                           tags=None, capabilities=None,
+                                                           parameters={},
+                                                           tags={}, capabilities=None,
                                                            role_arn='arn:aws:iam::1234567890:role/some-stack-role',
-                                                           s3=False)
+                                                           s3=False, resource_types=False)
 
 
 def test_new_tests_parameter_format(capsys):
@@ -88,13 +89,24 @@ def test_new_uses_capabilities_for_creation(change_set, client, loader):
     cli.main(['new', '--stack', STACK, '--capabilities', 'A', 'B'])
     change_set.assert_called_with(stack=STACK, client=client)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
-                                                           parameters=None, tags=None,
-                                                           capabilities=['A', 'B'], role_arn=None, s3=False)
+                                                           parameters={}, tags={},
+                                                           capabilities=['A', 'B'], role_arn=None, s3=False,
+                                                           resource_types=False)
 
 
 def test_new_sets_s3_flag(change_set, client, loader):
     cli.main(['new', '--stack', STACK, '--s3'])
     change_set.assert_called_with(stack=STACK, client=client)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
-                                                           parameters=None,
-                                                           tags=None, capabilities=None, role_arn=None, s3=True)
+                                                           parameters={},
+                                                           tags={}, capabilities=None, role_arn=None, s3=True,
+                                                           resource_types=False)
+
+
+def test_new_with_resource_types(change_set, client, loader):
+    cli.main(['new', '--stack', STACK, '--resource-types'])
+    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
+                                                           parameters={},
+                                                           tags={}, capabilities=None, role_arn=None, s3=False,
+                                                           resource_types=True)

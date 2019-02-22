@@ -74,3 +74,11 @@ def test_catches_arbitrary_client_error(session, logger):
         with pytest.raises(SystemExit) as pytest_wrapped_e:
             cli.main([method])
         assert pytest_wrapped_e.value.code == 2
+
+
+def test_fails_with_wrong_parameter_format(capsys):
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        cli.main(['new', '--stack', STACK, '--parameters', 'Test:Test'])
+    out, err = capsys.readouterr()
+    assert "argument --parameters: Test:Test needs to be in format KEY=VALUE" in err
+    assert pytest_wrapped_e.value.code == 2
