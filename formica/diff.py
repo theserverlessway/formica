@@ -59,7 +59,7 @@ def compare_stack_set(stack, vars=None, parameters={}, tags={}):
 def __compare(template, stack, vars=None, parameters={}, tags={}):
     current_parameters = {p['ParameterKey']: p['ParameterValue'] for p in (stack.get('Parameters') or [])}
     parameters = {key: str(value) for key, value in parameters.items()}
-    tags= {key: str(value) for key, value in tags.items()}
+    tags = {key: str(value) for key, value in tags.items()}
     current_tags = {p['Key']: p['Value'] for p in (stack.get('Tags') or [])}
 
     loader = Loader(variables=vars)

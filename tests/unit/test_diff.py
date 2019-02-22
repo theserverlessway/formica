@@ -1,7 +1,6 @@
 import json
 
 import pytest
-import re
 import yaml
 from formica import cli
 from uuid import uuid4

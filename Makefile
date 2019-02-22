@@ -22,7 +22,7 @@ shell: build-dev
 	docker-compose run formica bash
 
 clean:
-	rm -fr dist
+	rm -fr dist build
 
 build: clean build-dev
 	docker-compose run formica python setup.py sdist bdist_wheel
