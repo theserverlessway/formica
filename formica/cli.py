@@ -563,13 +563,14 @@ def load_config_files(args, config_files):
     for config_file in config_files:
         try:
             file_items = yaml.load(config_file.read())
-            for key, value in file_items.items():
-                if key in config_file_args and isinstance(value, dict):
-                    subdict = config_file_args[key]
-                    for subkey, subvalue in value.items():
-                        subdict[subkey] = subvalue
-                else:
-                    config_file_args[key] = value
+            if file_items:
+                for key, value in file_items.items():
+                    if key in config_file_args and isinstance(value, dict):
+                        subdict = config_file_args[key]
+                        for subkey, subvalue in value.items():
+                            subdict[subkey] = subvalue
+                    else:
+                        config_file_args[key] = value
         except yaml.YAMLError as e:
             logger.error(e.__str__())
             sys.exit(1)
