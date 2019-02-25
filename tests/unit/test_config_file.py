@@ -122,3 +122,12 @@ def test_exception_with_failed_yaml_syntax(mocker, tmpdir, session, logger):
         with pytest.raises(SystemExit):
             cli.main(['stacks', '-c', file_name])
         logger.error.assert_called()
+
+
+def test_loads_empty_config_file(mocker, tmpdir, session):
+    stacks = mocker.patch('formica.cli.stacks')
+    file_name = 'test.config.yaml'
+    with Path(tmpdir):
+        with open(file_name, 'w') as f:
+            f.write('')
+        cli.main(['stacks', '-c', file_name])
