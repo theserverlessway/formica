@@ -137,6 +137,22 @@ def test_diff_parameters(caplog, loader, client):
     check_echo(caplog, [key, before, after, 'Values Changed'])
 
 
+def test_diff_parameters_overrides_defaults(caplog, loader, client):
+    key = uuid()
+    before = uuid()
+    after = uuid()
+    key2 = uuid()
+    template = {'Resources': '1234', 'Parameters': {key: {'Default': after}, key2: {'Default': after}}}
+    loader_return(loader, template)
+    client.get_template.return_value = {'TemplateBody': json.dumps(template)}
+    client.describe_stacks.return_value = {
+        'Stacks': [{'Parameters': [{'ParameterKey': key, 'ParameterValue': before},
+                                   {'ParameterKey': key2, 'ParameterValue': before}]}]}
+    compare_stack(STACK, parameters={key2: before})
+    check_echo(caplog, [key, before, after, 'Values Changed'])
+    check_no_echo(caplog, [key2])
+
+
 def test_diff_tags(caplog, loader, client):
     key = uuid()
     before = uuid()

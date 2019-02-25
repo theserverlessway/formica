@@ -57,18 +57,24 @@ def compare_stack_set(stack, vars=None, parameters={}, tags={}):
 
 
 def __compare(template, stack, vars=None, parameters={}, tags={}):
-    current_parameters = {p['ParameterKey']: p['ParameterValue'] for p in (stack.get('Parameters') or [])}
+    current_parameters = {p['ParameterKey']: p['ParameterValue'] for p in (stack.get('Parameters', []))}
     parameters = {key: str(value) for key, value in parameters.items()}
     tags = {key: str(value) for key, value in tags.items()}
-    current_tags = {p['Key']: p['Value'] for p in (stack.get('Tags') or [])}
+    current_tags = {p['Key']: p['Value'] for p in (stack.get('Tags', []))}
 
     loader = Loader(variables=vars)
     loader.load()
     deployed_template = convert(template)
+    template_parameters = {
+        key: str(value['Default']).lower() if type(value['Default']) == bool else str(value['Default'])
+        for key, value in (loader.template_dictionary().get('Parameters', {})).items() if 'Default' in value
+    }
+
+    template_parameters.update(parameters)
     if isinstance(deployed_template, str):
         deployed_template = yaml.load(deployed_template)
 
-    __generate_table('Parameters', current_parameters, parameters)
+    __generate_table('Parameters', current_parameters, template_parameters)
     __generate_table('Tags', current_tags, tags)
     __generate_table('Template', deployed_template, convert(loader.template_dictionary()))
 
