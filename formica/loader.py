@@ -89,11 +89,12 @@ class Loader(object):
     def render(self, filename, **args):
         template_path = os.path.normpath("{}/{}".format(self.path, filename))
         template = self.env.get_template(template_path)
+        variables = {**self.variables, **args}
         arguments = dict(code=self.include_file,
                          file=self.load_file,
                          now=arrow.now,
                          utcnow=arrow.utcnow,
-                         **args)
+                         **variables)
         return template.render(**arguments)
 
     def template(self, indent=4, sort_keys=True, separators=(',', ':'), dumper=None):
