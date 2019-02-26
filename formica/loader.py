@@ -89,7 +89,9 @@ class Loader(object):
     def render(self, filename, **args):
         template_path = os.path.normpath("{}/{}".format(self.path, filename))
         template = self.env.get_template(template_path)
-        variables = {**self.variables, **args}
+        variables = {}
+        variables.update(self.variables)
+        variables.update(args)
         arguments = dict(code=self.include_file,
                          file=self.load_file,
                          now=arrow.now,
