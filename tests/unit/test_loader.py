@@ -187,7 +187,7 @@ def test_template_submodule_loads_variables(load, tmpdir):
         with open('test.template.json', 'w') as f:
             f.write(json.dumps(
                 {'Resources': {'TestResource':
-                               {'From': 'Moduledir', 'Properties': {'test': 'Variable'}}}}))
+                                   {'From': 'Moduledir', 'Properties': {'test': 'Variable'}}}}))
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "Variable"}
@@ -377,6 +377,21 @@ def test_code_includes_supports_nested_code_arguments(load, tmpdir):
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Description": "nested-test"}
+
+
+def test_code_passes_variables(tmpdir):
+    load = Loader(variables={'SomeVariable': 'SomeValue'})
+    template = '{"Resources": {"{{code("testfile")}}": "Test"}}'
+    code = '{{SomeVariable}}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(template)
+        with open('testfile', 'w') as f:
+            f.write(code)
+        load.load()
+        print(load.template())
+        actual = json.loads(load.template())
+    assert actual == {"Resources": {"SomeValue": "Test"}}
 
 
 def test_file_adds_content_directly(load, tmpdir):
