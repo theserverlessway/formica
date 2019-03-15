@@ -2,7 +2,7 @@ pycodestyle
 pyflakes
 autopep8
 coverage
-python-coveralls
+coveralls
 pytest
 path.py
 pytest-cov

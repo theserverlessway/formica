@@ -1,6 +1,7 @@
 .PHONY: build
 
 dependencies:
+	python --version
 	pip install -U -r build-requirements.txt
 	python setup.py develop
 

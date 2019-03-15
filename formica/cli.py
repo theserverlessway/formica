@@ -32,6 +32,7 @@ CONFIG_FILE_ARGUMENTS = {
     'administration_role_name': str,
     'execution_role_name': str,
     'main_account': bool,
+    'main_account_parameter': bool,
     'accounts': list,
     'regions': list,
     'all_accounts': bool,
@@ -371,7 +372,8 @@ def add_stack_set_instance_retain_argument(parser):
 
 
 def add_stack_set_main_account_parameter(parser):
-    parser.add_argument('--main-account', help='Set MainAccount Parameter', action='store_true', default=False)
+    parser.add_argument('--main-account-parameter', help='Set MainAccount Parameter', action='store_true',
+                        default=False)
 
 
 def add_stack_set_main_auto_regions_accounts(parser):
@@ -379,6 +381,8 @@ def add_stack_set_main_auto_regions_accounts(parser):
     parser.add_argument('--all-subaccounts', help='Use Only Subaccounts of this Org',
                         action='store_true', default=False)
     parser.add_argument('--all-regions', help='Use all Regions', action='store_true', default=False)
+    parser.add_argument('--excluded-regions', help='Excluded Regions from deployment', nargs='+')
+    parser.add_argument('--main-account', help='Deploy to Main Account only', action='store_true', default=False)
 
 
 def add_stack_set_operation_preferences(parser):

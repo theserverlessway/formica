@@ -99,7 +99,7 @@ def test_create_stack_set_with_main_account(session, client, logger, mocker):
         'stack-set',
         'create',
         '--stack-set', STACK,
-        '--main-account'
+        '--main-account-parameter'
     ])
 
     session.return_value.client.assert_called_with('sts')
@@ -120,7 +120,7 @@ def test_create_stack_set_with_main_account_and_existing_parameters(session, cli
         'stack-set',
         'create',
         '--stack-set', STACK,
-        '--main-account',
+        '--main-account-parameter',
         '--parameters', 'A=B'
 
     ])
@@ -180,7 +180,7 @@ def test_update_stack_set_with_main_account(session, client, logger, mocker):
         'stack-set',
         'update',
         '--stack-set', STACK,
-        '--main-account'
+        '--main-account-parameter'
     ])
 
     session.return_value.client.assert_called_with('sts')
@@ -349,6 +349,47 @@ def test_remove_stack_set(client, loader):
         StackSetName=STACK
     )
 
+def test_excluded_regions(client, logger, loader):
+    client.update_stack_set.return_value = {'OperationId': '12345'}
+    client.list_accounts.return_value = ACCOUNTS
+    client.describe_regions.return_value = EC2_REGIONS
+    cli.main([
+        'stack-set',
+        'update',
+        '--stack-set', STACK,
+        '--all-accounts',
+        '--excluded-regions',
+        'us-west-1'
+    ])
+
+    client.update_stack_set.assert_called_with(
+        StackSetName=STACK,
+        TemplateBody=TEMPLATE,
+        Accounts=['1234', '5678'],
+        Regions=['us-west-2']
+    )
+
+def test_main_account_only_deployment(client, logger, loader):
+    client.update_stack_set.return_value = {'OperationId': '12345'}
+    client.list_accounts.return_value = ACCOUNTS
+    client.describe_regions.return_value = EC2_REGIONS
+    accountid = str(uuid4())
+    client.get_caller_identity.return_value = {'Account': accountid}
+    cli.main([
+        'stack-set',
+        'update',
+        '--stack-set', STACK,
+        '--main-account',
+        '--excluded-regions',
+        'us-west-1'
+    ])
+
+    client.update_stack_set.assert_called_with(
+        StackSetName=STACK,
+        TemplateBody=TEMPLATE,
+        Accounts=[accountid],
+        Regions=['us-west-2']
+    )
 
 def test_diff_cli_call(template, mocker, client, session):
     diff = mocker.patch('formica.diff.compare_stack_set')
