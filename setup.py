@@ -38,7 +38,7 @@ setup(
     ],
     keywords='cloudformation, aws, cloud',
     packages=['formica'],
-    install_requires=['boto3>=1.8.0,<2.0.0', 'texttable>=1.2.0,<2.0.0', 'jinja2>=2.10,<3.0', 'pyyaml>=5.1',
+    install_requires=['boto3>=1.8.0,<2.0.0', 'texttable>=1.2.0,<2.0.0', 'jinja2>=2.10,<3.0', 'pyyaml>=3.13',
                       'deepdiff==3.3.0', 'arrow>=0.12.1,<1.0.0', 'argcomplete>=1.9.4'],
     entry_points={
         'console_scripts': [
