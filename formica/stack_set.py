@@ -14,6 +14,7 @@ def requires_stack_set(function):
             sys.exit(1)
         else:
             function(args)
+
     return validate_stack_set
 
 
@@ -24,6 +25,7 @@ def requires_accounts_regions(function):
         else:
             logger.error('You need to set the regions and accounts you want to update.')
             sys.exit(1)
+
     return validate_stack_set
 
 
@@ -80,18 +82,23 @@ def accounts(args):
         args = vars(args)
     if (args.get('accounts')):
         return [str(a) for a in args['accounts']]
-    elif(args['all_subaccounts']):
+    elif (args['all_subaccounts']):
         current_account = AWS.current_session().client('sts').get_caller_identity()['Account']
         return [a for a in all_accounts() if a != current_account]
     elif (args['all_accounts']):
         return all_accounts()
+    elif (args['main_account']):
+        return [main_account_id()]
 
 
 def regions(args):
     if (vars(args).get('regions')):
         return vars(args)['regions']
-    elif(args.all_regions):
+    elif (args.all_regions):
         return all_regions()
+    elif (args.excluded_regions):
+        excluded_regions = [r for r in all_regions() if r not in args.excluded_regions]
+        return excluded_regions
 
 
 def all_accounts():
@@ -104,15 +111,19 @@ def all_regions():
     return [r['RegionName'] for r in ec2.describe_regions()['Regions']]
 
 
+def main_account_id():
+    sts = AWS.current_session().client('sts')
+    identity = sts.get_caller_identity()
+    return identity['Account']
+
+
 def __manage_stack_set(args, create):
     from .loader import Loader
     client = AWS.current_session().client('cloudformation')
     params = args.parameters or {}
-    main_account = args.main_account
+    main_account = args.main_account_parameter
     if main_account:
-        sts = AWS.current_session().client('sts')
-        identity = sts.get_caller_identity()
-        params['MainAccount'] = identity['Account']
+        params['MainAccount'] = main_account_id()
 
     account_regions = {}
     if not create:
@@ -126,11 +137,12 @@ def __manage_stack_set(args, create):
                         capabilities=args.capabilities,
                         execution_role_name=args.execution_role_name,
                         administration_role_arn=args.administration_role_arn,
-                        ** account_regions)
+                        **account_regions)
 
-    preferences = operation_preferences(args)
-    # Necessary for python 2.7 as it can't merge dicts with **
-    params.update(preferences)
+    if not create:
+        preferences = operation_preferences(args)
+        # Necessary for python 2.7 as it can't merge dicts with **
+        params.update(preferences)
 
     loader = Loader(variables=args.vars)
     loader.load()
