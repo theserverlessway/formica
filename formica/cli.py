@@ -32,6 +32,7 @@ CONFIG_FILE_ARGUMENTS = {
     'administration_role_name': str,
     'execution_role_name': str,
     'main_account': bool,
+    'main_account_parameter': bool,
     'accounts': list,
     'regions': list,
     'all_accounts': bool,
