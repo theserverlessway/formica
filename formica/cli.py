@@ -38,6 +38,7 @@ CONFIG_FILE_ARGUMENTS = {
     'all_accounts': bool,
     'all_subaccounts': bool,
     'all_regions': bool,
+    'excluded_regions': list,
     'region_order': list,
     'failure_tolerance_count': int,
     'failure_tolerance_percentage': int,

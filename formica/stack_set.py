@@ -20,7 +20,8 @@ def requires_stack_set(function):
 
 def requires_accounts_regions(function):
     def validate_stack_set(args):
-        if (args.accounts or args.all_accounts or args.all_subaccounts) and (args.regions or args.all_regions):
+        if (args.accounts or args.all_accounts or args.all_subaccounts or args.main_account) and (
+                args.regions or args.all_regions or args.excluded_regions):
             function(args)
         else:
             logger.error('You need to set the regions and accounts you want to update.')
