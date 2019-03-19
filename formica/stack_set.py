@@ -82,25 +82,25 @@ def diff_stack_set(args):
 def accounts(args):
     if (type(args) != dict):
         args = vars(args)
-    if (args.get('accounts')):
+    if args.get('accounts'):
         return [str(a) for a in args['accounts']]
-    elif (args['all_subaccounts']):
+    elif args['main_account']:
+        return [main_account_id()]
+    elif args['all_subaccounts']:
         current_account = AWS.current_session().client('sts').get_caller_identity()['Account']
         return [a for a in all_accounts() if a != current_account]
-    elif (args['all_accounts']):
+    elif args['all_accounts']:
         return all_accounts()
-    elif (args['main_account']):
-        return [main_account_id()]
 
 
 def regions(args):
-    if (vars(args).get('regions')):
+    if vars(args).get('regions'):
         return vars(args)['regions']
-    elif (args.all_regions):
-        return all_regions()
-    elif (args.excluded_regions):
+    elif args.excluded_regions:
         excluded_regions = [r for r in all_regions() if r not in args.excluded_regions]
         return excluded_regions
+    elif args.all_regions:
+        return all_regions()
 
 
 def all_accounts():
