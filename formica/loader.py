@@ -12,6 +12,7 @@ import arrow
 from .exceptions import FormicaArgumentException
 
 from . import yaml_tags
+
 # To silence pyflakes warning of unused import
 assert yaml_tags
 

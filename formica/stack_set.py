@@ -1,4 +1,5 @@
-from formica.aws import AWS
+from .aws import AWS
+from .helper import collect_vars
 import logging
 import sys
 import json
@@ -75,7 +76,7 @@ def remove_stack_set_instances(args):
 @requires_stack_set
 def diff_stack_set(args):
     from .diff import compare_stack_set
-    compare_stack_set(stack=args.stack_set, vars=args.vars, parameters=args.parameters, tags=args.tags)
+    compare_stack_set(stack=args.stack_set, vars=collect_vars(args), parameters=args.parameters, tags=args.tags)
 
 
 def accounts(args):
@@ -145,7 +146,7 @@ def __manage_stack_set(args, create):
         # Necessary for python 2.7 as it can't merge dicts with **
         params.update(preferences)
 
-    loader = Loader(variables=args.vars)
+    loader = Loader(variables=collect_vars(args))
     loader.load()
     template = loader.template()
     if main_account:

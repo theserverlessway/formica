@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 
-import functools
 import argparse
-import argcomplete
-import sys
+import functools
 import logging
 import signal
+import sys
+
+import argcomplete
 
 from . import CHANGE_SET_FORMAT, __version__
-from .aws import AWS
-
 from . import stack_set
+from .aws import AWS
+from .helper import collect_vars
 
 STACK_HEADERS = ['Name', 'Created At', 'Updated At', 'Status']
 RESOURCE_HEADERS = ['Logical ID', 'Physical ID', 'Type', 'Status']
@@ -39,6 +40,7 @@ CONFIG_FILE_ARGUMENTS = {
     'all_subaccounts': bool,
     'all_regions': bool,
     'excluded_regions': list,
+    'organization_variables': bool,
     'region_order': list,
     'failure_tolerance_count': int,
     'failure_tolerance_percentage': int,
@@ -87,6 +89,7 @@ def main(cli_args):
     add_config_file_argument(template_parser)
     add_stack_variables_argument(template_parser)
     template_parser.add_argument('-y', '--yaml', help="print output as yaml", action="store_true")
+    add_organization_account_template_variables(template_parser)
     template_parser.set_defaults(func=template)
 
     # Stacks Command Arguments
@@ -107,6 +110,7 @@ def main(cli_args):
     add_stack_variables_argument(new_parser)
     add_s3_upload_argument(new_parser)
     add_resource_types(new_parser)
+    add_organization_account_template_variables(new_parser)
     new_parser.set_defaults(func=new)
 
     # Change Command Arguments
@@ -121,6 +125,7 @@ def main(cli_args):
     add_stack_variables_argument(change_parser)
     add_s3_upload_argument(change_parser)
     add_resource_types(change_parser)
+    add_organization_account_template_variables(change_parser)
     change_parser.set_defaults(func=change)
 
     # Deploy Command Arguments
@@ -159,6 +164,7 @@ def main(cli_args):
     add_stack_variables_argument(diff_parser)
     add_stack_parameters_argument(diff_parser)
     add_stack_tags_argument(diff_parser)
+    add_organization_account_template_variables(diff_parser)
     diff_parser.set_defaults(func=diff)
 
     # Resources Command Arguments
@@ -246,6 +252,7 @@ def stack_set_parser(parser):
     add_config_file_argument(create_parser)
     add_stack_variables_argument(create_parser)
     add_stack_set_role_argument(create_parser)
+    add_organization_account_template_variables(create_parser)
     create_parser.set_defaults(func=stack_set.create_stack_set)
 
     # Update
@@ -262,6 +269,7 @@ def stack_set_parser(parser):
     add_stack_set_instance_arguments(update_parser)
     add_stack_set_main_auto_regions_accounts(update_parser)
     add_stack_set_operation_preferences(update_parser)
+    add_organization_account_template_variables(update_parser)
     update_parser.set_defaults(func=stack_set.update_stack_set)
 
     # Remove
@@ -303,6 +311,7 @@ def stack_set_parser(parser):
     add_stack_parameters_argument(diff_parser)
     add_stack_tags_argument(diff_parser)
     add_stack_variables_argument(diff_parser)
+    add_organization_account_template_variables(diff_parser)
     diff_parser.set_defaults(func=stack_set.diff_stack_set)
 
 
@@ -338,7 +347,7 @@ def add_stack_parameters_argument(parser):
 
 def add_stack_variables_argument(parser):
     parser.add_argument('--vars', help='Add one or multiple Jinja2 variables',
-                        nargs='+', action=SplitEqualsAction, metavar='KEY=Value')
+                        nargs='+', action=SplitEqualsAction, metavar='KEY=Value', default={})
 
 
 def add_stack_tags_argument(parser):
@@ -386,6 +395,11 @@ def add_stack_set_main_auto_regions_accounts(parser):
     parser.add_argument('--main-account', help='Deploy to Main Account only', action='store_true', default=False)
 
 
+def add_organization_account_template_variables(parser):
+    parser.add_argument('--organization-variables', help='Add AWSAccounts and AWSRegions as Jinja variables',
+                        action='store_true', default=False)
+
+
 def add_stack_set_operation_preferences(parser):
     parser.add_argument('--region-order', help='Order in which to deploy to regions', nargs='+', default=[])
     failure_tolerance = parser.add_mutually_exclusive_group()
@@ -418,7 +432,7 @@ def add_resource_types(parser):
 def template(args):
     from .loader import Loader
     import yaml
-    loader = Loader(variables=args.vars)
+    loader = Loader(variables=collect_vars(args))
     loader.load()
     if args.yaml:
         logger.info(
@@ -451,7 +465,7 @@ def stacks(args):
 @requires_stack
 def diff(args):
     from .diff import compare_stack
-    compare_stack(stack=args.stack, vars=args.vars, parameters=args.parameters, tags=args.tags)
+    compare_stack(stack=args.stack, vars=collect_vars(args), parameters=args.parameters, tags=args.tags)
 
 
 @requires_stack
@@ -488,7 +502,7 @@ def change(args):
     from .change_set import ChangeSet
     from .loader import Loader
     client = cloudformation_client()
-    loader = Loader(variables=args.vars)
+    loader = Loader(variables=collect_vars(args))
     loader.load()
 
     change_set = ChangeSet(stack=args.stack, client=client)
@@ -551,7 +565,7 @@ def new(args):
     from .change_set import ChangeSet
     from .loader import Loader
     client = cloudformation_client()
-    loader = Loader(variables=args.vars)
+    loader = Loader(variables=collect_vars(args))
     loader.load()
     logger.info('Creating change set for new stack, ...')
     change_set = ChangeSet(stack=args.stack, client=client)

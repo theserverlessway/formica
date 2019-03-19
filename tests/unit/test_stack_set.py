@@ -394,7 +394,7 @@ def test_main_account_only_deployment(client, logger, loader):
 def test_diff_cli_call(template, mocker, client, session):
     diff = mocker.patch('formica.diff.compare_stack_set')
     cli.main(['stack-set', 'diff', '--stack-set', STACK])
-    diff.assert_called_with(stack=STACK, parameters={}, vars=None, tags={})
+    diff.assert_called_with(stack=STACK, parameters={}, vars={}, tags={})
 
 
 def test_diff_cli_call_with_vars(template, mocker, client, session):
