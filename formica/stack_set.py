@@ -1,4 +1,5 @@
-from formica.aws import AWS
+from .aws import AWS
+from .helper import collect_vars
 import logging
 import sys
 import json
@@ -75,31 +76,31 @@ def remove_stack_set_instances(args):
 @requires_stack_set
 def diff_stack_set(args):
     from .diff import compare_stack_set
-    compare_stack_set(stack=args.stack_set, vars=args.vars, parameters=args.parameters, tags=args.tags)
+    compare_stack_set(stack=args.stack_set, vars=collect_vars(args), parameters=args.parameters, tags=args.tags)
 
 
 def accounts(args):
     if (type(args) != dict):
         args = vars(args)
-    if (args.get('accounts')):
+    if args.get('accounts'):
         return [str(a) for a in args['accounts']]
-    elif (args['all_subaccounts']):
+    elif args['main_account']:
+        return [main_account_id()]
+    elif args['all_subaccounts']:
         current_account = AWS.current_session().client('sts').get_caller_identity()['Account']
         return [a for a in all_accounts() if a != current_account]
-    elif (args['all_accounts']):
+    elif args['all_accounts']:
         return all_accounts()
-    elif (args['main_account']):
-        return [main_account_id()]
 
 
 def regions(args):
-    if (vars(args).get('regions')):
+    if vars(args).get('regions'):
         return vars(args)['regions']
-    elif (args.all_regions):
-        return all_regions()
-    elif (args.excluded_regions):
+    elif args.excluded_regions:
         excluded_regions = [r for r in all_regions() if r not in args.excluded_regions]
         return excluded_regions
+    elif args.all_regions:
+        return all_regions()
 
 
 def all_accounts():
@@ -145,7 +146,7 @@ def __manage_stack_set(args, create):
         # Necessary for python 2.7 as it can't merge dicts with **
         params.update(preferences)
 
-    loader = Loader(variables=args.vars)
+    loader = Loader(variables=collect_vars(args))
     loader.load()
     template = loader.template()
     if main_account:

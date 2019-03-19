@@ -349,7 +349,7 @@ def test_remove_stack_set(client, loader):
         StackSetName=STACK
     )
 
-def test_excluded_regions(client, logger, loader):
+def test_excluded_regions_with_preference(client, logger, loader):
     client.update_stack_set.return_value = {'OperationId': '12345'}
     client.list_accounts.return_value = ACCOUNTS
     client.describe_regions.return_value = EC2_REGIONS
@@ -359,7 +359,8 @@ def test_excluded_regions(client, logger, loader):
         '--stack-set', STACK,
         '--all-accounts',
         '--excluded-regions',
-        'us-west-1'
+        'us-west-1',
+        '--all-regions'
     ])
 
     client.update_stack_set.assert_called_with(
@@ -369,7 +370,7 @@ def test_excluded_regions(client, logger, loader):
         Regions=['us-west-2']
     )
 
-def test_main_account_only_deployment(client, logger, loader):
+def test_main_account_only_deployment_with_preference(client, logger, loader):
     client.update_stack_set.return_value = {'OperationId': '12345'}
     client.list_accounts.return_value = ACCOUNTS
     client.describe_regions.return_value = EC2_REGIONS
@@ -380,6 +381,7 @@ def test_main_account_only_deployment(client, logger, loader):
         'update',
         '--stack-set', STACK,
         '--main-account',
+        '--all-accounts',
         '--excluded-regions',
         'us-west-1'
     ])
@@ -394,7 +396,7 @@ def test_main_account_only_deployment(client, logger, loader):
 def test_diff_cli_call(template, mocker, client, session):
     diff = mocker.patch('formica.diff.compare_stack_set')
     cli.main(['stack-set', 'diff', '--stack-set', STACK])
-    diff.assert_called_with(stack=STACK, parameters={}, vars=None, tags={})
+    diff.assert_called_with(stack=STACK, parameters={}, vars={}, tags={})
 
 
 def test_diff_cli_call_with_vars(template, mocker, client, session):
