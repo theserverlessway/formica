@@ -47,22 +47,22 @@ def compare_stack(stack, vars=None, parameters={}, tags={}):
     __compare(template, stack, vars, parameters, tags)
 
 
-def compare_stack_set(stack, vars=None, parameters={}, tags={}):
+def compare_stack_set(stack, vars=None, parameters={}, tags={}, main_account_parameter=False):
     client = AWS.current_session().client('cloudformation')
 
     stack_set = client.describe_stack_set(
         StackSetName=stack,
     )['StackSet']
-    __compare(stack_set['TemplateBody'], stack_set, vars, parameters, tags)
+    __compare(stack_set['TemplateBody'], stack_set, vars, parameters, tags, main_account_parameter)
 
 
-def __compare(template, stack, vars=None, parameters={}, tags={}):
+def __compare(template, stack, vars=None, parameters={}, tags={}, main_account_parameter=False):
     current_parameters = {p['ParameterKey']: p['ParameterValue'] for p in (stack.get('Parameters', []))}
     parameters = {key: str(value) for key, value in parameters.items()}
     tags = {key: str(value) for key, value in tags.items()}
     current_tags = {p['Key']: p['Value'] for p in (stack.get('Tags', []))}
 
-    loader = Loader(variables=vars)
+    loader = Loader(variables=vars, main_account_parameter=main_account_parameter)
     loader.load()
     deployed_template = convert(template)
     template_parameters = {

@@ -12,16 +12,35 @@ def collect_vars(args):
 
 
 def accounts_and_regions():
+    acc = aws_accounts()
+    acc.update(aws_regions())
+    return acc
+
+
+def aws_regions():
+    from formica.aws import AWS
+    current_session = AWS.current_session()
+    ec2 = current_session.client('ec2')
+    regions = ec2.describe_regions()
+    regions = [r['RegionName'] for r in regions['Regions']]
+    return {'AWSRegions': regions}
+
+
+def aws_accounts():
     from formica.aws import AWS
     current_session = AWS.current_session()
     organizations = current_session.client('organizations')
-    ec2 = current_session.client('ec2')
     sts = current_session.client('sts')
     orgs = organizations.list_accounts()
-    regions = ec2.describe_regions()
     accounts = [{'Id': a['Id'], 'Name': a['Name'], 'Email': a['Email']} for a in orgs['Accounts'] if
                 a['Status'] == 'ACTIVE']
-    regions = [r['RegionName'] for r in regions['Regions']]
     account_id = sts.get_caller_identity()['Account']
-    return {'AWSAccounts': accounts, 'AWSRegions': regions,
+    return {'AWSAccounts': accounts,
             'AWSSubAccounts': [a for a in accounts if a['Id'] != account_id]}
+
+
+def main_account_id():
+    from formica.aws import AWS
+    sts = AWS.current_session().client('sts')
+    identity = sts.get_caller_identity()
+    return identity['Account']
