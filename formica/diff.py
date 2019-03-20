@@ -84,6 +84,7 @@ def __generate_table(header, current, new):
                        report_repetition=True,
                        verbose_level=2, view='tree')
     table = Texttable(max_width=200)
+    table.set_cols_dtype(['t', 't', 't', 't'])
     table.add_rows([['Path', 'From', 'To', 'Change Type']])
     print_diff = False
     processed_changes = __collect_changes(changes)
