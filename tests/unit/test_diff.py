@@ -119,6 +119,15 @@ def test_request_returns_string(loader, client, caplog):
     check_no_echo(caplog, ['1234'])
 
 
+def test_long_numbers(loader, client, caplog):
+    id1 = '987497529474523452345234'
+    id2 = '235462563563456345634563'
+    loader_return(loader, {'Resources': id1})
+    client.get_template.return_value = {'TemplateBody': yaml.dump({'Resources': id2})}
+    compare_stack(STACK)
+    check_echo(caplog, [id1, id2])
+
+
 def test_diff_cli_with_vars(template, mocker):
     diff = mocker.patch('formica.diff.compare_stack')
     cli.main(['diff', '--stack', STACK, '--vars', 'V=1', '--parameters', 'P=2', '--tags', 'T=3'])

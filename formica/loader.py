@@ -12,6 +12,7 @@ import arrow
 from .exceptions import FormicaArgumentException
 
 from . import yaml_tags
+from .helper import main_account_id
 
 # To silence pyflakes warning of unused import
 assert yaml_tags
@@ -64,7 +65,7 @@ def novalue(variable):
 
 
 class Loader(object):
-    def __init__(self, path='.', filename='*', variables=None):
+    def __init__(self, path='.', filename='*', variables=None, main_account_parameter=False):
         if variables is None:
             variables = {}
         self.cftemplate = {}
@@ -78,6 +79,7 @@ class Loader(object):
             'novalue': novalue
         })
         self.variables = variables
+        self.main_account_parameter = main_account_parameter
 
     def include_file(self, filename, **args):
         source = self.render(filename, **args)
@@ -193,3 +195,7 @@ class Loader(object):
                 logger.info('---------------------------------------------------------------------------')
                 sys.exit(1)
             self.merge(template, file)
+
+        if self.main_account_parameter:
+            self.cftemplate['Parameters'] = self.cftemplate.get('Parameters') or {}
+            self.cftemplate['Parameters']['MainAccount'] = {'Type': 'String', 'Default': main_account_id()}

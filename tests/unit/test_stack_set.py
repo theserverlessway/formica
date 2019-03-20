@@ -6,6 +6,8 @@ from formica import cli, stack_set
 from tests.unit.constants import STACK, CLOUDFORMATION_PARAMETERS, CLOUDFORMATION_TAGS
 from tests.unit.constants import TEMPLATE, EC2_REGIONS, ACCOUNTS, ACCOUNT_ID
 
+from path import Path
+
 
 @pytest.fixture
 def logger(mocker):
@@ -36,6 +38,10 @@ def template(client, mocker):
     template = mocker.Mock()
     client.describe_stack_set.return_value = {'StackSet': {'TemplateBody': template}}
     return template
+
+
+def dump_template(template):
+    return json.dumps(template, indent=None, sort_keys=True, separators=(',', ':'))
 
 
 def test_create_stack_set(client, logger, loader):
@@ -90,46 +96,47 @@ def test_create_stack_set_without_arguments(client, logger, loader):
     )
 
 
-def test_create_stack_set_with_main_account(session, client, logger, mocker):
-    mock = mocker.patch('formica.loader.Loader')
-    mock.return_value.template_dictionary.return_value = {}
+def test_create_stack_set_with_main_account(session, client, logger, tmpdir):
     accountid = str(uuid4())
     client.get_caller_identity.return_value = {'Account': accountid}
-    cli.main([
-        'stack-set',
-        'create',
-        '--stack-set', STACK,
-        '--main-account-parameter'
-    ])
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write('')
+        cli.main([
+            'stack-set',
+            'create',
+            '--stack-set', STACK,
+            '--main-account-parameter'
+        ])
 
     session.return_value.client.assert_called_with('sts')
 
     client.create_stack_set.assert_called_with(
         StackSetName=STACK,
-        TemplateBody=json.dumps({'Parameters': {'MainAccount': {'Type': 'String'}}}),
-        Parameters=[{'ParameterKey': 'MainAccount', 'ParameterValue': accountid, 'UsePreviousValue': False}]
+        TemplateBody=dump_template({'Parameters': {'MainAccount': {'Type': 'String', 'Default': accountid}}})
     )
 
 
-def test_create_stack_set_with_main_account_and_existing_parameters(session, client, logger, mocker):
-    mock = mocker.patch('formica.loader.Loader')
-    mock.return_value.template_dictionary.return_value = {'Parameters': {'SomeParam': {'Type': 'String'}}}
+def test_create_stack_set_with_main_account_and_existing_parameters(session, client, logger, tmpdir):
     accountid = str(uuid4())
     client.get_caller_identity.return_value = {'Account': accountid}
-    cli.main([
-        'stack-set',
-        'create',
-        '--stack-set', STACK,
-        '--main-account-parameter',
-        '--parameters', 'A=B'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Parameters': {'SomeParam': {'Type': 'String'}}}))
+        cli.main([
+            'stack-set',
+            'create',
+            '--stack-set', STACK,
+            '--main-account-parameter',
+            '--parameters', 'A=B'
 
-    ])
+        ])
 
     client.create_stack_set.assert_called_with(
         StackSetName=STACK,
-        TemplateBody=json.dumps({'Parameters': {'SomeParam': {'Type': 'String'}, 'MainAccount': {'Type': 'String'}}}),
-        Parameters=[{'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False}, {
-            'ParameterKey': 'MainAccount', 'ParameterValue': accountid, 'UsePreviousValue': False}]
+        TemplateBody=dump_template(
+            {'Parameters': {'SomeParam': {'Type': 'String'}, 'MainAccount': {'Type': 'String', 'Default': accountid}}}),
+        Parameters=[{'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False}]
     )
 
 
@@ -170,30 +177,32 @@ def test_update_stack_set(client, loader):
     )
 
 
-def test_update_stack_set_with_main_account(session, client, logger, mocker):
+def test_update_stack_set_with_main_account(session, client, logger, mocker, tmpdir):
     client.update_stack_set.return_value = {'OperationId': '12345'}
-    mock = mocker.patch('formica.loader.Loader')
-    mock.return_value.template_dictionary.return_value = {}
     accountid = str(uuid4())
     client.get_caller_identity.return_value = {'Account': accountid}
-    cli.main([
-        'stack-set',
-        'update',
-        '--stack-set', STACK,
-        '--main-account-parameter'
-    ])
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write('')
+        cli.main([
+            'stack-set',
+            'update',
+            '--stack-set', STACK,
+            '--main-account-parameter'
+        ])
 
-    session.return_value.client.assert_called_with('sts')
+    session.return_value.client.assert_any_call('sts')
+    session.return_value.client.assert_any_call('cloudformation')
 
     client.update_stack_set.assert_called_with(
         StackSetName=STACK,
-        TemplateBody=json.dumps({'Parameters': {'MainAccount': {'Type': 'String'}}}),
-        Parameters=[{'ParameterKey': 'MainAccount', 'ParameterValue': accountid, 'UsePreviousValue': False}]
+        TemplateBody=dump_template({'Parameters': {'MainAccount': {'Type': 'String', 'Default': accountid}}})
     )
 
 
 def test_update_stack_set_with_all_regions_and_accounts(client, logger, loader):
     client.update_stack_set.return_value = {'OperationId': '12345'}
+    client.get_caller_identity.return_value = {'Account': '5678'}
     client.list_accounts.return_value = ACCOUNTS
     client.describe_regions.return_value = EC2_REGIONS
     cli.main([
@@ -349,8 +358,10 @@ def test_remove_stack_set(client, loader):
         StackSetName=STACK
     )
 
+
 def test_excluded_regions_with_preference(client, logger, loader):
     client.update_stack_set.return_value = {'OperationId': '12345'}
+    client.get_caller_identity.return_value = {'Account': '5678'}
     client.list_accounts.return_value = ACCOUNTS
     client.describe_regions.return_value = EC2_REGIONS
     cli.main([
@@ -369,6 +380,7 @@ def test_excluded_regions_with_preference(client, logger, loader):
         Accounts=['1234', '5678'],
         Regions=['us-west-2']
     )
+
 
 def test_main_account_only_deployment_with_preference(client, logger, loader):
     client.update_stack_set.return_value = {'OperationId': '12345'}
@@ -393,13 +405,15 @@ def test_main_account_only_deployment_with_preference(client, logger, loader):
         Regions=['us-west-2']
     )
 
+
 def test_diff_cli_call(template, mocker, client, session):
     diff = mocker.patch('formica.diff.compare_stack_set')
-    cli.main(['stack-set', 'diff', '--stack-set', STACK])
-    diff.assert_called_with(stack=STACK, parameters={}, vars={}, tags={})
+    cli.main(['stack-set', 'diff', '--stack-set', STACK, '--main-account-parameter'])
+    diff.assert_called_with(stack=STACK, parameters={}, vars={}, tags={}, main_account_parameter=True)
 
 
 def test_diff_cli_call_with_vars(template, mocker, client, session):
     diff = mocker.patch('formica.diff.compare_stack_set')
     cli.main(['stack-set', 'diff', '--stack', STACK, '--vars', 'V=1', '--parameters', 'P=2', '--tags', 'T=3'])
-    diff.assert_called_with(stack=STACK, vars={'V': '1'}, parameters={'P': '2'}, tags={'T': '3'})
+    diff.assert_called_with(stack=STACK, vars={'V': '1'}, parameters={'P': '2'}, tags={'T': '3'},
+                            main_account_parameter=False)

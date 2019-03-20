@@ -1,8 +1,8 @@
-from .aws import AWS
-from .helper import collect_vars
 import logging
 import sys
-import json
+
+from .aws import AWS
+from .helper import collect_vars, main_account_id, aws_accounts, aws_regions
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,8 @@ def remove_stack_set_instances(args):
 @requires_stack_set
 def diff_stack_set(args):
     from .diff import compare_stack_set
-    compare_stack_set(stack=args.stack_set, vars=collect_vars(args), parameters=args.parameters, tags=args.tags)
+    compare_stack_set(stack=args.stack_set, vars=collect_vars(args), parameters=args.parameters, tags=args.tags,
+                      main_account_parameter=args.main_account_parameter)
 
 
 def accounts(args):
@@ -87,46 +88,25 @@ def accounts(args):
     elif args['main_account']:
         return [main_account_id()]
     elif args['all_subaccounts']:
-        current_account = AWS.current_session().client('sts').get_caller_identity()['Account']
-        return [a for a in all_accounts() if a != current_account]
+        return [a['Id'] for a in aws_accounts()['AWSSubAccounts']]
     elif args['all_accounts']:
-        return all_accounts()
+        return [a['Id'] for a in aws_accounts()['AWSAccounts']]
 
 
 def regions(args):
     if vars(args).get('regions'):
         return vars(args)['regions']
     elif args.excluded_regions:
-        excluded_regions = [r for r in all_regions() if r not in args.excluded_regions]
+        excluded_regions = [r for r in aws_regions()['AWSRegions'] if r not in args.excluded_regions]
         return excluded_regions
     elif args.all_regions:
-        return all_regions()
-
-
-def all_accounts():
-    orgs = AWS.current_session().client('organizations')
-    return [acc['Id'] for acc in orgs.list_accounts()['Accounts'] if acc['Status'] == 'ACTIVE']
-
-
-def all_regions():
-    ec2 = AWS.current_session().client('ec2')
-    return [r['RegionName'] for r in ec2.describe_regions()['Regions']]
-
-
-def main_account_id():
-    sts = AWS.current_session().client('sts')
-    identity = sts.get_caller_identity()
-    return identity['Account']
+        return aws_regions()['AWSRegions']
 
 
 def __manage_stack_set(args, create):
     from .loader import Loader
     client = AWS.current_session().client('cloudformation')
     params = args.parameters or {}
-    main_account = args.main_account_parameter
-    if main_account:
-        params['MainAccount'] = main_account_id()
-
     account_regions = {}
     if not create:
         account_regions = dict(
@@ -146,14 +126,9 @@ def __manage_stack_set(args, create):
         # Necessary for python 2.7 as it can't merge dicts with **
         params.update(preferences)
 
-    loader = Loader(variables=collect_vars(args))
+    loader = Loader(variables=collect_vars(args), main_account_parameter=args.main_account_parameter)
     loader.load()
-    template = loader.template()
-    if main_account:
-        template = loader.template_dictionary()
-        template['Parameters'] = template.get('Parameters') or {}
-        template['Parameters']['MainAccount'] = {'Type': 'String'}
-        template = json.dumps(template)
+    template = loader.template(indent=None)
 
     if create:
         result = client.create_stack_set(

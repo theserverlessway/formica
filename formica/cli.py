@@ -312,6 +312,7 @@ def stack_set_parser(parser):
     add_stack_tags_argument(diff_parser)
     add_stack_variables_argument(diff_parser)
     add_organization_account_template_variables(diff_parser)
+    add_stack_set_main_account_parameter(diff_parser)
     diff_parser.set_defaults(func=stack_set.diff_stack_set)
 
 
