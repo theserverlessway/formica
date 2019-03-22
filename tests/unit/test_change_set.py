@@ -97,8 +97,8 @@ def test_submits_changeset_with_stack_tags():
     change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, tags=CHANGE_SET_STACK_TAGS)
 
     Tags = [
-        {'Key': 'A', 'Value': 'B'},
-        {'Key': 'B', 'Value': 'C'}
+        {'Key': 'T1', 'Value': 'TV1'},
+        {'Key': 'T2', 'Value': 'TV2'}
     ]
     cf_client_mock.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
