@@ -270,6 +270,7 @@ def stack_set_parser(parser):
     add_stack_set_main_auto_regions_accounts(update_parser)
     add_stack_set_operation_preferences(update_parser)
     add_organization_account_template_variables(update_parser)
+    add_yes_parameter(update_parser)
     update_parser.set_defaults(func=stack_set.update_stack_set)
 
     # Remove
@@ -428,6 +429,10 @@ def add_s3_upload_argument(parser):
 
 def add_resource_types(parser):
     parser.add_argument('--resource-types', help='Add Resource Types to the ChangeSet', action='store_true')
+
+
+def add_yes_parameter(parser):
+    parser.add_argument('--yes', '-y', help='Answer all input questions with yes', action='store_true')
 
 
 def template(args):

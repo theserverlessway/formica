@@ -10,18 +10,19 @@ STACK_ID = 'my-stack-id'
 TEMPLATE = 'MYTEMPLATE'
 RESOURCES = ['AWS::S3::Bucket', 'AWS::S3::Bucket', 'AWS::IAM::Role', 'AWS::DynamoDB::Table']
 ACCOUNT_ID = '1234567890'
+OPERATION_ID=str(uuid.uuid4())
 ROLE_ARN = 'arn:aws:iam::1234567890:role/some-stack-role'
 CHANGESETNAME = '{}-change-set'.format(STACK)
 CHANGE_SET_TYPE = 'WHATEVER'
 CHANGE_SET_PARAMETERS = {'A': 'B', 'B': 2, 'C': True}
 CLOUDFORMATION_PARAMETERS = [
-    {'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False},
-    {'ParameterKey': 'B', 'ParameterValue': 'C', 'UsePreviousValue': False}
+    {'ParameterKey': 'P1', 'ParameterValue': 'PV1', 'UsePreviousValue': False},
+    {'ParameterKey': 'P2', 'ParameterValue': 'PV2', 'UsePreviousValue': False}
 ]
-CHANGE_SET_STACK_TAGS = {'A': 'B', 'B': 'C'}
+CHANGE_SET_STACK_TAGS = {'T1': 'TV1', 'T2': 'TV2'}
 CLOUDFORMATION_TAGS = [
-    {'Key': 'A', 'Value': 'B'},
-    {'Key': 'B', 'Value': 'C'}
+    {'Key': 'T1', 'Value': 'TV1'},
+    {'Key': 'T2', 'Value': 'TV2'}
 ]
 CHANGE_SET_CAPABILITIES = ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM']
 VARS = {'SomeVar': 'value', 'OtherVar': 2}

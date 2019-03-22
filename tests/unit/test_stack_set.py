@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from formica import cli, stack_set
 from tests.unit.constants import STACK, CLOUDFORMATION_PARAMETERS, CLOUDFORMATION_TAGS
-from tests.unit.constants import TEMPLATE, EC2_REGIONS, ACCOUNTS, ACCOUNT_ID
+from tests.unit.constants import TEMPLATE, EC2_REGIONS, ACCOUNTS, ACCOUNT_ID, OPERATION_ID
 
 from path import Path
 
@@ -23,6 +23,9 @@ def session(mocker):
 def client(session, mocker):
     client_mock = mocker.Mock()
     session.return_value.client.return_value = client_mock
+    client_mock.create_stack_instances.return_value = {'OperationId': OPERATION_ID}
+    client_mock.delete_stack_instances.return_value = {'OperationId': OPERATION_ID}
+    client_mock.update_stack_set.return_value = {'OperationId': OPERATION_ID}
     return client_mock
 
 
@@ -40,6 +43,28 @@ def template(client, mocker):
     return template
 
 
+@pytest.fixture
+def compare(mocker):
+    return mocker.patch('formica.stack_set.compare_stack_set')
+
+
+@pytest.fixture
+def input(mocker):
+    input_mock = mocker.patch('formica.stack_set.input')
+    input_mock.return_value = 'yes'
+    return input_mock
+
+
+@pytest.fixture
+def time(mocker):
+    return mocker.patch('formica.stack_set.time')
+
+
+@pytest.fixture
+def wait(mocker):
+    return mocker.patch('formica.stack_set.wait_for_stack_set_operation')
+
+
 def dump_template(template):
     return json.dumps(template, indent=None, sort_keys=True, separators=(',', ':'))
 
@@ -49,8 +74,8 @@ def test_create_stack_set(client, logger, loader):
         'stack-set',
         'create',
         '--stack-set', STACK,
-        '--parameters', 'A=B', 'B=C',
-        '--tags', 'A=B', 'B=C',
+        '--parameters', 'P1=PV1', 'P2=PV2',
+        '--tags', 'T1=TV1', 'T2=TV2',
         '--capabilities', 'CAPABILITY_IAM',
         '--execution-role-name', 'ExecutionRole',
         '--administration-role-arn', 'AdministrationRole',
@@ -140,15 +165,16 @@ def test_create_stack_set_with_main_account_and_existing_parameters(session, cli
     )
 
 
-def test_update_stack_set(client, loader):
-    client.update_stack_set.return_value = {'OperationId': '12345'}
+def test_update_stack_set_with_compare_check(client, loader, input, compare, wait):
+    client.describe_stack_set_operation.return_value = {'StackSetOperation': {'Status': 'SUCCEEDED'}}
 
     cli.main([
         'stack-set',
         'update',
         '--stack-set', STACK,
-        '--parameters', 'A=B', 'B=C',
-        '--tags', 'A=B', 'B=C',
+        '--parameters', 'P1=PV1', 'P2=PV2',
+        '--tags', 'T1=TV1', 'T2=TV2',
+        '--vars', 'V1=VV1',
         '--capabilities', 'CAPABILITY_IAM',
         '--execution-role-name', 'ExecutionRole',
         '--administration-role-arn', 'AdministrationRole',
@@ -176,8 +202,29 @@ def test_update_stack_set(client, loader):
         }
     )
 
+    input.assert_called_once()
+    wait.assert_called_with(STACK, OPERATION_ID)
 
-def test_update_stack_set_with_main_account(session, client, logger, mocker, tmpdir):
+
+def test_update_stack_set_yes_ignores_input(client, loader, input, compare, wait):
+    client.describe_stack_set_operation.return_value = {'StackSetOperation': {'Status': 'SUCCEEDED'}}
+
+    cli.main([
+        'stack-set',
+        'update',
+        '--stack-set', STACK,
+        '--yes'
+    ])
+
+    client.update_stack_set.assert_called_with(
+        StackSetName=STACK,
+        TemplateBody=TEMPLATE
+    )
+
+    input.assert_not_called()
+
+
+def test_update_stack_set_with_main_account(session, client, logger, tmpdir, input, compare, wait):
     client.update_stack_set.return_value = {'OperationId': '12345'}
     accountid = str(uuid4())
     client.get_caller_identity.return_value = {'Account': accountid}
@@ -200,8 +247,7 @@ def test_update_stack_set_with_main_account(session, client, logger, mocker, tmp
     )
 
 
-def test_update_stack_set_with_all_regions_and_accounts(client, logger, loader):
-    client.update_stack_set.return_value = {'OperationId': '12345'}
+def test_update_stack_set_with_all_regions_and_accounts(client, logger, loader, input, compare, wait):
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.list_accounts.return_value = ACCOUNTS
     client.describe_regions.return_value = EC2_REGIONS
@@ -221,7 +267,7 @@ def test_update_stack_set_with_all_regions_and_accounts(client, logger, loader):
     )
 
 
-def test_update_stack_set_with_all_subaccounts(client, logger, loader):
+def test_update_stack_set_with_all_subaccounts(client, logger, loader, input, compare, wait):
     client.update_stack_set.return_value = {'OperationId': '12345'}
     client.list_accounts.return_value = ACCOUNTS
     client.get_caller_identity.return_value = {'Account': '5678'}
@@ -240,7 +286,7 @@ def test_update_stack_set_with_all_subaccounts(client, logger, loader):
     )
 
 
-def test_add_stack_set_instances(client, loader):
+def test_add_stack_set_instances(client, loader, wait):
     cli.main([
         'stack-set',
         'add-instances',
@@ -255,12 +301,14 @@ def test_add_stack_set_instances(client, loader):
         Regions=['eu-central-1', 'eu-west-1']
     )
 
+    wait.assert_called_with(STACK, OPERATION_ID)
+
 
 def test_stack_set_accounts_converts_to_string():
     assert stack_set.accounts({'accounts': ['123', 12345, 54321]}) == ['123', '12345', '54321']
 
 
-def test_add_all_stack_set_instances(client, loader):
+def test_add_all_stack_set_instances(client, loader, wait):
     client.list_accounts.return_value = ACCOUNTS
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.describe_regions.return_value = EC2_REGIONS
@@ -279,7 +327,7 @@ def test_add_all_stack_set_instances(client, loader):
     )
 
 
-def test_add_stack_set_instances_with_operation_preferences(client, loader):
+def test_add_stack_set_instances_with_operation_preferences(client, loader, wait):
     cli.main([
         'stack-set',
         'add-instances',
@@ -301,7 +349,7 @@ def test_add_stack_set_instances_with_operation_preferences(client, loader):
     )
 
 
-def test_remove_stack_set_instances(client, loader):
+def test_remove_stack_set_instances(client, loader, wait):
     cli.main([
         'stack-set',
         'remove-instances',
@@ -326,8 +374,10 @@ def test_remove_stack_set_instances(client, loader):
         }
     )
 
+    wait.assert_called_with(STACK, OPERATION_ID)
 
-def test_remove_all_stack_set_instances(client, loader):
+
+def test_remove_all_stack_set_instances(client, loader, wait):
     client.list_accounts.return_value = ACCOUNTS
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.describe_regions.return_value = EC2_REGIONS
@@ -359,7 +409,7 @@ def test_remove_stack_set(client, loader):
     )
 
 
-def test_excluded_regions_with_preference(client, logger, loader):
+def test_excluded_regions_with_preference(client, logger, loader, input, compare, wait):
     client.update_stack_set.return_value = {'OperationId': '12345'}
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.list_accounts.return_value = ACCOUNTS
@@ -382,7 +432,7 @@ def test_excluded_regions_with_preference(client, logger, loader):
     )
 
 
-def test_main_account_only_deployment_with_preference(client, logger, loader):
+def test_main_account_only_deployment_with_preference(client, logger, loader, compare, input, wait):
     client.update_stack_set.return_value = {'OperationId': '12345'}
     client.list_accounts.return_value = ACCOUNTS
     client.describe_regions.return_value = EC2_REGIONS
@@ -417,3 +467,44 @@ def test_diff_cli_call_with_vars(template, mocker, client, session):
     cli.main(['stack-set', 'diff', '--stack', STACK, '--vars', 'V=1', '--parameters', 'P=2', '--tags', 'T=3'])
     diff.assert_called_with(stack=STACK, vars={'V': '1'}, parameters={'P': '2'}, tags={'T': '3'},
                             main_account_parameter=False)
+
+
+def test_stack_set_waiter(client, loader, compare, time):
+    client.describe_stack_set_operation.side_effect = [{'StackSetOperation': {'Status': state}} for state in
+                                                       ['RUNNING', 'SUCCEEDED']]
+
+    cli.main([
+        'stack-set',
+        'update',
+        '--stack-set', STACK,
+        '--yes'
+    ])
+
+    client.update_stack_set.assert_called_with(
+        StackSetName=STACK,
+        TemplateBody=TEMPLATE
+    )
+
+    time.sleep.assert_called_with(5)
+    assert time.sleep.call_count == 2
+
+
+def test_stack_set_waiter_exits_on_failed_operation(client, loader, input, compare, time):
+    client.describe_stack_set_operation.side_effect = [{'StackSetOperation': {'Status': state}} for state in
+                                                       ['RUNNING', 'FAILED']]
+
+    with pytest.raises(SystemExit, match='1'):
+        cli.main([
+            'stack-set',
+            'update',
+            '--stack-set', STACK,
+            '--yes'
+        ])
+
+    client.update_stack_set.assert_called_with(
+        StackSetName=STACK,
+        TemplateBody=TEMPLATE
+    )
+
+    time.sleep.assert_called_with(5)
+    assert time.sleep.call_count == 2

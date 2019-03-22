@@ -1,10 +1,15 @@
 import logging
 import sys
+import time
 
 from .aws import AWS
 from .helper import collect_vars, main_account_id, aws_accounts, aws_regions
+from .diff import compare_stack_set
 
 logger = logging.getLogger(__name__)
+
+STACK_SET_SUCCESS_STATES = ['SUCCEEDED']
+STACK_SET_RUNNING_STATES = ['RUNNING', 'STOPPING']
 
 
 def requires_stack_set(function):
@@ -33,7 +38,13 @@ def requires_accounts_regions(function):
 
 @requires_stack_set
 def update_stack_set(args):
-    __manage_stack_set(args=args, create=False)
+    compare_stack_set(stack=args.stack_set, vars=collect_vars(args), parameters=args.parameters, tags=args.tags,
+                      main_account_parameter=args.main_account_parameter)
+    if args.yes or input('Do you want to update the StackSet with above changes: [y/yes]: ').lower() in ['y', 'yes']:
+        __manage_stack_set(args=args, create=False)
+    else:
+        logger.info('StackSet Update canceled')
+        sys.exit(1)
 
 
 @requires_stack_set
@@ -53,11 +64,12 @@ def remove_stack_set(args):
 def add_stack_set_instances(args):
     client = AWS.current_session().client('cloudformation')
     preferences = operation_preferences(args)
-    client.create_stack_instances(StackSetName=args.stack_set,
-                                  Accounts=accounts(args),
-                                  Regions=regions(args),
-                                  **preferences)
-    logger.info('Added StackSet Instances for StackSet {}'.format(args.stack_set))
+    result = client.create_stack_instances(StackSetName=args.stack_set,
+                                           Accounts=accounts(args),
+                                           Regions=regions(args),
+                                           **preferences)
+    logger.info('Adding StackSet Instances for StackSet {}'.format(args.stack_set))
+    wait_for_stack_set_operation(args.stack_set, result['OperationId'])
 
 
 @requires_stack_set
@@ -65,12 +77,13 @@ def add_stack_set_instances(args):
 def remove_stack_set_instances(args):
     client = AWS.current_session().client('cloudformation')
     preferences = operation_preferences(args)
-    client.delete_stack_instances(StackSetName=args.stack_set,
-                                  Accounts=accounts(args),
-                                  Regions=regions(args),
-                                  RetainStacks=args.retain,
-                                  **preferences)
-    logger.info('Removed StackSet Instances for StackSet {}'.format(args.stack_set))
+    result = client.delete_stack_instances(StackSetName=args.stack_set,
+                                           Accounts=accounts(args),
+                                           Regions=regions(args),
+                                           RetainStacks=args.retain,
+                                           **preferences)
+    logger.info('Removing StackSet Instances for StackSet {}'.format(args.stack_set))
+    wait_for_stack_set_operation(args.stack_set, result['OperationId'])
 
 
 @requires_stack_set
@@ -78,6 +91,27 @@ def diff_stack_set(args):
     from .diff import compare_stack_set
     compare_stack_set(stack=args.stack_set, vars=collect_vars(args), parameters=args.parameters, tags=args.tags,
                       main_account_parameter=args.main_account_parameter)
+
+
+def wait_for_stack_set_operation(stack_set_name, operation_id):
+    logger.info('Waiting for StackSet Operation {} on StackSet {} to finish'.format(operation_id, stack_set_name))
+    client = AWS.current_session().client('cloudformation')
+    finished = False
+    status = ''
+    while not finished:
+        time.sleep(5)
+        status = client.describe_stack_set_operation(StackSetName=stack_set_name, OperationId=operation_id)[
+            'StackSetOperation']['Status']
+        if status in STACK_SET_RUNNING_STATES:
+            sys.stdout.write('.')
+            sys.stdout.flush()
+        else:
+            finished = True
+            logger.info('')
+
+    logger.info('StackSet Operation finished with Status: {}'.format(status))
+    if status not in STACK_SET_SUCCESS_STATES:
+        sys.exit(1)
 
 
 def accounts(args):
@@ -143,7 +177,7 @@ def __manage_stack_set(args, create):
             TemplateBody=template,
             **params
         )
-        logger.info('StackSet {} updated in Operation {}'.format(args.stack_set, result['OperationId']))
+        wait_for_stack_set_operation(args.stack_set, result['OperationId'])
 
 
 def parameters(parameters, tags, capabilities, execution_role_name, administration_role_arn, accounts=[], regions=[]):
