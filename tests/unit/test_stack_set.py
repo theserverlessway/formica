@@ -486,14 +486,14 @@ def test_stack_set_waiter(client, loader, compare, time):
     )
 
     time.sleep.assert_called_with(5)
-    assert time.sleep.call_count == 3
+    assert time.sleep.call_count == 2
 
 
 def test_stack_set_waiter_exits_on_failed_operation(client, loader, input, compare, time):
     client.describe_stack_set_operation.side_effect = [{'StackSetOperation': {'Status': state}} for state in
                                                        ['RUNNING', 'FAILED']]
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit, match='1'):
         cli.main([
             'stack-set',
             'update',
