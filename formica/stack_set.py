@@ -180,7 +180,6 @@ def __manage_stack_set(args, create):
         wait_for_stack_set_operation(args.stack_set, result['OperationId'])
 
 
-
 def parameters(parameters, tags, capabilities, execution_role_name, administration_role_arn, accounts=[], regions=[]):
     optional_arguments = {}
     if parameters:
