@@ -15,6 +15,7 @@ if isfile(path):
 
 setup(
     name='formica-cli',
+    python_requires=">=3.3",
     version=__version__,
     description='Simple AWS CloudFormation stack management tooling.',
     long_description=long_description,
@@ -28,9 +29,6 @@ setup(
         'License :: Public Domain',
         'Natural Language :: English',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
