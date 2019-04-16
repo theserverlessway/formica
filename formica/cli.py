@@ -29,6 +29,7 @@ CONFIG_FILE_ARGUMENTS = {
     'profile': str,
     'capabilities': list,
     'vars': dict,
+    'timeout': int,
     'administration_role_arn': str,
     'administration_role_name': str,
     'execution_role_name': str,
@@ -133,6 +134,7 @@ def main(cli_args):
     add_aws_arguments(deploy_parser)
     add_stack_argument(deploy_parser)
     add_config_file_argument(deploy_parser)
+    add_timeout_parameter(deploy_parser)
     deploy_parser.set_defaults(func=deploy)
 
     # Cancel Command Arguments
@@ -437,6 +439,10 @@ def add_yes_parameter(parser):
     parser.add_argument('--yes', '-y', help='Answer all input questions with yes', action='store_true')
 
 
+def add_timeout_parameter(parser):
+    parser.add_argument('--timeout', help='Set the Timeout in minutes before the Update is canceled', type=int)
+
+
 def template(args):
     from .loader import Loader
     import yaml
@@ -532,7 +538,10 @@ def wait_for_stack(function):
         stack_id = client.describe_stacks(StackName=args.stack)['Stacks'][0]['StackId']
         last_event = client.describe_stack_events(StackName=args.stack)['StackEvents'][0]['EventId']
         function(args, client)
-        StackWaiter(stack_id, client).wait(last_event)
+        options = {}
+        if vars(args).get('timeout'):
+            options['timeout'] = args.timeout
+        StackWaiter(stack_id, client, **options).wait(last_event)
 
     return stack_wait_handler
 
@@ -540,7 +549,7 @@ def wait_for_stack(function):
 @requires_stack
 @wait_for_stack
 def deploy(args, client):
-    logger.info('Deploying StackSet to {}'.format(args.stack))
+    logger.info('Deploying Stack to {}'.format(args.stack))
     client.execute_change_set(ChangeSetName=(CHANGE_SET_FORMAT.format(stack=args.stack)), StackName=args.stack)
 
 

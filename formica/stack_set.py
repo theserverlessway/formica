@@ -94,12 +94,11 @@ def add_stack_set_instances(args):
         account_to_region = {a: set([i['Region'] for i in new_instances if i['Account'] == a]) for a in new_accounts}
 
         if len(new_instances) == len(expected_instances) or len(new_accounts) == 1 or len(new_regions) == 1:
-            print('adding all')
             targets = [(new_accounts, new_regions)]
         else:
-            targets = [([i['Account'] for i in new_instances if i['Region'] == region], [region]) for region in new_regions]
+            targets = [([i['Account'] for i in new_instances if i['Region'] == region], [region]) for region in
+                       new_regions]
 
-        print(targets)
         logger.info('Adding new StackSet Instances:')
         accounts_table(account_to_region)
         if args.yes or ack('Do you want to add these StackSet Instances:'):
