@@ -56,3 +56,14 @@ def test_executes_change_set_and_waits(session, stack_waiter):
     cf_client_mock.execute_change_set.assert_called_with(ChangeSetName=CHANGESETNAME, StackName=STACK)
     stack_waiter.assert_called_with(STACK_ID, cf_client_mock)
     stack_waiter.return_value.wait.assert_called_with(EVENT_ID)
+
+
+def test_executes_change_set_with_timeout(session, stack_waiter):
+    cf_client_mock = Mock()
+    session.return_value.client.return_value = cf_client_mock
+    cf_client_mock.describe_stack_events.return_value = {'StackEvents': [{'EventId': EVENT_ID}]}
+    cf_client_mock.describe_stacks.return_value = {'Stacks': [{'StackId': STACK_ID}]}
+
+    cli.main(['deploy', '--stack', STACK, '--profile', PROFILE, '--region', REGION, '--timeout', '15'])
+    stack_waiter.assert_called_with(STACK_ID, cf_client_mock, timeout=15)
+    stack_waiter.return_value.wait.assert_called_with(EVENT_ID)

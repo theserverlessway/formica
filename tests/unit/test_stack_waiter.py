@@ -1,5 +1,6 @@
 import pytest
 from mock import Mock
+from datetime import datetime, timedelta
 
 from formica.stack_waiter import StackWaiter, EVENT_TABLE_HEADERS
 from tests.unit.constants import STACK, STACK_EVENTS
@@ -9,6 +10,9 @@ from tests.unit.constants import STACK, STACK_EVENTS
 def time(mocker):
     return mocker.patch('formica.stack_waiter.time')
 
+@pytest.fixture
+def datetime_mock(mocker):
+    return mocker.patch('formica.stack_waiter.datetime')
 
 @pytest.fixture
 def logger(mocker):
@@ -57,6 +61,23 @@ def test_waits_until_failed_and_raises(cf_client_mock, time, stack_waiter):
     with pytest.raises(SystemExit, match='1'):
         stack_waiter.wait('0')
     assert time.sleep.call_count == 2
+
+
+def test_waits_until_timeout(cf_client_mock, time, datetime_mock):
+    first_timestamp = datetime.now()
+    second_timestamp = datetime.now() + timedelta(0, 50, 0)
+    last_timestamp = datetime.now() + timedelta(0, 61, 0)
+    print(first_timestamp)
+    print(second_timestamp)
+    print(last_timestamp)
+    datetime_mock.now.side_effect = [first_timestamp, second_timestamp, last_timestamp]
+    set_stack_status_returns(cf_client_mock, ['UPDATE_IN_PROGRESS', 'UPDATE_IN_PROGRESS', 'UPDATE_IN_PROGRESS', 'CREATE_FAILED'])
+    set_stack_events(cf_client_mock)
+    stack_waiter = StackWaiter(STACK, cf_client_mock, timeout=1)
+    with pytest.raises(SystemExit, match='1'):
+        stack_waiter.wait('0')
+    assert time.sleep.call_count == 4
+    cf_client_mock.cancel_update_stack.assert_called_with(StackName=STACK)
 
 
 def test_prints_new_events(logger, time, cf_client_mock, stack_waiter):

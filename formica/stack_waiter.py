@@ -1,5 +1,6 @@
 import sys
 import time
+from datetime import datetime
 
 import logging
 from texttable import Texttable
@@ -12,20 +13,24 @@ SUCCESSFUL_STATES = ['CREATE_COMPLETE', 'UPDATE_COMPLETE', 'DELETE_COMPLETE']
 FAILED_STATES = ['CREATE_FAILED', 'DELETE_FAILED', 'ROLLBACK_FAILED', 'ROLLBACK_COMPLETE', 'UPDATE_FAILED',
                  'UPDATE_ROLLBACK_FAILED', 'UPDATE_ROLLBACK_COMPLETE']
 
-
 logger = logging.getLogger(__name__)
+
+SLEEP_TIME = 5
 
 
 class StackWaiter:
-    def __init__(self, stack, client):
+    def __init__(self, stack, client, timeout=0):
         self.stack = stack
         self.client = client
+        self.timeout = timeout
 
     def wait(self, last_event):
         self.print_header()
         finished = False
+        canceled = False
+        start = datetime.now()
         while not finished:
-            time.sleep(5)
+            time.sleep(SLEEP_TIME)
             stack_events = self.client.describe_stack_events(StackName=self.stack)['StackEvents']
             index = next((i for i, v in enumerate(stack_events) if v['EventId'] == last_event))
             last_event = stack_events[0]['EventId']
@@ -39,6 +44,10 @@ class StackWaiter:
             elif stack_status in FAILED_STATES:
                 logger.info("Stack Change Failed: {}".format(stack_status))
                 sys.exit(1)
+            elif not canceled and self.timeout > 0 and (datetime.now() - start).seconds > (self.timeout * 60):
+                logger.info("Timeout of {} minute(s) reached. Canceling Update.".format(self.timeout))
+                canceled = True
+                self.client.cancel_update_stack(StackName=self.stack)
 
     def __create_table(self):
         table = Texttable()
@@ -46,6 +55,8 @@ class StackWaiter:
         return table
 
     def print_header(self):
+        if self.timeout > 0:
+            logger.info('Timeout set to {} minute(s)'.format(self.timeout))
         table = self.__create_table()
         table.add_rows([EVENT_TABLE_HEADERS])
         table.set_deco(Texttable.BORDER | Texttable.VLINES)
