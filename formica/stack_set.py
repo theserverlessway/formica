@@ -5,6 +5,7 @@ import time
 from .aws import AWS
 from .helper import collect_vars, main_account_id, aws_accounts, aws_regions
 from .diff import compare_stack_set
+from texttable import Texttable
 
 logger = logging.getLogger(__name__)
 
@@ -36,11 +37,15 @@ def requires_accounts_regions(function):
     return validate_stack_set
 
 
+def ack(message):
+    return input('{}: [y/yes]: '.format(message)).lower() in ['y', 'yes']
+
+
 @requires_stack_set
 def update_stack_set(args):
     compare_stack_set(stack=args.stack_set, vars=collect_vars(args), parameters=args.parameters, tags=args.tags,
                       main_account_parameter=args.main_account_parameter)
-    if args.yes or input('Do you want to update the StackSet with above changes: [y/yes]: ').lower() in ['y', 'yes']:
+    if args.yes or ack('Do you want to update the StackSet with above changes'):
         __manage_stack_set(args=args, create=False)
     else:
         logger.info('StackSet Update canceled')
@@ -59,17 +64,57 @@ def remove_stack_set(args):
     logger.info('Removed StackSet with name {}'.format(args.stack_set))
 
 
+def accounts_table(accounts_map):
+    table = Texttable(max_width=150)
+    table.set_cols_dtype(['t', 't'])
+    table.add_rows([['Account', 'Regions']])
+
+    for account, regions in accounts_map.items():
+        table.add_row([account, ', '.join(regions)])
+
+    logger.info(table.draw() + "\n")
+
+
 @requires_stack_set
 @requires_accounts_regions
 def add_stack_set_instances(args):
     client = AWS.current_session().client('cloudformation')
-    preferences = operation_preferences(args)
-    result = client.create_stack_instances(StackSetName=args.stack_set,
-                                           Accounts=accounts(args),
-                                           Regions=regions(args),
-                                           **preferences)
-    logger.info('Adding StackSet Instances for StackSet {}'.format(args.stack_set))
-    wait_for_stack_set_operation(args.stack_set, result['OperationId'])
+    paginator = client.get_paginator('list_stack_instances')
+    deployed = [{'Account': stack['Account'], 'Region': stack['Region']} for page in
+                paginator.paginate(StackSetName=args.stack_set) for stack in page['Summaries']]
+
+    expected_instances = [{'Account': account, 'Region': region} for account in accounts(args) for region in
+                          regions(args)]
+
+    new_instances = [i for i in expected_instances if i not in deployed]
+    if new_instances:
+        new_accounts = sorted(list(set([i['Account'] for i in new_instances])))
+        new_regions = sorted(list(set([i['Region'] for i in new_instances])))
+
+        account_to_region = {a: set([i['Region'] for i in new_instances if i['Account'] == a]) for a in new_accounts}
+
+        if len(new_instances) == len(expected_instances) or len(new_accounts) == 1 or len(new_regions) == 1:
+            print('adding all')
+            targets = [(new_accounts, new_regions)]
+        else:
+            targets = [([i['Account'] for i in new_instances if i['Region'] == region], [region]) for region in new_regions]
+
+        print(targets)
+        logger.info('Adding new StackSet Instances:')
+        accounts_table(account_to_region)
+        if args.yes or ack('Do you want to add these StackSet Instances:'):
+            for target in targets:
+                preferences = operation_preferences(args)
+                result = client.create_stack_instances(StackSetName=args.stack_set,
+                                                       Accounts=target[0],
+                                                       Regions=target[1],
+                                                       **preferences)
+                wait_for_stack_set_operation(args.stack_set, result['OperationId'])
+        else:
+            logger.info('Adding StackSet Instances canceled')
+            sys.exit(1)
+    else:
+        logger.info('All StackSet Instances are deployed')
 
 
 @requires_stack_set
@@ -77,13 +122,20 @@ def add_stack_set_instances(args):
 def remove_stack_set_instances(args):
     client = AWS.current_session().client('cloudformation')
     preferences = operation_preferences(args)
-    result = client.delete_stack_instances(StackSetName=args.stack_set,
-                                           Accounts=accounts(args),
-                                           Regions=regions(args),
-                                           RetainStacks=args.retain,
-                                           **preferences)
+    acc = accounts(args)
+    reg = regions(args)
     logger.info('Removing StackSet Instances for StackSet {}'.format(args.stack_set))
-    wait_for_stack_set_operation(args.stack_set, result['OperationId'])
+    accounts_table({a: reg for a in acc})
+    if args.yes or ack('Do you want to remove these StackSet Instances'):
+        result = client.delete_stack_instances(StackSetName=args.stack_set,
+                                               Accounts=acc,
+                                               Regions=reg,
+                                               RetainStacks=args.retain,
+                                               **preferences)
+        wait_for_stack_set_operation(args.stack_set, result['OperationId'])
+    else:
+        logger.info('Removing StackSet Instances canceled')
+        sys.exit(1)
 
 
 @requires_stack_set

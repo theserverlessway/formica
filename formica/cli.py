@@ -289,6 +289,7 @@ def stack_set_parser(parser):
     add_config_file_argument(add_instances_parser)
     add_stack_set_main_auto_regions_accounts(add_instances_parser)
     add_stack_set_operation_preferences(add_instances_parser)
+    add_yes_parameter(add_instances_parser)
     add_instances_parser.set_defaults(func=stack_set.add_stack_set_instances)
 
     # Remove Instances
@@ -301,6 +302,7 @@ def stack_set_parser(parser):
     add_config_file_argument(remove_instances_parser)
     add_stack_set_main_auto_regions_accounts(remove_instances_parser)
     add_stack_set_operation_preferences(remove_instances_parser)
+    add_yes_parameter(remove_instances_parser)
     remove_instances_parser.set_defaults(func=stack_set.remove_stack_set_instances)
 
     # Diff

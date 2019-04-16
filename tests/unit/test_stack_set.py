@@ -26,6 +26,7 @@ def client(session, mocker):
     client_mock.create_stack_instances.return_value = {'OperationId': OPERATION_ID}
     client_mock.delete_stack_instances.return_value = {'OperationId': OPERATION_ID}
     client_mock.update_stack_set.return_value = {'OperationId': OPERATION_ID}
+    client_mock.get_paginator.return_value.paginate.return_value = []
     return client_mock
 
 
@@ -286,7 +287,7 @@ def test_update_stack_set_with_all_subaccounts(client, logger, loader, input, co
     )
 
 
-def test_add_stack_set_instances(client, loader, wait):
+def test_add_stack_set_instances(client, loader, wait, input):
     cli.main([
         'stack-set',
         'add-instances',
@@ -308,7 +309,7 @@ def test_stack_set_accounts_converts_to_string():
     assert stack_set.accounts({'accounts': ['123', 12345, 54321]}) == ['123', '12345', '54321']
 
 
-def test_add_all_stack_set_instances(client, loader, wait):
+def test_add_all_stack_set_instances(client, loader, wait, input):
     client.list_accounts.return_value = ACCOUNTS
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.describe_regions.return_value = EC2_REGIONS
@@ -327,7 +328,7 @@ def test_add_all_stack_set_instances(client, loader, wait):
     )
 
 
-def test_add_stack_set_instances_with_operation_preferences(client, loader, wait):
+def test_add_stack_set_instances_with_operation_preferences(client, loader, wait, input):
     cli.main([
         'stack-set',
         'add-instances',
@@ -349,7 +350,73 @@ def test_add_stack_set_instances_with_operation_preferences(client, loader, wait
     )
 
 
-def test_remove_stack_set_instances(client, loader, wait):
+def test_add_only_missing_stack_set_instances(client, loader, wait, input, mocker):
+    client.get_paginator.return_value.paginate.return_value = [
+        {'Summaries': [{'Account': '123456789', "Region": 'eu-central-1'}]}]
+    cli.main([
+        'stack-set',
+        'add-instances',
+        '--accounts', '123456789', '987654321',
+        '--regions', 'eu-central-1', 'eu-west-1',
+        '--stack-set', STACK
+    ])
+
+    assert client.create_stack_instances.mock_calls == [
+        mocker.call(
+            StackSetName=STACK,
+            Accounts=['987654321'],
+            Regions=['eu-central-1']
+        ),
+        mocker.call(
+            StackSetName=STACK,
+            Accounts=['123456789', '987654321'],
+            Regions=['eu-west-1']
+        )
+    ]
+
+
+def test_add_only_missing_stack_set_instances_with_one_call_if_possible(client, loader, wait, input, mocker):
+    client.get_paginator.return_value.paginate.return_value = [
+        {'Summaries': [{'Account': '123456789', "Region": 'eu-central-1'},
+                       {'Account': '987654321', "Region": 'eu-central-1'}]}]
+    cli.main([
+        'stack-set',
+        'add-instances',
+        '--accounts', '123456789', '987654321',
+        '--regions', 'eu-central-1', 'eu-west-1',
+        '--stack-set', STACK
+    ])
+
+    assert client.create_stack_instances.mock_calls == [
+        mocker.call(
+            StackSetName=STACK,
+            Accounts=['123456789', '987654321'],
+            Regions=['eu-west-1']
+        )
+    ]
+
+    client.get_paginator.return_value.paginate.return_value = [
+        {'Summaries': [{'Account': '123456789', "Region": 'eu-central-1'},
+                       {'Account': '123456789', "Region": 'eu-west-1'}]}]
+
+    cli.main([
+        'stack-set',
+        'add-instances',
+        '--accounts', '123456789', '987654321',
+        '--regions', 'eu-central-1', 'eu-west-1',
+        '--stack-set', STACK
+    ])
+
+    assert len(client.create_stack_instances.mock_calls) == 2
+
+    client.create_stack_instances.assert_called_with(
+        StackSetName=STACK,
+        Accounts=['987654321'],
+        Regions=['eu-central-1', 'eu-west-1']
+    )
+
+
+def test_remove_stack_set_instances(client, loader, wait, input):
     cli.main([
         'stack-set',
         'remove-instances',
@@ -377,7 +444,7 @@ def test_remove_stack_set_instances(client, loader, wait):
     wait.assert_called_with(STACK, OPERATION_ID)
 
 
-def test_remove_all_stack_set_instances(client, loader, wait):
+def test_remove_all_stack_set_instances(client, loader, wait, input):
     client.list_accounts.return_value = ACCOUNTS
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.describe_regions.return_value = EC2_REGIONS
