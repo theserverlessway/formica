@@ -1,5 +1,4 @@
 class AWS:
-
     __session = None
 
     @staticmethod
@@ -13,10 +12,20 @@ class AWS:
 
     @staticmethod
     def initialize(region='', profile=''):
+        from botocore import credentials
+        import botocore.session
+        import os
+
+        cli_cache = os.path.join(os.path.expanduser('~'), '.aws/cli/cache')
+
+        session = botocore.session.get_session()
+        session.get_component('credential_provider').get_provider('assume-role').cache = credentials.JSONFileCache(
+            cli_cache)
+
+        from boto3.session import Session
         params = {}
         if region:
             params['region_name'] = region
         if profile:
             params['profile_name'] = profile
-        from boto3.session import Session
-        AWS.__session = Session(**params)
+        AWS.__session = Session(botocore_session=session, **params)
