@@ -550,10 +550,10 @@ def wait_for_stack(function):
 @wait_for_stack
 def deploy(args, client):
     logger.info('Deploying Stack to {}'.format(args.stack))
-    change_set_name = (CHANGE_SET_FORMAT.format(stack=args.stack))
-    change_set = client.describe_change_set(ChangeSetName=change_set_name)
+    change_set_name = CHANGE_SET_FORMAT.format(stack=args.stack)
+    change_set = client.describe_change_set(StackName=args.stack, ChangeSetName=change_set_name)
     status = change_set['Status']
-    reason = change_set['StatusReason']
+    reason = change_set.get('StatusReason', '')
     if status == 'CREATE_COMPLETE':
         client.execute_change_set(ChangeSetName=change_set_name, StackName=args.stack)
     elif status == 'FAILED' and "The submitted information didn't contain changes." in reason:

@@ -25,29 +25,36 @@ class StackWaiter:
         self.timeout = timeout
 
     def wait(self, last_event):
-        self.print_header()
+        header_printed = False
         finished = False
         canceled = False
         start = datetime.now()
         while not finished:
-            time.sleep(SLEEP_TIME)
             stack_events = self.client.describe_stack_events(StackName=self.stack)['StackEvents']
             index = next((i for i, v in enumerate(stack_events) if v['EventId'] == last_event))
             last_event = stack_events[0]['EventId']
             new_events = stack_events[0:index]
             if new_events:
+                if not header_printed:
+                    self.print_header()
+                    header_printed = True
                 self.print_events(new_events)
-            stack_status = self.client.describe_stacks(StackName=self.stack)['Stacks'][0]['StackStatus']
+            stack_status = self.stack_status()
             if stack_status in SUCCESSFUL_STATES:
                 finished = True
-                logger.info("Stack Change Successful: {}".format(stack_status))
+                logger.info("Stack Status Successful: {}".format(stack_status))
             elif stack_status in FAILED_STATES:
-                logger.info("Stack Change Failed: {}".format(stack_status))
+                logger.info("Stack Status Failed: {}".format(stack_status))
                 sys.exit(1)
             elif not canceled and self.timeout > 0 and (datetime.now() - start).seconds > (self.timeout * 60):
                 logger.info("Timeout of {} minute(s) reached. Canceling Update.".format(self.timeout))
                 canceled = True
                 self.client.cancel_update_stack(StackName=self.stack)
+            else:
+                time.sleep(SLEEP_TIME)
+
+    def stack_status(self):
+        return self.client.describe_stacks(StackName=self.stack)['Stacks'][0]['StackStatus']
 
     def __create_table(self):
         table = Texttable()

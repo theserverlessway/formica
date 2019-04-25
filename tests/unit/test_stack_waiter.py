@@ -42,8 +42,8 @@ def set_stack_events(cf_client_mock, events=1):
 def test_prints_header(time, mocker, cf_client_mock, stack_waiter):
     header = mocker.patch.object(StackWaiter, 'print_header')
     set_stack_status_returns(cf_client_mock, ['CREATE_COMPLETE'])
-    set_stack_events(cf_client_mock)
-    stack_waiter.wait('0')
+    cf_client_mock.describe_stack_events.return_value = STACK_EVENTS
+    stack_waiter.wait('DeploymentBucket3-7c92066b-c2e7-427a-ab29-53b928925473')
     header.assert_called()
 
 
@@ -51,7 +51,7 @@ def test_waits_until_successful(cf_client_mock, time, stack_waiter):
     set_stack_status_returns(cf_client_mock, ['UPDATE_IN_PROGRESS', 'CREATE_COMPLETE'])
     set_stack_events(cf_client_mock)
     stack_waiter.wait('0')
-    assert time.sleep.call_count == 2
+    assert time.sleep.call_count == 1
     time.sleep.assert_called_with(5)
 
 
@@ -60,23 +60,20 @@ def test_waits_until_failed_and_raises(cf_client_mock, time, stack_waiter):
     set_stack_events(cf_client_mock)
     with pytest.raises(SystemExit, match='1'):
         stack_waiter.wait('0')
-    assert time.sleep.call_count == 2
+    assert time.sleep.call_count == 1
 
 
 def test_waits_until_timeout(cf_client_mock, time, datetime_mock):
     first_timestamp = datetime.now()
     second_timestamp = datetime.now() + timedelta(0, 50, 0)
     last_timestamp = datetime.now() + timedelta(0, 61, 0)
-    print(first_timestamp)
-    print(second_timestamp)
-    print(last_timestamp)
     datetime_mock.now.side_effect = [first_timestamp, second_timestamp, last_timestamp]
     set_stack_status_returns(cf_client_mock, ['UPDATE_IN_PROGRESS', 'UPDATE_IN_PROGRESS', 'UPDATE_IN_PROGRESS', 'CREATE_FAILED'])
     set_stack_events(cf_client_mock)
     stack_waiter = StackWaiter(STACK, cf_client_mock, timeout=1)
     with pytest.raises(SystemExit, match='1'):
         stack_waiter.wait('0')
-    assert time.sleep.call_count == 4
+    assert time.sleep.call_count == 2
     cf_client_mock.cancel_update_stack.assert_called_with(StackName=STACK)
 
 
