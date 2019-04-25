@@ -15,11 +15,6 @@ def logger(mocker):
 
 
 @pytest.fixture
-def session(mocker):
-    return mocker.patch('boto3.session.Session')
-
-
-@pytest.fixture
 def client(session, mocker):
     client_mock = mocker.Mock()
     session.return_value.client.return_value = client_mock

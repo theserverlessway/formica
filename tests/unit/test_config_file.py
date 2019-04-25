@@ -9,14 +9,7 @@ from tests.unit.constants import (REGION, PROFILE, STACK,
                                   ROLE_ARN, VARS)
 
 
-@pytest.fixture
-def session(mocker):
-    return mocker.patch('boto3.session.Session')
 
-
-@pytest.fixture
-def logger(mocker):
-    return mocker.patch('formica.cli.logger')
 
 
 def test_loads_config_file(mocker, tmpdir, session):

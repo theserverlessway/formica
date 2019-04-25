@@ -7,16 +7,6 @@ from formica.cli import STACK_HEADERS
 from tests.unit.constants import DESCRIBE_STACKS
 
 
-@pytest.fixture
-def logger(mocker):
-    return mocker.patch('formica.cli.logger')
-
-
-@pytest.fixture
-def session(mocker):
-    return mocker.patch('boto3.session.Session')
-
-
 def test_print_stacks(session, logger):
     client_mock = Mock()
     session.return_value.client.return_value = client_mock

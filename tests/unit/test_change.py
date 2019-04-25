@@ -4,28 +4,6 @@ from formica import cli
 from tests.unit.constants import REGION, PROFILE, STACK, TEMPLATE, ROLE_ARN, ACCOUNT_ID
 
 
-@pytest.fixture
-def change_set(mocker):
-    return mocker.patch('formica.change_set.ChangeSet')
-
-
-@pytest.fixture
-def session(mocker):
-    return mocker.patch('boto3.session.Session')
-
-
-@pytest.fixture
-def client(session):
-    client_mock = Mock()
-    session.return_value.client.return_value = client_mock
-    return client_mock
-
-
-@pytest.fixture
-def loader(mocker):
-    return mocker.patch('formica.loader.Loader')
-
-
 def test_change_creates_update_change_set(change_set, client, loader):
     print(client)
     loader.return_value.template.return_value = TEMPLATE

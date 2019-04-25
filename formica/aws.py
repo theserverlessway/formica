@@ -18,7 +18,11 @@ class AWS:
 
         cli_cache = os.path.join(os.path.expanduser('~'), '.aws/cli/cache')
 
-        session = botocore.session.get_session()
+        params = {}
+        if profile:
+            params['profile'] = profile
+
+        session = botocore.session.Session(**params)
         session.get_component('credential_provider').get_provider('assume-role').cache = credentials.JSONFileCache(
             cli_cache)
 
@@ -26,6 +30,5 @@ class AWS:
         params = {}
         if region:
             params['region_name'] = region
-        if profile:
-            params['profile_name'] = profile
+
         AWS.__session = Session(botocore_session=session, **params)

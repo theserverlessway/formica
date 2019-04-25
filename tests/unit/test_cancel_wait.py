@@ -6,21 +6,6 @@ from tests.unit.constants import STACK, STACK_ID, EVENT_ID
 
 
 @pytest.fixture
-def logger(mocker):
-    return mocker.patch('formica.cli.logger')
-
-
-@pytest.fixture
-def stack_waiter(mocker):
-    return mocker.patch('formica.stack_waiter.StackWaiter')
-
-
-@pytest.fixture
-def session(mocker):
-    return mocker.patch('boto3.session.Session')
-
-
-@pytest.fixture
 def client(mocker, session):
     client_mock = Mock()
     session.return_value.client.return_value = client_mock

@@ -11,11 +11,6 @@ Exceptions = [ProfileNotFound, NoCredentialsError, NoRegionError, ClientError]
 
 
 @pytest.fixture
-def session(mocker):
-    return mocker.patch('boto3.session.Session')
-
-
-@pytest.fixture
 def logger(mocker):
     return mocker.patch('formica.cli.logger')
 

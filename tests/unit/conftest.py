@@ -1,8 +1,11 @@
 import pytest
 
+@pytest.fixture
+def botocore_session(mocker):
+    return mocker.patch('botocore.session.Session')
 
 @pytest.fixture
-def session(mocker):
+def session(mocker, botocore_session):
     return mocker.patch('boto3.session.Session')
 
 
@@ -23,3 +26,20 @@ def client(session, mocker):
     client_mock = mocker.Mock()
     session.return_value.client.return_value = client_mock
     return client_mock
+
+
+@pytest.fixture
+def logger(mocker):
+    return mocker.patch('formica.cli.logger')
+
+@pytest.fixture
+def loader(mocker):
+    return mocker.patch('formica.loader.Loader')
+
+@pytest.fixture
+def change_set(mocker):
+    return mocker.patch('formica.change_set.ChangeSet')
+
+@pytest.fixture
+def stack_waiter(mocker):
+    return mocker.patch('formica.stack_waiter.StackWaiter')

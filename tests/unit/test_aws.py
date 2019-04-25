@@ -4,11 +4,6 @@ from formica.aws import AWS
 from tests.unit.constants import REGION, PROFILE
 
 
-@pytest.fixture
-def session(mocker):
-    return mocker.patch('boto3.session.Session')
-
-
 def test_session_needs_to_be_set(session):
     AWS._AWS__session = None
     with pytest.raises(AttributeError):
@@ -27,21 +22,24 @@ def test_AWS_is_singleton(session):
     session.assert_called_once()
 
 
-def test_init_without_parameters(session):
+def test_init_without_parameters(session, botocore_session):
+    print(botocore_session)
     AWS.initialize()
-    session.assert_called_with()
+    session.assert_called_with(botocore_session=botocore_session())
 
 
-def test_init_with_region(session):
+def test_init_with_region(session, botocore_session):
     AWS.initialize(region=REGION)
-    session.assert_called_with(region_name=REGION)
+    session.assert_called_with(botocore_session=botocore_session(), region_name=REGION)
 
 
-def test_init_with_profile(session):
+def test_init_with_profile(session, botocore_session):
     AWS.initialize(profile=PROFILE)
-    session.assert_called_with(profile_name=PROFILE)
+    botocore_session.assert_called_with(profile=PROFILE)
+    session.assert_called_with(botocore_session=botocore_session())
 
 
-def test_init_with_profile_and_region(session):
+def test_init_with_profile_and_region(session, botocore_session):
     AWS.initialize(profile=PROFILE, region=REGION)
-    session.assert_called_with(profile_name=PROFILE, region_name=REGION)
+    botocore_session.assert_called_with(profile=PROFILE)
+    session.assert_called_with(botocore_session=botocore_session(), region_name=REGION)
