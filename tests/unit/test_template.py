@@ -46,7 +46,7 @@ def test_with_organization_variables(aws_client, aws_session, tmpdir, logger):
         cli.main(['template', '--organization-variables'])
         logger.info.assert_called()
         output = logger.info.call_args[0][0]
-        print(output)
+
         actual = yaml.load(output)
         expected = {'Resources': {'Accounts': [{'Email': 'email1@test.com', 'Id': '1234', 'Name': 'TestName1'},
                                                {'Email': 'email2@test.com', 'Id': '5678', 'Name': 'TestName2'}],

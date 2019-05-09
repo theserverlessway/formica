@@ -55,7 +55,6 @@ def test_executes_change_set_with_timeout(stack_waiter, client):
 
 
 def test_does_not_execute_changeset_if_no_changes(stack_waiter, client):
-    print(client)
     client.describe_change_set.return_value = {'Status': 'FAILED',
                                                "StatusReason": "The submitted information didn't contain changes. Submit different information to create a change set."}
     client.describe_stack_events.return_value = {'StackEvents': [{'EventId': EVENT_ID}]}

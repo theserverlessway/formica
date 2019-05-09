@@ -11,7 +11,6 @@ from tests.unit.constants import REGION, PROFILE, STACK, EVENT_ID, STACK_ID, ROL
 # @patch('formica.change_set.ChangeSet')
 
 
-
 def test_removes_stack(change_set, session, loader, stack_waiter):
     client_mock = Mock()
     client_mock.describe_stacks.return_value = {'Stacks': [{'StackId': STACK_ID}]}
@@ -24,6 +23,7 @@ def test_removes_stack(change_set, session, loader, stack_waiter):
     client_mock.delete_stack.assert_called_with(StackName=STACK)
     stack_waiter.assert_called_with(STACK_ID, client_mock)
     stack_waiter.return_value.wait.assert_called_with(EVENT_ID)
+
 
 def test_removes_stack_with_role(change_set, session, loader, stack_waiter):
     client_mock = Mock()

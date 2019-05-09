@@ -608,7 +608,7 @@ def load_config_files(args, config_files):
     config_file_args = dict()
     for config_file in config_files:
         try:
-            file_items = yaml.load(config_file.read())
+            file_items = yaml.safe_load(config_file.read())
             if file_items:
                 for key, value in file_items.items():
                     if key in config_file_args and isinstance(value, dict):

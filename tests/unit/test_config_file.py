@@ -9,9 +9,6 @@ from tests.unit.constants import (REGION, PROFILE, STACK,
                                   ROLE_ARN, VARS)
 
 
-
-
-
 def test_loads_config_file(mocker, tmpdir, session):
     stacks = mocker.patch('formica.cli.stacks')
     file_name = 'test.config.yaml'

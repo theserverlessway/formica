@@ -10,7 +10,7 @@ STACK_ID = 'my-stack-id'
 TEMPLATE = 'MYTEMPLATE'
 RESOURCES = ['AWS::S3::Bucket', 'AWS::S3::Bucket', 'AWS::IAM::Role', 'AWS::DynamoDB::Table']
 ACCOUNT_ID = '1234567890'
-OPERATION_ID=str(uuid.uuid4())
+OPERATION_ID = str(uuid.uuid4())
 ROLE_ARN = 'arn:aws:iam::1234567890:role/some-stack-role'
 CHANGESETNAME = '{}-change-set'.format(STACK)
 CHANGE_SET_TYPE = 'WHATEVER'
@@ -105,11 +105,11 @@ DESCRIBE_STACKS = {'Stacks': [
      'CreationTime': datetime.datetime(2017, 1, 31, 11, 51, 43, 596000),
      'LastUpdatedTime': datetime.datetime(2017, 1, 31, 13, 55, 20, 357000), 'StackStatus': 'UPDATE_COMPLETE',
      'DisableRollback': False, 'NotificationARNs': [], 'Tags': []}],
-                   'ResponseMetadata': {'RequestId': 'b35e44c7-e7c2-11e6-8d56-e7fe8c71bde8', 'HTTPStatusCode': 200,
-                                        'HTTPHeaders': {'x-amzn-requestid': 'b35e44c7-e7c2-11e6-8d56-e7fe8c71bde8',
-                                                        'content-type': 'text/xml', 'content-length': '1979',
-                                                        'date': 'Tue, 31 Jan 2017 14:36:49 GMT'},
-                                        'RetryAttempts': 0}}  # noqa
+    'ResponseMetadata': {'RequestId': 'b35e44c7-e7c2-11e6-8d56-e7fe8c71bde8', 'HTTPStatusCode': 200,
+                         'HTTPHeaders': {'x-amzn-requestid': 'b35e44c7-e7c2-11e6-8d56-e7fe8c71bde8',
+                                         'content-type': 'text/xml', 'content-length': '1979',
+                                         'date': 'Tue, 31 Jan 2017 14:36:49 GMT'},
+                         'RetryAttempts': 0}}  # noqa
 MESSAGE = 'TESTMESSAGE'
 EVENT_ID = 'SomeEventID'
 STACK_EVENTS = {'StackEvents': [

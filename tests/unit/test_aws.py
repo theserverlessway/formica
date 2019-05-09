@@ -23,7 +23,6 @@ def test_AWS_is_singleton(session):
 
 
 def test_init_without_parameters(session, botocore_session):
-    print(botocore_session)
     AWS.initialize()
     session.assert_called_with(botocore_session=botocore_session())
 

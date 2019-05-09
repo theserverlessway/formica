@@ -45,8 +45,6 @@ def runner(loader, tmpdir):
     ('Resources: !Condition TestCondition', {'Resources': {'Condition': 'TestCondition'}}),
     ('Resources: !Cidr [ "A", "B", "C" ]', {'Resources': {'Fn::Cidr': ["A", "B", "C"]}}),
 
-
-
 ])
 def test_yaml_tag(runner, input, expected):
     runner(input, expected)

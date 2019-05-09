@@ -7,6 +7,13 @@ services:
     volumes:
       - .:/app
       - ~/.aws/:/root/.aws
+      - /app/formica_cli.egg-info
+      - /app/build
+      - /app/dist
+      - /app/.pytest_cache
+      - /app/.idea
+      - /app/.cache
+      - /app/htmlcov
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY

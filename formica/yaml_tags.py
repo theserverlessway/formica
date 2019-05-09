@@ -26,13 +26,17 @@ class BaseFunction(yaml.YAMLObject):
         return {cls.fn_tag(node.tag): result}
 
 
+def create_classes(functions, base_type=BaseFunction):
+    for function in functions:
+        type(function, (base_type,), {'yaml_tag': '!' + function})
+
+
 fn_functions = [
     'Base64', 'And', 'Equals', 'If', 'Not', 'Or', 'FindInMap', 'GetAZs', 'ImportValue', 'Join', 'Select',
     'Split', 'Sub', 'Cidr'
 ]
 
-for function in fn_functions:
-    type(function, (BaseFunction,), {'yaml_tag': '!' + function})
+create_classes(fn_functions)
 
 
 class SplitFunction(BaseFunction):
@@ -49,8 +53,7 @@ split_functions = [
     'GetAtt'
 ]
 
-for function in split_functions:
-    type(function, (SplitFunction,), {'yaml_tag': '!' + function})
+create_classes(split_functions, SplitFunction)
 
 non_fn_functions = ['Ref', 'Condition']
 
@@ -61,5 +64,4 @@ class NonFnFunction(BaseFunction):
         return {cls.tag(node.tag): node.value}
 
 
-for function in non_fn_functions:
-    type(function, (NonFnFunction,), {'yaml_tag': '!' + function})
+create_classes(non_fn_functions, NonFnFunction)

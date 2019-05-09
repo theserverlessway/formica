@@ -5,7 +5,6 @@ from tests.unit.constants import REGION, PROFILE, STACK, TEMPLATE, ROLE_ARN, ACC
 
 
 def test_change_creates_update_change_set(change_set, client, loader):
-    print(client)
     loader.return_value.template.return_value = TEMPLATE
     cli.main(['change', '--stack', STACK, '--profile', PROFILE, '--region', REGION])
     change_set.assert_called_with(stack=STACK, client=client)
@@ -50,8 +49,7 @@ def test_change_tests_tag_format(capsys):
         cli.main(['change', '--stack', STACK, '--parameters', 'A=B', '--profile', PROFILE, '--region', REGION,
                   '--tags', 'CD'])
     out, err = capsys.readouterr()
-    print(out)
-    print(err)
+
     assert "argument --tags: CD needs to be in format KEY=VALUE" in err
     assert pytest_wrapped_e.value.code == 2
 
