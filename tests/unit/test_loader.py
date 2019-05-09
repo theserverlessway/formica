@@ -389,7 +389,7 @@ def test_code_passes_variables(tmpdir):
         with open('testfile', 'w') as f:
             f.write(code)
         load.load()
-        print(load.template())
+
         actual = json.loads(load.template())
     assert actual == {"Resources": {"SomeValue": "Test"}}
 
@@ -454,7 +454,7 @@ def test_now(load, tmpdir):
         with open('test.template.json', 'w') as f:
             f.write(example)
         load.load()
-        print(load.template())
+
         actual = json.loads(load.template())
     assert actual == {"Resources": {"Test": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d %H:%M")}}
 
@@ -465,6 +465,6 @@ def test_utcnow(load, tmpdir):
         with open('test.template.json', 'w') as f:
             f.write(example)
         load.load()
-        print(load.template())
+
         actual = json.loads(load.template())
     assert actual == {"Resources": {"Test": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d %H:%M")}}

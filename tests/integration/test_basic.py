@@ -18,9 +18,8 @@ class TestIntegrationBasic():
     def test_integration_basic(self, tmpdir, stack_name):
         with Path(tmpdir):
             def run_formica(*args):
-                print(args)
                 result = str(subprocess.check_output(['formica'] + list(args), cwd=str(tmpdir)))
-                print(result)
+
                 return result
 
             def write_template(content):
@@ -30,6 +29,7 @@ class TestIntegrationBasic():
             def write_config(content):
                 with open(CONFIG_FILE, 'w') as f:
                     f.write(json.dumps(content))
+
             # Create a simple FC file and print it to STDOUT
             write_template({'Resources': {'TestName': {'Type': 'AWS::S3::Bucket'}}})
             write_config({'stack': stack_name})
@@ -50,7 +50,7 @@ class TestIntegrationBasic():
 
             # Diff the current stack
             diff = run_formica('diff', *stack_args)
-            print(diff)
+
             assert 'Resources > TestName' in diff
             assert 'Dictionary Item Removed' in diff
             assert 'Resources > TestNameUpdate' in diff
