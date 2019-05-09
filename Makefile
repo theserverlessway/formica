@@ -23,7 +23,7 @@ shell: build-dev
 	docker-compose run formica bash
 
 clean:
-	rm -fr dist build
+	rm -fr dist build formica_cli.egg-info htmlcov .pytest-cache
 
 build: clean build-dev
 	docker-compose run formica python setup.py sdist bdist_wheel

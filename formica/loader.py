@@ -170,7 +170,7 @@ class Loader(object):
         for file in files:
             try:
                 result = str(self.render(os.path.basename(file), **self.variables))
-                template = yaml.load(result)
+                template = yaml.load(result, Loader=yaml.Loader)
             except TemplateNotFound as e:
                 logger.info('File not found' + ': ' + e.message)
                 logger.info(
