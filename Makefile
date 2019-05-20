@@ -11,6 +11,7 @@ test:
 check-code:
 	pycodestyle ./formica
 	pyflakes ./formica
+	black --check --verbose ./formica
 	grep -r 'print(' formica; [ "$$?" -gt 0 ]
 
 integration-test:
