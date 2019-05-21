@@ -1,6 +1,7 @@
-import pytest
-from mock import Mock
+import sys
+from unittest.mock import Mock
 
+import pytest
 from botocore.exceptions import NoCredentialsError
 
 from formica import cli
@@ -24,7 +25,10 @@ def test_fails_if_no_stack_given(logger):
         cli.main(['deploy'])
     assert pytest_wrapped_e.value.code == 1
 
-    logger.error.assert_called()
+    if sys.version_info >= (3, 6):
+        logger.error.assert_called()
+    else:
+        assert logger.error.call_count > 0
     out = logger.error.call_args[0][0]
     assert '--stack' in out
     assert '--config-file' in out

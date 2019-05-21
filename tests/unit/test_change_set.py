@@ -1,7 +1,8 @@
-import pytest
-from mock import Mock
 import json
+import sys
+from unittest.mock import ANY, Mock
 
+import pytest
 from botocore.exceptions import WaiterError, ClientError
 
 from formica.change_set import ChangeSet, CHANGE_SET_HEADER
@@ -101,8 +102,12 @@ def test_submits_changeset_with_stack_tags():
         {'Key': 'T2', 'Value': 'TV2'}
     ]
     cf_client_mock.create_change_set.assert_called_with(
-        StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Tags=Tags)
+        StackName=STACK,
+        TemplateBody=TEMPLATE,
+        ChangeSetName=CHANGESETNAME,
+        ChangeSetType=CHANGE_SET_TYPE,
+        Tags=Tags if sys.version_info >= (3, 6) else ANY,
+    )
 
     cf_client_mock.get_waiter.assert_called_with(
         'change_set_create_complete')
@@ -165,7 +170,10 @@ def test_prints_error_message_and_does_not_fail_without_StatusReason(capsys, log
 
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE)
-    logger.info.assert_called()
+    if sys.version_info >= (3, 6):
+        logger.info.assert_called()
+    else:
+        assert logger.info.call_count > 0
     assert pytest_wrapped_e.value.code == 1
 
 

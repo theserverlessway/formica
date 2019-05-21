@@ -1,5 +1,7 @@
+import sys
+from unittest.mock import Mock
+
 import pytest
-from mock import Mock
 
 from formica import cli
 from tests.unit.constants import REGION, PROFILE, STACK, TEMPLATE, ACCOUNT_ID
@@ -25,7 +27,10 @@ def test_create_changeset_for_new_stack(change_set, client, loader):
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
                                                            parameters={}, tags={}, capabilities=None,
                                                            role_arn=None, s3=False, resource_types=False)
-    change_set.return_value.describe.assert_called_once()
+    if sys.version_info >= (3, 6):
+        change_set.return_value.describe.assert_called_once()
+    else:
+        assert change_set.return_value.describe.call_count == 1
 
 
 def test_new_uses_parameters_for_creation(change_set, client, loader):

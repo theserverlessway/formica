@@ -1,7 +1,10 @@
-import pytest
-from path import Path
-import yaml
+import sys
 from uuid import uuid4
+
+import pytest
+import yaml
+from path import Path
+
 from formica import cli
 from tests.unit.constants import (REGION, PROFILE, STACK,
                                   CHANGE_SET_PARAMETERS, CHANGE_SET_STACK_TAGS,
@@ -111,7 +114,10 @@ def test_exception_with_failed_yaml_syntax(mocker, tmpdir, session, logger):
             f.write("stacks: somestack\nprofile testprofile")
         with pytest.raises(SystemExit):
             cli.main(['stacks', '-c', file_name])
-        logger.error.assert_called()
+        if sys.version_info >= (3, 6):
+            logger.error.assert_called()
+        else:
+            assert logger.error.call_count > 0
 
 
 def test_loads_empty_config_file(mocker, tmpdir, session):

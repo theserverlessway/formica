@@ -1,6 +1,6 @@
+from unittest.mock import ANY, Mock
+
 import pytest
-import mock
-from mock import Mock
 
 from formica import cli
 from formica.cli import RESOURCE_HEADERS
@@ -16,7 +16,7 @@ def test_print_stacks(session, logger):
     client_mock.get_paginator.assert_called_with('list_stack_resources')
     client_mock.get_paginator.return_value.paginate.assert_called_with(StackName=STACK)
 
-    logger.info.assert_called_with(mock.ANY)
+    logger.info.assert_called_with(ANY)
     args = logger.info.call_args[0]
 
     to_search = []

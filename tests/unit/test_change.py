@@ -1,5 +1,8 @@
+import sys
+from unittest.mock import Mock
+
 import pytest
-from mock import Mock
+
 from formica import cli
 from tests.unit.constants import REGION, PROFILE, STACK, TEMPLATE, ROLE_ARN, ACCOUNT_ID
 
@@ -12,7 +15,10 @@ def test_change_creates_update_change_set(change_set, client, loader):
                                                            parameters={},
                                                            tags={}, capabilities=None, role_arn=None, s3=False,
                                                            resource_types=False)
-    change_set.return_value.describe.assert_called_once()
+    if sys.version_info >= (3, 6):
+        change_set.return_value.describe.assert_called_once()
+    else:
+        assert change_set.return_value.describe.call_count == 1
 
 
 def test_change_uses_parameters_for_update(change_set, client, loader):
@@ -23,7 +29,10 @@ def test_change_uses_parameters_for_update(change_set, client, loader):
                                                            parameters={'A': 'B', 'C': 'D'}, tags={},
                                                            capabilities=None, role_arn=None, s3=False,
                                                            resource_types=False)
-    change_set.return_value.describe.assert_called_once()
+    if sys.version_info >= (3, 6):
+        change_set.return_value.describe.assert_called_once()
+    else:
+        assert change_set.return_value.describe.call_count == 1
 
 
 def test_change_tests_parameter_format(capsys):

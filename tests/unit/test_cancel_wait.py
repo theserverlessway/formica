@@ -1,5 +1,6 @@
+from unittest.mock import Mock
+
 import pytest
-from mock import Mock
 
 from formica import cli
 from tests.unit.constants import STACK, STACK_ID, EVENT_ID

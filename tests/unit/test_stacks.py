@@ -1,6 +1,7 @@
+import sys
+from unittest.mock import ANY, Mock
+
 import pytest
-import mock
-from mock import Mock
 
 from formica import cli
 from formica.cli import STACK_HEADERS
@@ -13,7 +14,7 @@ def test_print_stacks(session, logger):
     client_mock.describe_stacks.return_value = DESCRIBE_STACKS
     cli.main(['stacks'])
 
-    logger.info.assert_called_with(mock.ANY)
+    logger.info.assert_called_with(ANY)
     args = logger.info.call_args[0]
 
     to_search = []
@@ -36,4 +37,7 @@ def test_does_not_fail_without_update_date(session, logger):
     }
 
     cli.main(['stacks'])
-    logger.info.assert_called()
+    if sys.version_info >= (3, 6):
+        logger.info.assert_called()
+    else:
+        assert logger.info.call_count > 0

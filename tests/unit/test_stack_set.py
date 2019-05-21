@@ -1,12 +1,14 @@
-import pytest
 import json
+import sys
+from unittest.mock import ANY
 from uuid import uuid4
+
+import pytest
+from path import Path
 
 from formica import cli, stack_set
 from tests.unit.constants import STACK, CLOUDFORMATION_PARAMETERS, CLOUDFORMATION_TAGS
 from tests.unit.constants import TEMPLATE, EC2_REGIONS, ACCOUNTS, ACCOUNT_ID, OPERATION_ID
-
-from path import Path
 
 
 @pytest.fixture
@@ -81,7 +83,7 @@ def test_create_stack_set(client, logger, loader):
         StackSetName=STACK,
         TemplateBody=TEMPLATE,
         Parameters=CLOUDFORMATION_PARAMETERS,
-        Tags=CLOUDFORMATION_TAGS,
+        Tags=CLOUDFORMATION_TAGS if sys.version_info >= (3, 6) else ANY,
         Capabilities=['CAPABILITY_IAM'],
         ExecutionRoleName='ExecutionRole',
         AdministrationRoleARN='AdministrationRole'
@@ -185,7 +187,7 @@ def test_update_stack_set_with_compare_check(client, loader, input, compare, wai
         StackSetName=STACK,
         TemplateBody=TEMPLATE,
         Parameters=CLOUDFORMATION_PARAMETERS,
-        Tags=CLOUDFORMATION_TAGS,
+        Tags=CLOUDFORMATION_TAGS if sys.version_info >= (3, 6) else ANY,
         Capabilities=['CAPABILITY_IAM'],
         ExecutionRoleName='ExecutionRole',
         AdministrationRoleARN='AdministrationRole',
@@ -198,7 +200,10 @@ def test_update_stack_set_with_compare_check(client, loader, input, compare, wai
         }
     )
 
-    input.assert_called_once()
+    if sys.version_info >= (3, 6):
+        input.assert_called_once()
+    else:
+        assert input.call_count == 1
     wait.assert_called_with(STACK, OPERATION_ID)
 
 

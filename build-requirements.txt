@@ -6,7 +6,6 @@ coveralls
 pytest
 path.py
 pytest-cov
-mock
 pytest-mock
 setuptools
 pip

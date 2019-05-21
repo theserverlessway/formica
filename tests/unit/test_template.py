@@ -1,7 +1,9 @@
 import json
 import os
-import yaml
+import sys
+
 import pytest
+import yaml
 from path import Path
 
 from formica import cli
@@ -18,7 +20,10 @@ def test_template_calls_template(tmpdir, logger):
         with open('test.template.json', 'w') as f:
             f.write('{"Description": "{{ \'test\' | title }}"}')
         cli.main(['template'])
-        logger.info.assert_called()
+        if sys.version_info >= (3, 6):
+            logger.info.assert_called()
+        else:
+            assert logger.info.call_count > 0
         assert {"Description": "Test"} == json.loads(logger.info.call_args[0][0])
 
 
@@ -27,7 +32,10 @@ def test_template_calls_template_with_yaml(tmpdir, logger):
         with open('test.template.json', 'w') as f:
             f.write('{"Description": "{{ \'test\' | title }}"}')
         cli.main(['template', '--yaml'])
-        logger.info.assert_called()
+        if sys.version_info >= (3, 6):
+            logger.info.assert_called()
+        else:
+            assert logger.info.call_count > 0
         assert {"Description": "Test"} == yaml.load(logger.info.call_args[0][0])
 
 
@@ -44,7 +52,10 @@ def test_with_organization_variables(aws_client, aws_session, tmpdir, logger):
             f.write(
                 '{"Resources": {"AccountsRegionsTest": {"From": "Moduledir"}, "Accounts": {{ AWSAccounts | tojson}}, "SubAccounts": {{ AWSSubAccounts | tojson}}, "Regions": {{ AWSRegions | tojson }} }}')
         cli.main(['template', '--organization-variables'])
-        logger.info.assert_called()
+        if sys.version_info >= (3, 6):
+            logger.info.assert_called()
+        else:
+            assert logger.info.call_count > 0
         output = logger.info.call_args[0][0]
 
         actual = yaml.load(output)

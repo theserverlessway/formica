@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from formica.aws import AWS
@@ -19,7 +21,10 @@ def test_AWS_is_singleton(session):
     AWS.initialize()
     AWS.current_session()
     AWS.current_session()
-    session.assert_called_once()
+    if sys.version_info >= (3, 6):
+        session.assert_called_once()
+    else:
+        assert session.call_count == 1
 
 
 def test_init_without_parameters(session, botocore_session):

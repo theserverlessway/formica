@@ -1,6 +1,9 @@
-import pytest
-from mock import Mock
+import sys
+
+from unittest.mock import Mock
 from datetime import datetime, timedelta
+
+import pytest
 
 from formica.stack_waiter import StackWaiter, EVENT_TABLE_HEADERS
 from tests.unit.constants import STACK, STACK_EVENTS
@@ -46,7 +49,10 @@ def test_prints_header(time, mocker, cf_client_mock, stack_waiter):
     set_stack_status_returns(cf_client_mock, ['CREATE_COMPLETE'])
     cf_client_mock.describe_stack_events.return_value = STACK_EVENTS
     stack_waiter.wait('DeploymentBucket3-7c92066b-c2e7-427a-ab29-53b928925473')
-    header.assert_called()
+    if sys.version_info >= (3, 6):
+        header.assert_called()
+    else:
+        assert header.call_count > 0
 
 
 def test_waits_until_successful(cf_client_mock, time, stack_waiter):
@@ -85,7 +91,10 @@ def test_prints_new_events(logger, time, cf_client_mock, stack_waiter):
     cf_client_mock.describe_stack_events.return_value = STACK_EVENTS
     stack_waiter.wait('DeploymentBucket3-7c92066b-c2e7-427a-ab29-53b928925473')
 
-    logger.info.assert_called()
+    if sys.version_info >= (3, 6):
+        logger.info.assert_called()
+    else:
+        assert logger.info.call_count > 0
     output = '\n'.join([call[1][0] for call in logger.info.mock_calls])
     to_search = []
     to_search.extend(EVENT_TABLE_HEADERS)

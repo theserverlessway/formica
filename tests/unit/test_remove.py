@@ -1,5 +1,4 @@
-import unittest
-from mock import patch, Mock
+from unittest.mock import patch, Mock
 
 from formica import cli
 from tests.unit.constants import REGION, PROFILE, STACK, EVENT_ID, STACK_ID, ROLE_ARN
