@@ -23,14 +23,10 @@ shell: build-dev
 	docker-compose run formica bash
 
 clean:
-	rm -fr dist build formica_cli.egg-info htmlcov .pytest-cache
+	rm -fr dist/* build/* formica_cli.egg-info/* htmlcov/* .pytest-cache/*
 
-build: clean build-dev
-	docker-compose run formica python setup.py sdist bdist_wheel
-	docker-compose run formica pandoc --from=markdown --to=rst --output=build/README.rst README.md
-
-release-pypi: clean build-dev build
-	docker-compose run formica twine upload dist/*
+release-pypi:
+	docker-compose run formica bash -c "make clean && python setup.py sdist bdist_wheel && pandoc --from=markdown --to=rst --output=build/README.rst README.md && twine upload dist/*"
 
 release-docker:
 	docker build --no-cache -t flomotlik/formica -f Release.Dockerfile .
