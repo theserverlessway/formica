@@ -20,6 +20,7 @@ build-dev:
 	docker-compose build formica
 
 shell: build-dev
+	touch .bash_history
 	docker-compose run formica bash
 
 clean:

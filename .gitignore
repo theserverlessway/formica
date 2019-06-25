@@ -95,3 +95,5 @@ ENV/
 README.rst
 
 .pytest_cache
+.bash_history
+.mutmut-cache

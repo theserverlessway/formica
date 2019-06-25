@@ -4,10 +4,10 @@ subtitle: The CloudFormation client you will love
 weight: 100
 ---
 
-[![Build Status](https://travis-ci.org/flomotlik/formica.svg?branch=master)](https://travis-ci.org/flomotlik/formica)
+[![Build Status](https://travis-ci.org/theserverlessway/formica.svg?branch=master)](https://travis-ci.org/flomotlik/formica)
 [![PyPI version](https://badge.fury.io/py/formica-cli.svg)](https://pypi.python.org/pypi/formica-cli)
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/flomotlik/awsinfo/blob/master/LICENSE)
-[![Coverage Status](https://coveralls.io/repos/github/flomotlik/formica/badge.svg?branch=master)](https://coveralls.io/github/flomotlik/formica?branch=master)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/theserverlessway/formica/blob/master/LICENSE)
+[![Coverage Status](https://coveralls.io/repos/github/flomotlik/formica/badge.svg?branch=master)](https://coveralls.io/github/theserverlessway/formica?branch=master)
 
 Formica makes it easy to create and deploy CloudFormation stacks. It uses CloudFormation syntax with yaml and json support to define your templates. Any existing stack can be used directly, but formica also has built-in modularity so you can reuse and share CloudFormation stack components easily. This allows you to start from an existing stack but split it up into separate files easily.
 

@@ -1,6 +1,9 @@
+import urllib.request
+
 def handler(event, context):
     result = {}
     print(event)
+    contents = urllib.request.urlopen("http://theserverlessway.com").read()
     if event.get('num') is not None:
         print('Adding to Result')
         result['num'] = int(event['num']) + 1
