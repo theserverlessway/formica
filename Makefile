@@ -13,6 +13,9 @@ check-code:
 	pyflakes ./formica
 	grep -r 'print(' formica; [ "$$?" -gt 0 ]
 
+mutation:
+	mutmut run
+
 integration-test:
 	py.test -s tests/integration
 
