@@ -1,6 +1,6 @@
 ---
 title: Examples
-weight: 600
+weight: 700
 ---
 
 ## Module System
