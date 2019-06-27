@@ -9,7 +9,7 @@ test:
 	py.test --cov-branch --cov-report html --cov-report term-missing --cov=formica tests/unit
 
 check-code:
-	pycodestyle ./formica
+	black --check --verbose ./formica
 	pyflakes ./formica
 	grep -r 'print(' formica; [ "$$?" -gt 0 ]
 

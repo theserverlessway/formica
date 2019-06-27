@@ -1,13 +1,13 @@
 import logging
 import sys
 
-__version__ = '0.11.3'
+__version__ = "0.11.3"
 
 CHANGE_SET_FORMAT = "{stack}-change-set"
 
-logger = logging.getLogger('formica')
+logger = logging.getLogger("formica")
 handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter('%(message)s')
+formatter = logging.Formatter("%(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)

@@ -1,0 +1,7 @@
+# See PEP 518 for the spec of this file
+# https://www.python.org/dev/peps/pep-0518/
+
+[tool.black]
+# See https://github.com/ambv/black/blob/master/pyproject.toml
+target_version = ['py35', 'py36', 'py37']
+line_length=119

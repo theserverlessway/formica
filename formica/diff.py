@@ -16,7 +16,7 @@ except NameError:
     basestring = str
 
 
-class Change():
+class Change:
     def __init__(self, path, before, after, type):
         self.path = path
         self.before = before
@@ -36,74 +36,60 @@ def convert(data):
 
 
 def compare_stack(stack, vars=None, parameters={}, tags={}):
-    client = AWS.current_session().client('cloudformation')
-    template = client.get_template(
-        StackName=stack,
-    )['TemplateBody']
+    client = AWS.current_session().client("cloudformation")
+    template = client.get_template(StackName=stack)["TemplateBody"]
 
-    stack = client.describe_stacks(
-        StackName=stack,
-    )['Stacks'][0]
+    stack = client.describe_stacks(StackName=stack)["Stacks"][0]
     __compare(template, stack, vars, parameters, tags)
 
 
 def compare_stack_set(stack, vars=None, parameters={}, tags={}, main_account_parameter=False):
-    client = AWS.current_session().client('cloudformation')
+    client = AWS.current_session().client("cloudformation")
 
-    stack_set = client.describe_stack_set(
-        StackSetName=stack,
-    )['StackSet']
-    __compare(stack_set['TemplateBody'], stack_set, vars, parameters, tags, main_account_parameter)
+    stack_set = client.describe_stack_set(StackSetName=stack)["StackSet"]
+    __compare(stack_set["TemplateBody"], stack_set, vars, parameters, tags, main_account_parameter)
 
 
 def __compare(template, stack, vars=None, parameters={}, tags={}, main_account_parameter=False):
-    current_parameters = {p['ParameterKey']: p['ParameterValue'] for p in (stack.get('Parameters', []))}
+    current_parameters = {p["ParameterKey"]: p["ParameterValue"] for p in (stack.get("Parameters", []))}
     parameters = {key: str(value) for key, value in parameters.items()}
     tags = {key: str(value) for key, value in tags.items()}
-    current_tags = {p['Key']: p['Value'] for p in (stack.get('Tags', []))}
+    current_tags = {p["Key"]: p["Value"] for p in (stack.get("Tags", []))}
 
     loader = Loader(variables=vars, main_account_parameter=main_account_parameter)
     loader.load()
     deployed_template = convert(template)
     template_parameters = {
-        key: str(value['Default']).lower() if type(value['Default']) == bool else str(value['Default'])
-        for key, value in (loader.template_dictionary().get('Parameters', {})).items() if 'Default' in value
+        key: str(value["Default"]).lower() if type(value["Default"]) == bool else str(value["Default"])
+        for key, value in (loader.template_dictionary().get("Parameters", {})).items()
+        if "Default" in value
     }
 
     template_parameters.update(parameters)
     if isinstance(deployed_template, str):
         deployed_template = yaml.safe_load(deployed_template)
 
-    __generate_table('Parameters', current_parameters, template_parameters)
-    __generate_table('Tags', current_tags, tags)
-    __generate_table('Template', deployed_template, convert(loader.template_dictionary()))
+    __generate_table("Parameters", current_parameters, template_parameters)
+    __generate_table("Tags", current_tags, tags)
+    __generate_table("Template", deployed_template, convert(loader.template_dictionary()))
 
 
 def __generate_table(header, current, new):
-    changes = DeepDiff(current, new, ignore_order=False,
-                       report_repetition=True,
-                       verbose_level=2, view='tree')
+    changes = DeepDiff(current, new, ignore_order=False, report_repetition=True, verbose_level=2, view="tree")
     table = Texttable(max_width=200)
-    table.set_cols_dtype(['t', 't', 't', 't'])
-    table.add_rows([['Path', 'From', 'To', 'Change Type']])
+    table.set_cols_dtype(["t", "t", "t", "t"])
+    table.add_rows([["Path", "From", "To", "Change Type"]])
     print_diff = False
     processed_changes = __collect_changes(changes)
     for change in processed_changes:
         print_diff = True
-        path = re.findall('\\[\'?([\\w-]+)\'?\\]', change.path)
-        table.add_row(
-            [
-                ' > '.join(path),
-                change.before,
-                change.after,
-                change.type.title().replace('_', ' ')
-            ]
-        )
-    logger.info(header + ' Diff:')
+        path = re.findall("\\['?([\\w-]+)'?\\]", change.path)
+        table.add_row([" > ".join(path), change.before, change.after, change.type.title().replace("_", " ")])
+    logger.info(header + " Diff:")
     if print_diff:
         logger.info(table.draw() + "\n")
     else:
-        logger.info('No Changes found' + "\n")
+        logger.info("No Changes found" + "\n")
 
 
 def __collect_changes(changes):
