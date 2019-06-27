@@ -47,7 +47,8 @@ CONFIG_FILE_ARGUMENTS = {
     'failure_tolerance_percentage': int,
     'max_concurrent_count': int,
     'max_concurrent_percentage': int,
-    'resource_types': bool
+    'resource_types': bool,
+    's3': bool
 }
 
 
