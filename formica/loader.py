@@ -24,19 +24,14 @@ FILE_TYPES = ["yml", "yaml", "json"]
 RESOURCES_KEY = "Resources"
 MODULE_KEY = "From"
 
-try:
-    basestring
-except NameError:
-    basestring = str
-
 ALLOWED_ATTRIBUTES = {
-    "AWSTemplateFormatVersion": [basestring, str],
-    "Description": [basestring, str],
+    "AWSTemplateFormatVersion": [str],
+    "Description": [str],
     "Metadata": dict,
     "Parameters": dict,
     "Mappings": dict,
     "Conditions": dict,
-    "Transform": [str, basestring, list],
+    "Transform": [str, list],
     RESOURCES_KEY: dict,
     "Outputs": dict,
 }
@@ -113,7 +108,7 @@ class Loader(object):
                 if type(types) != list:
                     types = [types]
                 if key in ALLOWED_ATTRIBUTES.keys() and new_type in types:
-                    if new_type == basestring or new_type == str or new_type == list:
+                    if new_type == str or new_type == list:
                         self.cftemplate[key] = new
                     elif new_type == dict:
                         for element_key, element_value in template[key].items():
