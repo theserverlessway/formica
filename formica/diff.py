@@ -10,12 +10,6 @@ from formica.loader import Loader
 
 logger = logging.getLogger(__name__)
 
-try:
-    basestring
-except NameError:
-    basestring = str
-
-
 class Change:
     def __init__(self, path, before, after, type):
         self.path = path
@@ -25,9 +19,9 @@ class Change:
 
 
 def convert(data):
-    if isinstance(data, basestring):
-        return str(data)
-    elif isinstance(data, collections.Mapping):
+    if isinstance(data, str):
+        return data
+    if isinstance(data, collections.Mapping):
         return dict(map(convert, data.items()))
     elif isinstance(data, collections.Iterable):
         return type(data)(map(convert, data))
