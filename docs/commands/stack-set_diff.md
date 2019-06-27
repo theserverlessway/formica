@@ -1,5 +1,5 @@
 ---
-title: Stack Set Diff
+title: StackSet Diff
 weight: 100
 ---
 

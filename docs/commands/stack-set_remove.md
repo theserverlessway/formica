@@ -1,5 +1,5 @@
 ---
-title: StackSet remove
+title: StackSet Remove
 weight: 100
 ---
 
