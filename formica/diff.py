@@ -10,6 +10,7 @@ from formica.loader import Loader
 
 logger = logging.getLogger(__name__)
 
+
 class Change:
     def __init__(self, path, before, after, type):
         self.path = path
