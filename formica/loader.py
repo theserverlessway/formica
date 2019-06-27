@@ -19,7 +19,7 @@ assert yaml_tags
 
 logger = logging.getLogger(__name__)
 
-FILE_TYPES = ['yml', 'yaml', 'json']
+FILE_TYPES = ["yml", "yaml", "json"]
 
 RESOURCES_KEY = "Resources"
 MODULE_KEY = "From"
@@ -43,21 +43,22 @@ ALLOWED_ATTRIBUTES = {
 
 
 def code_escape(source):
-    return source.replace('\n', '\\n').replace('"', '\\"')
+    return source.replace("\n", "\\n").replace('"', '\\"')
 
 
 def mandatory(a):
     from jinja2.runtime import Undefined
+
     if isinstance(a, Undefined) or a is None:
-        raise FormicaArgumentException('Mandatory variable not set.')
+        raise FormicaArgumentException("Mandatory variable not set.")
     return a
 
 
 def resource(name):
     if name is None:
-        return ''
+        return ""
     else:
-        return ''.join(e for e in name.title() if e.isalnum())
+        return "".join(e for e in name.title() if e.isalnum())
 
 
 def novalue(variable):
@@ -65,19 +66,16 @@ def novalue(variable):
 
 
 class Loader(object):
-    def __init__(self, path='.', filename='*', variables=None, main_account_parameter=False):
+    def __init__(self, path=".", filename="*", variables=None, main_account_parameter=False):
         if variables is None:
             variables = {}
         self.cftemplate = {}
         self.path = path
         self.filename = filename
-        self.env = Environment(loader=FileSystemLoader('./', followlinks=True))
-        self.env.filters.update({
-            'code_escape': code_escape,
-            'mandatory': mandatory,
-            'resource': resource,
-            'novalue': novalue
-        })
+        self.env = Environment(loader=FileSystemLoader("./", followlinks=True))
+        self.env.filters.update(
+            {"code_escape": code_escape, "mandatory": mandatory, "resource": resource, "novalue": novalue}
+        )
         self.variables = variables
         self.main_account_parameter = main_account_parameter
 
@@ -95,14 +93,10 @@ class Loader(object):
         variables = {}
         variables.update(self.variables)
         variables.update(args)
-        arguments = dict(code=self.include_file,
-                         file=self.load_file,
-                         now=arrow.now,
-                         utcnow=arrow.utcnow,
-                         **variables)
+        arguments = dict(code=self.include_file, file=self.load_file, now=arrow.now, utcnow=arrow.utcnow, **variables)
         return template.render(**arguments)
 
-    def template(self, indent=4, sort_keys=True, separators=(',', ':'), dumper=None):
+    def template(self, indent=4, sort_keys=True, separators=(",", ":"), dumper=None):
         if dumper is not None:
             return dumper(self.cftemplate)
         return json.dumps(self.cftemplate, indent=indent, sort_keys=sort_keys, separators=separators)
@@ -123,7 +117,11 @@ class Loader(object):
                         self.cftemplate[key] = new
                     elif new_type == dict:
                         for element_key, element_value in template[key].items():
-                            if key == RESOURCES_KEY and isinstance(element_value, dict) and MODULE_KEY in element_value:
+                            if (
+                                key == RESOURCES_KEY
+                                and isinstance(element_value, dict)
+                                and MODULE_KEY in element_value
+                            ):
                                 self.load_module(element_value[MODULE_KEY], element_key, element_value)
                             else:
                                 self.cftemplate.setdefault(key, {})[element_key] = element_value
@@ -131,18 +129,18 @@ class Loader(object):
                     logger.info("Key '{}' in file {} is not valid".format(key, file))
                     sys.exit(1)
         else:
-            logger.info('File {} is empty'.format(file))
+            logger.info("File {} is empty".format(file))
 
     def load_module(self, module_path, element_key, element_value):
-        module_path = self.path + '/' + '/'.join(module_path.lower().split('::'))
+        module_path = self.path + "/" + "/".join(module_path.lower().split("::"))
         file_name = "*"
 
         if not os.path.isdir(module_path):
-            file_name = module_path.split('/')[-1]
-            module_path = '/'.join(module_path.split('/')[:-1])
+            file_name = module_path.split("/")[-1]
+            module_path = "/".join(module_path.split("/")[:-1])
 
-        properties = element_value.get('Properties', {})
-        properties['module_name'] = element_key
+        properties = element_value.get("Properties", {})
+        properties["module_name"] = element_key
         vars = self.merge_variables(properties)
 
         loader = Loader(module_path, file_name, vars)
@@ -161,7 +159,7 @@ class Loader(object):
         files = []
 
         for file_type in FILE_TYPES:
-            files.extend(glob.glob('{}/{}.template.{}'.format(self.path, self.filename, file_type)))
+            files.extend(glob.glob("{}/{}.template.{}".format(self.path, self.filename, file_type)))
 
         if not files:
             logger.info("Could not find any template files in {}".format(self.path))
@@ -172,30 +170,27 @@ class Loader(object):
                 result = str(self.render(os.path.basename(file), **self.variables))
                 template = yaml.load(result, Loader=yaml.Loader)
             except TemplateNotFound as e:
-                logger.info('File not found' + ': ' + e.message)
-                logger.info(
-                    'In: "' + file + '"')
+                logger.info("File not found" + ": " + e.message)
+                logger.info('In: "' + file + '"')
                 sys.exit(1)
             except TemplateSyntaxError as e:
-                logger.info(e.__class__.__name__ + ': ' + e.message)
-                logger.info(
-                    'File: "' + (e.filename or file) + '", line ' + str(e.lineno))
+                logger.info(e.__class__.__name__ + ": " + e.message)
+                logger.info('File: "' + (e.filename or file) + '", line ' + str(e.lineno))
                 sys.exit(1)
             except FormicaArgumentException as e:
-                logger.info(e.__class__.__name__ + ': ' + e.args[0])
-                logger.info(
-                    'For Template: "' + file + '"')
-                logger.info('If you use it as a template make sure you\'re setting all necessary vars')
+                logger.info(e.__class__.__name__ + ": " + e.args[0])
+                logger.info('For Template: "' + file + '"')
+                logger.info("If you use it as a template make sure you're setting all necessary vars")
                 sys.exit(1)
             except yaml.YAMLError as e:
                 logger.info(e.__str__())
-                logger.info('Following is the Yaml document formica is trying to load:')
-                logger.info('---------------------------------------------------------------------------')
+                logger.info("Following is the Yaml document formica is trying to load:")
+                logger.info("---------------------------------------------------------------------------")
                 logger.info(result)
-                logger.info('---------------------------------------------------------------------------')
+                logger.info("---------------------------------------------------------------------------")
                 sys.exit(1)
             self.merge(template, file)
 
         if self.main_account_parameter:
-            self.cftemplate['Parameters'] = self.cftemplate.get('Parameters') or {}
-            self.cftemplate['Parameters']['MainAccount'] = {'Type': 'String', 'Default': main_account_id()}
+            self.cftemplate["Parameters"] = self.cftemplate.get("Parameters") or {}
+            self.cftemplate["Parameters"]["MainAccount"] = {"Type": "String", "Default": main_account_id()}

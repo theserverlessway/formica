@@ -3,4 +3,4 @@ class AWSBase(object):
         self.session = session
 
     def cf_client(self):
-        return self.session.client('cloudformation')
+        return self.session.client("cloudformation")

@@ -5,13 +5,20 @@ from datetime import datetime
 import logging
 from texttable import Texttable
 
-EVENT_TABLE_HEADERS = ['Timestamp', 'Status', 'Type', 'Logical ID', 'Status reason']
+EVENT_TABLE_HEADERS = ["Timestamp", "Status", "Type", "Logical ID", "Status reason"]
 
 TABLE_COLUMN_SIZE = [28, 24, 30, 30, 50]
 
-SUCCESSFUL_STATES = ['CREATE_COMPLETE', 'UPDATE_COMPLETE', 'DELETE_COMPLETE']
-FAILED_STATES = ['CREATE_FAILED', 'DELETE_FAILED', 'ROLLBACK_FAILED', 'ROLLBACK_COMPLETE', 'UPDATE_FAILED',
-                 'UPDATE_ROLLBACK_FAILED', 'UPDATE_ROLLBACK_COMPLETE']
+SUCCESSFUL_STATES = ["CREATE_COMPLETE", "UPDATE_COMPLETE", "DELETE_COMPLETE"]
+FAILED_STATES = [
+    "CREATE_FAILED",
+    "DELETE_FAILED",
+    "ROLLBACK_FAILED",
+    "ROLLBACK_COMPLETE",
+    "UPDATE_FAILED",
+    "UPDATE_ROLLBACK_FAILED",
+    "UPDATE_ROLLBACK_COMPLETE",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +37,9 @@ class StackWaiter:
         canceled = False
         start = datetime.now()
         while not finished:
-            stack_events = self.client.describe_stack_events(StackName=self.stack)['StackEvents']
-            index = next((i for i, v in enumerate(stack_events) if v['EventId'] == last_event))
-            last_event = stack_events[0]['EventId']
+            stack_events = self.client.describe_stack_events(StackName=self.stack)["StackEvents"]
+            index = next((i for i, v in enumerate(stack_events) if v["EventId"] == last_event))
+            last_event = stack_events[0]["EventId"]
             new_events = stack_events[0:index]
             if new_events:
                 if not header_printed:
@@ -54,7 +61,7 @@ class StackWaiter:
                 time.sleep(SLEEP_TIME)
 
     def stack_status(self):
-        return self.client.describe_stacks(StackName=self.stack)['Stacks'][0]['StackStatus']
+        return self.client.describe_stacks(StackName=self.stack)["Stacks"][0]["StackStatus"]
 
     def __create_table(self):
         table = Texttable()
@@ -63,7 +70,7 @@ class StackWaiter:
 
     def print_header(self):
         if self.timeout > 0:
-            logger.info('Timeout set to {} minute(s)'.format(self.timeout))
+            logger.info("Timeout set to {} minute(s)".format(self.timeout))
         table = self.__create_table()
         table.add_rows([EVENT_TABLE_HEADERS])
         table.set_deco(Texttable.BORDER | Texttable.VLINES)
@@ -73,11 +80,13 @@ class StackWaiter:
         table = self.__create_table()
         table.set_deco(0)
         for event in reversed(events):
-            table.add_row([
-                event['Timestamp'].strftime('%Y-%m-%d %H:%M:%S %Z%z'),
-                event['ResourceStatus'],
-                event['ResourceType'],
-                event['LogicalResourceId'],
-                event.get('ResourceStatusReason', '')
-            ])
+            table.add_row(
+                [
+                    event["Timestamp"].strftime("%Y-%m-%d %H:%M:%S %Z%z"),
+                    event["ResourceStatus"],
+                    event["ResourceType"],
+                    event["LogicalResourceId"],
+                    event.get("ResourceStatusReason", ""),
+                ]
+            )
         logger.info(table.draw())
