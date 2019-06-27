@@ -29,6 +29,7 @@ Current Stacks:
 
 | Option                                             | Description  |
 | -------------------------------------------------- | ------------ |
+| --help (-h)                                        | Print Help Message and Exit |
 | --profile PROFILE                                  | The AWS profile to use. |
 | --region REGION                                    | The AWS region to use. |
 | --config-file (-c) CONFIG_FILE                     | Set the config files to use |
