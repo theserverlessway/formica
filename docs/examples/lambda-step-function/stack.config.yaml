@@ -1,0 +1,3 @@
+stack: formica-lambda-step-function
+capabilities:
+  - CAPABILITY_IAM
