@@ -101,4 +101,4 @@ To remove StackSets, e.g. `eu-central-1` and `us-east-1` in the main account we 
 
 If you want to remove a StackSet (after removing all its instances) you can run `formica stack-set remove -c stack-set.config.yaml`.
 
-Check out all the existing formica commands in the [commands documentation](commands) and run `--help` on any command you'd like to get additional info on in your workflow.
+Check out all the existing formica commands in the [commands documentation]({{< relref "/tools/formica/commands" >}}) and run `--help` on any command you'd like to get additional info on in your workflow.
