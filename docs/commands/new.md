@@ -11,17 +11,42 @@ The default name for the created ChangeSet is `STACK_NAME-change-set`, e.g. `for
 
 After the change was submitted a description of the changes will be printed. For all details on the information in that description check out [`formica describe`]({{< relref "describe.md" >}})
 
-## Options
+## Usage
 
-| Option                                             | Description  |
-| -------------------------------------------------- | ------------ |
-| --stack (-s) STACK                                 | The stack you want to create. |
-| --profile PROFILE                                  | The AWS profile to use. |
-| --region REGION                                    | The AWS region to use. |
-| --parameters KEY1=Value KEY2=Value2                | Add a parameter. Repeat for multiple parameters |
-| --tags KEY1=Value KEY2=Value2                      | Add a stack tag. Repeat for multipe tags |
-| --vars KEY1=Value KEY2=Value2                      | Add a variable for use in Jinja2 templates. |
-| --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM | Set one or multiple stack capabilities |
-| --config-file (-c) CONFIG_FILE                     | Set the config files to use |
-| --role-arn ROLE_ARN                                | Set a separate role ARN to pass to the stack |
-| --s3                                               | Upload template to S3 before deployment |
+```
+usage: formica new [-h] [--region REGION] [--profile PROFILE] [--stack STACK]
+                   [--parameters KEY=Value [KEY=Value ...]]
+                   [--tags KEY=Value [KEY=Value ...]]
+                   [--capabilities Cap1 Cap2 [Cap1 Cap2 ...]]
+                   [--role-arn ROLE_ARN] [--role-name ROLE_NAME]
+                   [--config-file CONFIG_FILE [CONFIG_FILE ...]]
+                   [--vars KEY=Value [KEY=Value ...]] [--s3]
+                   [--resource-types] [--organization-variables]
+
+Create a change set for a new stack
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --region REGION       The AWS region to use
+  --profile PROFILE     The AWS profile to use
+  --stack STACK, -s STACK
+                        The Stack to use
+  --parameters KEY=Value [KEY=Value ...]
+                        Add one or multiple stack parameters
+  --tags KEY=Value [KEY=Value ...]
+                        Add one or multiple stack tags
+  --capabilities Cap1 Cap2 [Cap1 Cap2 ...]
+                        Set one or multiple stack capabilities
+  --role-arn ROLE_ARN   Set a separate role ARN to pass to the stack
+  --role-name ROLE_NAME
+                        Set a role name that will be translated to the ARN
+  --config-file CONFIG_FILE [CONFIG_FILE ...], -c CONFIG_FILE [CONFIG_FILE ...]
+                        Set the config files to use
+  --vars KEY=Value [KEY=Value ...]
+                        Add one or multiple Jinja2 variables
+  --s3                  Upload template to S3 before deployment
+  --resource-types      Add Resource Types to the ChangeSet
+  --organization-variables
+                        Add AWSAccounts, AWSSubAccounts and AWSRegions as
+                        Jinja variables
+```

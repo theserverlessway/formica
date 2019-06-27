@@ -19,13 +19,37 @@ root@61aaad32daf7:/app/docs/examples/s3-bucket# formica stack-set diff -s testst
 +---------------------------------------------------------+------------------+----------------------------------+-----------------------+
 ```
 
+## Usage
 
-## Options
+```
+usage: formica stack-set diff [-h] [--region REGION] [--profile PROFILE]
+                              [--stack-set STACK-Set]
+                              [--config-file CONFIG_FILE [CONFIG_FILE ...]]
+                              [--parameters KEY=Value [KEY=Value ...]]
+                              [--tags KEY=Value [KEY=Value ...]]
+                              [--vars KEY=Value [KEY=Value ...]]
+                              [--organization-variables]
+                              [--main-account-parameter]
 
-| Option                                             | Description  |
-| -------------------------------------------------- | ------------ |
-| --stack-set (-s) STACK_SET                         | The stack set you want to diff. |
-| --profile PROFILE                                  | The AWS profile to use. |
-| --region REGION                                    | The AWS region to use. |
-| --vars KEY1=Value KEY2=Value2                      | Add a variable for use in Jinja2 templates. |
-| --config-file (-c) CONFIG_FILE                     | Set the config files to use |
+Diff the StackSet template to the local template
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --region REGION       The AWS region to use
+  --profile PROFILE     The AWS profile to use
+  --stack-set STACK-Set, -s STACK-Set
+                        The Stack Set to use
+  --config-file CONFIG_FILE [CONFIG_FILE ...], -c CONFIG_FILE [CONFIG_FILE ...]
+                        Set the config files to use
+  --parameters KEY=Value [KEY=Value ...]
+                        Add one or multiple stack parameters
+  --tags KEY=Value [KEY=Value ...]
+                        Add one or multiple stack tags
+  --vars KEY=Value [KEY=Value ...]
+                        Add one or multiple Jinja2 variables
+  --organization-variables
+                        Add AWSAccounts, AWSSubAccounts and AWSRegions as
+                        Jinja variables
+  --main-account-parameter
+                        Set MainAccount Parameter
+```

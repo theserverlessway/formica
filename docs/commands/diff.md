@@ -24,12 +24,33 @@ As you can see it will show the path of the property that was changed, what it w
 
 Together with [`formica describe`]({{< relref "describe.md" >}}) you can understand exactly what has changed in your template and how that will influence your deployed stack.
 
-## Options
+## Usage
 
-| Option                                             | Description  |
-| -------------------------------------------------- | ------------ |
-| --stack (-s) STACK                                 | The stack you want to create. |
-| --profile PROFILE                                  | The AWS profile to use. |
-| --region REGION                                    | The AWS region to use. |
-| --vars KEY1=Value KEY2=Value2                      | Add a variable for use in Jinja2 templates. |
-| --config-file (-c) CONFIG_FILE                     | Set the config files to use |
+```
+usage: formica diff [-h] [--region REGION] [--profile PROFILE] [--stack STACK]
+                    [--config-file CONFIG_FILE [CONFIG_FILE ...]]
+                    [--vars KEY=Value [KEY=Value ...]]
+                    [--parameters KEY=Value [KEY=Value ...]]
+                    [--tags KEY=Value [KEY=Value ...]]
+                    [--organization-variables]
+
+Print a diff between local and deployed stack
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --region REGION       The AWS region to use
+  --profile PROFILE     The AWS profile to use
+  --stack STACK, -s STACK
+                        The Stack to use
+  --config-file CONFIG_FILE [CONFIG_FILE ...], -c CONFIG_FILE [CONFIG_FILE ...]
+                        Set the config files to use
+  --vars KEY=Value [KEY=Value ...]
+                        Add one or multiple Jinja2 variables
+  --parameters KEY=Value [KEY=Value ...]
+                        Add one or multiple stack parameters
+  --tags KEY=Value [KEY=Value ...]
+                        Add one or multiple stack tags
+  --organization-variables
+                        Add AWSAccounts, AWSSubAccounts and AWSRegions as
+                        Jinja variables
+```

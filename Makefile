@@ -42,5 +42,5 @@ install:
 	docker build -t flomotlik/formica:whalebrew -f Whalebrew.Dockerfile .
 	whalebrew install -f flomotlik/formica:whalebrew
 
-update-commands-usage:
-	ls
+update-usage:
+	bash scripts/replace-usage.bash
