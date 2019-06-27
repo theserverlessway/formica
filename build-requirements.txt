@@ -6,7 +6,6 @@ mock
 mutmut
 path.py
 pip
-pycodestyle
 pyflakes
 pytest
 pytest-cov
