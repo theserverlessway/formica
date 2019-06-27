@@ -26,11 +26,21 @@ root@07e549506145:/app/docs/examples/s3-bucket# formica cancel --stack formica-e
 2017-02-16 19:15:52 UTC+0000   DELETE_COMPLETE            AWS::CloudFormation::Stack       formica-examples-stack
 ```
 
-## Options
+## Usage
 
-| Option                                             | Description  |
-| -------------------------------------------------- | ------------ |
-| --stack (-s) STACK                                 | The stack you want to create. |
-| --profile PROFILE                                  | The AWS profile to use. |
-| --region REGION                                    | The AWS region to use. |
-| --config-file (-c) CONFIG_FILE                     | Set the config files to use |
+```
+usage: formica cancel [-h] [--region REGION] [--profile PROFILE]
+                      [--stack STACK]
+                      [--config-file CONFIG_FILE [CONFIG_FILE ...]]
+
+Cancel a Stack Update
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --region REGION       The AWS region to use
+  --profile PROFILE     The AWS profile to use
+  --stack STACK, -s STACK
+                        The Stack to use
+  --config-file CONFIG_FILE [CONFIG_FILE ...], -c CONFIG_FILE [CONFIG_FILE ...]
+                        Set the config files to use
+```

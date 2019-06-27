@@ -25,10 +25,18 @@ Current Stacks:
 +-------------------------------+----------------------------------+----------------------------------+--------------------+
 ```
 
-## Options
+## Usage
 
-| Option                                             | Description  |
-| -------------------------------------------------- | ------------ |
-| --profile PROFILE                                  | The AWS profile to use. |
-| --region REGION                                    | The AWS region to use. |
-| --config-file (-c) CONFIG_FILE                     | Set the config files to use |
+```
+usage: formica stacks [-h] [--region REGION] [--profile PROFILE]
+                      [--config-file CONFIG_FILE [CONFIG_FILE ...]]
+
+List all stacks
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --region REGION       The AWS region to use
+  --profile PROFILE     The AWS profile to use
+  --config-file CONFIG_FILE [CONFIG_FILE ...], -c CONFIG_FILE [CONFIG_FILE ...]
+                        Set the config files to use
+```

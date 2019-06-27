@@ -25,12 +25,25 @@ Removing Stack and waiting for it to be removed, ...
 2017-02-16 19:15:52 UTC+0000   DELETE_COMPLETE            AWS::CloudFormation::Stack       formica-examples-stack
 ```
 
-## Options
+## Usage
 
-| Option                                             | Description  |
-| -------------------------------------------------- | ------------ |
-| --stack (-s) STACK                                 | The stack you want to create. |
-| --profile PROFILE                                  | The AWS profile to use. |
-| --region REGION                                    | The AWS region to use. |
-| --config-file (-c) CONFIG_FILE                     | Set the config files to use |
-| --role-arn ROLE_ARN                                | Set a separate role ARN to pass to the stack |
+```
+usage: formica remove [-h] [--region REGION] [--profile PROFILE]
+                      [--stack STACK] [--role-arn ROLE_ARN]
+                      [--role-name ROLE_NAME]
+                      [--config-file CONFIG_FILE [CONFIG_FILE ...]]
+
+Remove the configured stack
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --region REGION       The AWS region to use
+  --profile PROFILE     The AWS profile to use
+  --stack STACK, -s STACK
+                        The Stack to use
+  --role-arn ROLE_ARN   Set a separate role ARN to pass to the stack
+  --role-name ROLE_NAME
+                        Set a role name that will be translated to the ARN
+  --config-file CONFIG_FILE [CONFIG_FILE ...], -c CONFIG_FILE [CONFIG_FILE ...]
+                        Set the config files to use
+```

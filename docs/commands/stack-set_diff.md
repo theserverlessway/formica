@@ -1,16 +1,15 @@
 ---
-title: Diff
+title: Stack Set Diff
 weight: 100
 ---
 
-# `formica diff`
+# `formica stack-set diff`
 
-Through the diff command you can see exactly what changed in your template compared to what is already deployed in your stack. It uses [DeepDiff](https://github.com/seperman/deepdiff) to compare the two templates and show you detailed results.
-
-Following is an example where we have two S3 Buckets and want to add a specific BucketName for one and change the BucketName of the second.
+The `formica stack-set diff` command compares the current local template against the deployed template in the stack-set.
+It works the same as [`formica diff`]({{< relref "diff.md" >}}).
 
 ```
-root@61aaad32daf7:/app/docs/examples/s3-bucket# formica diff --stack teststack
+root@61aaad32daf7:/app/docs/examples/s3-bucket# formica stack-set diff -s teststack
 +---------------------------------------------------------+------------------+----------------------------------+-----------------------+
 |                          Path                           |       From       |                To                |      Change Type      |
 +=========================================================+==================+==================================+=======================+
@@ -20,37 +19,37 @@ root@61aaad32daf7:/app/docs/examples/s3-bucket# formica diff --stack teststack
 +---------------------------------------------------------+------------------+----------------------------------+-----------------------+
 ```
 
-As you can see it will show the path of the property that was changed, what it was before and after and what kind of change it was.
-
-Together with [`formica describe`]({{< relref "describe.md" >}}) you can understand exactly what has changed in your template and how that will influence your deployed stack.
-
 ## Usage
 
 ```
-usage: formica diff [-h] [--region REGION] [--profile PROFILE] [--stack STACK]
-                    [--config-file CONFIG_FILE [CONFIG_FILE ...]]
-                    [--vars KEY=Value [KEY=Value ...]]
-                    [--parameters KEY=Value [KEY=Value ...]]
-                    [--tags KEY=Value [KEY=Value ...]]
-                    [--organization-variables]
+usage: formica stack-set diff [-h] [--region REGION] [--profile PROFILE]
+                              [--stack-set STACK-Set]
+                              [--config-file CONFIG_FILE [CONFIG_FILE ...]]
+                              [--parameters KEY=Value [KEY=Value ...]]
+                              [--tags KEY=Value [KEY=Value ...]]
+                              [--vars KEY=Value [KEY=Value ...]]
+                              [--organization-variables]
+                              [--main-account-parameter]
 
-Print a diff between local and deployed stack
+Diff the StackSet template to the local template
 
 optional arguments:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use
-  --stack STACK, -s STACK
-                        The Stack to use
+  --stack-set STACK-Set, -s STACK-Set
+                        The Stack Set to use
   --config-file CONFIG_FILE [CONFIG_FILE ...], -c CONFIG_FILE [CONFIG_FILE ...]
                         Set the config files to use
-  --vars KEY=Value [KEY=Value ...]
-                        Add one or multiple Jinja2 variables
   --parameters KEY=Value [KEY=Value ...]
                         Add one or multiple stack parameters
   --tags KEY=Value [KEY=Value ...]
                         Add one or multiple stack tags
+  --vars KEY=Value [KEY=Value ...]
+                        Add one or multiple Jinja2 variables
   --organization-variables
                         Add AWSAccounts, AWSSubAccounts and AWSRegions as
                         Jinja variables
+  --main-account-parameter
+                        Set MainAccount Parameter
 ```

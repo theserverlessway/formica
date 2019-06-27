@@ -41,3 +41,6 @@ release: release-pypi release-docker
 install:
 	docker build -t flomotlik/formica:whalebrew -f Whalebrew.Dockerfile .
 	whalebrew install -f flomotlik/formica:whalebrew
+
+update-usage:
+	bash scripts/replace-usage.bash

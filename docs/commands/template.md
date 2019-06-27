@@ -23,8 +23,23 @@ Load the CloudFormation template from the `*.template.(yml|yaml|json)` files in 
 }
  ```
 
-## Options
+## Usage
 
-| Option                                             | Description  |
-| -------------------------------------------------- | ------------ |
-| --yaml (-y)                                        | Print output as Yaml |
+```
+usage: formica template [-h] [--config-file CONFIG_FILE [CONFIG_FILE ...]]
+                        [--vars KEY=Value [KEY=Value ...]] [-y]
+                        [--organization-variables]
+
+Print the current template
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --config-file CONFIG_FILE [CONFIG_FILE ...], -c CONFIG_FILE [CONFIG_FILE ...]
+                        Set the config files to use
+  --vars KEY=Value [KEY=Value ...]
+                        Add one or multiple Jinja2 variables
+  -y, --yaml            print output as yaml
+  --organization-variables
+                        Add AWSAccounts, AWSSubAccounts and AWSRegions as
+                        Jinja variables
+```
