@@ -184,7 +184,7 @@ Running `formica template` in the same directory will result in the following Cl
 }
 ```
 
-If you want to set specific Jinja varaibles just for loading this particular file you can add them to the code function as arguments `"{{ code('code.py', VAR='something') }}"`.
+If you want to set specific Jinja variables just for loading this particular file you can add them to the code function as arguments `"{{ code('code.py', VAR='something') }}"`.
 
 ### code_escape
 
