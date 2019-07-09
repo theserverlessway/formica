@@ -134,8 +134,7 @@ In the following example we create a LambdaFunction and want to inline the code.
 as you're able to test your code as a standard python file, but can include it directly into the CloudFormation template.
 
 If you use yaml make sure to add apostrophes around the `{{ code('something.file) }}` call, otherwise escaped newlines
-might be escaped or treated differently by the yaml parser. You can see the right way to do this in the following example
-as well.
+might be escaped or treated differently by the yaml parser. You can see the right way to do this in the following example:
 
 ```yaml
 Resources:
@@ -151,6 +150,8 @@ Resources:
         Zipfile: "{{ code('code.py') }}"
       Runtime: "python3.7"
 ```
+
+By default 'code' escapes newlines and apostrophes by using the `code_escape` function defined below. Use the `file` function if you don't want to escape the content.
 
 ```python
 def handler(event, context):
@@ -183,6 +184,8 @@ Running `formica template` in the same directory will result in the following Cl
 }
 ```
 
+If you want to set specific Jinja varaibles just for loading this particular file you can add them to the code function as arguments `"{{ code('code.py', VAR='something') }}"`.
+
 ### code_escape
 
 In case you want to pass code around in variables it can be helpful to use code_escape to make sure newlines
@@ -200,10 +203,29 @@ Resources:
           - "LambdaExecutionRole"
           - "Arn"
       Code:
-        Zipfile: {{ code | code_escape }}
+        Zipfile: {{ code('code.py') | code_escape }}
       Runtime: "python3.7"
 ```
 
+
+### file
+
+If you just want to load the contents of a file without escaping them you can do that by using the file function, e.g. `Zipfile: {{ file('code.py') | code_escape }}`.
+
+### files
+
+Sometimes you want to iterate over a list of files and use that list to create Resources in your Template. For example when deploying Service Control Policies its easier if we can simply create the corresponding files in a subdirectory and then load all files.
+
+The `files` function helps there as it gives you a list of all template files it finds with the ability to filter them.
+Filtering uses the standard unix like wildcard mechanism (implemented by pythons fnmatch library), so you can do `subfolder/*` or `sub*/*.json`.
+
+```yaml
+Resources:
+  {{for SCP in files('scps/*')}}
+  {{SCP | resource}}:
+    ...
+  {{endfor }}
+```
 
 ### novalue
 

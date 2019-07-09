@@ -468,3 +468,35 @@ def test_utcnow(load, tmpdir):
 
         actual = json.loads(load.template())
     assert actual == {"Resources": {"Test": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d %H:%M")}}
+
+
+def test_files(load, tmpdir):
+    example = '{"Resources": {"Test": "{{ files() | join(",")}}"}}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        os.mkdir('moduledir1')
+        with open('moduledir1/test1.template.json', 'w') as f:
+            f.write('')
+        os.mkdir('moduledir2')
+        with open('moduledir2/test2.template.json', 'w') as f:
+            f.write('')
+        load.load()
+        all = json.loads(load.template())
+    assert all == {"Resources": {"Test": 'moduledir1/test1.template.json,moduledir2/test2.template.json,test.template.json'}}
+
+
+def test_files_with_filter(load, tmpdir):
+    example = '{"Resources": {"Test": "{{ files("moduledir*/*") | join(",")}}"}}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        os.mkdir('moduledir1')
+        with open('moduledir1/test1.template.json', 'w') as f:
+            f.write('')
+        os.mkdir('moduledir2')
+        with open('moduledir2/test2.template.json', 'w') as f:
+            f.write('')
+        load.load()
+        all = json.loads(load.template())
+    assert all == {"Resources": {"Test": 'moduledir1/test1.template.json,moduledir2/test2.template.json'}}
