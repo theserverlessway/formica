@@ -5,7 +5,9 @@ weight: 100
 
 # `formica change`
 
-Through the change command you can upload your local template to CloudFormation and create a new Changeset for an existing stack. It will fail if the stack doesn't already exist. If you want to create a ChangeSet for a new stack check out `formica new`({{< relref "new.md" >}}). You can see the full template that will be used by running [`formica template`]({{< relref "template.md" >}}).
+Through the change command you can upload your local template to CloudFormation and create a new Changeset for an existing stack. It will fail if the stack doesn't already exist. If you want to create the missing stack use the `--create-missing` option. In general try to use `formica new` when creating a new Stack so you don't accidentally creates stacks when running change. For automation it is sometimes useful though to create them if they aren't there yet. 
+
+If you want to create a ChangeSet for a new stack check out `formica new`({{< relref "new.md" >}}). You can see the full template that will be used by running [`formica template`]({{< relref "template.md" >}}).
 
 The default name for the created ChangeSet is `STACK_NAME-change-set`, e.g. `formica-stack-change-set`. If a ChangeSet exists but wasn't deployed it will be removed before creating a new ChangeSet.
 
@@ -21,7 +23,8 @@ usage: formica change [-h] [--region REGION] [--profile PROFILE]
                       [--role-arn ROLE_ARN] [--role-name ROLE_NAME]
                       [--config-file CONFIG_FILE [CONFIG_FILE ...]]
                       [--vars KEY=Value [KEY=Value ...]] [--s3]
-                      [--resource-types] [--organization-variables]
+                      [--resource-types] [--create-missing]
+                      [--organization-variables]
 
 Create a change set for an existing stack
 
@@ -46,6 +49,7 @@ optional arguments:
                         Add one or multiple Jinja2 variables
   --s3                  Upload template to S3 before deployment
   --resource-types      Add Resource Types to the ChangeSet
+  --create-missing      Create the Stack in case it's missing
   --organization-variables
                         Add AWSAccounts, AWSSubAccounts and AWSRegions as
                         Jinja variables
