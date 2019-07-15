@@ -1,5 +1,7 @@
 import pytest
 import json
+from botocore.exceptions import ClientError
+
 from uuid import uuid4
 
 from formica import cli, stack_set
@@ -280,6 +282,31 @@ def test_update_stack_set_with_all_subaccounts(client, logger, loader, input, co
         TemplateBody=TEMPLATE,
         Accounts=['1234']
     )
+
+
+def test_update_with_create_missing(client, logger, loader, input, compare, wait):
+    client.update_stack_set.return_value = {'OperationId': '12345'}
+    client.list_accounts.return_value = ACCOUNTS
+    client.get_caller_identity.return_value = {'Account': '5678'}
+    client.describe_regions.return_value = EC2_REGIONS
+    exception = ClientError(
+        dict(Error={'Code': 'StackSetNotFoundException'}), "DescribeStackSet")
+    print(exception)
+    client.describe_stack_set.side_effect = exception
+    cli.main([
+        'stack-set',
+        'update',
+        '--stack-set', STACK,
+        '--all-subaccounts',
+        '--create-missing'
+    ])
+
+    client.create_stack_set.assert_called_with(
+        StackSetName=STACK,
+        TemplateBody=TEMPLATE
+    )
+
+    client.describe_stack_set.assert_called_with(StackSetName=STACK)
 
 
 def test_add_stack_set_instances(client, loader, wait, input):

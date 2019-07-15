@@ -278,6 +278,7 @@ def stack_set_parser(parser):
     add_stack_set_operation_preferences(update_parser)
     add_organization_account_template_variables(update_parser)
     add_yes_parameter(update_parser)
+    add_create_missing_argument(update_parser)
     update_parser.set_defaults(func=stack_set.update_stack_set)
 
     # Remove
@@ -569,14 +570,15 @@ def change(args):
     change_set = ChangeSet(stack=args.stack, client=client)
 
     change_set_type = "UPDATE"
-    try:
-        client.describe_stacks(StackName=args.stack)
-    except ClientError as e:
-        error = e.response["Error"]
-        if error["Code"] == "ValidationError" and "does not exist" in error["Message"]:
-            change_set_type = "CREATE"
-        else:
-            raise e
+    if args.create_missing:
+        try:
+            client.describe_stacks(StackName=args.stack)
+        except ClientError as e:
+            error = e.response["Error"]
+            if error["Code"] == "ValidationError" and "does not exist" in error["Message"]:
+                change_set_type = "CREATE"
+            else:
+                raise e
 
     change_set.create(
         template=loader.template(indent=None),
