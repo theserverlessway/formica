@@ -129,3 +129,19 @@ def test_change_create_if_missing(change_set, client, loader):
                                                            parameters={},
                                                            tags={}, capabilities=None, s3=False, resource_types=False,
                                                            role_arn=None)
+
+
+def test_change_create_if_missing_exception_handling(change_set, client, loader):
+    client.get_caller_identity.return_value = {'Account': ACCOUNT_ID}
+    exception = ClientError(
+        dict(Error={'Code': 'OtherError', 'Message': 'Stack with id teststack does not exist'}), "DescribeStack")
+    client.describe_stacks.side_effect = exception
+    loader.return_value.template.return_value = TEMPLATE
+    with pytest.raises(SystemExit):
+        cli.main(['change', '--stack', STACK, '--create-missing'])
+
+    exception = ClientError(
+        dict(Error={'Code': 'ValidationError', 'Message': 'Other Error Message'}), "DescribeStack")
+    client.describe_stacks.side_effect = exception
+    with pytest.raises(SystemExit):
+        cli.main(['change', '--stack', STACK, '--create-missing'])
