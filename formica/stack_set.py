@@ -1,6 +1,7 @@
 import logging
 import sys
 import time
+from botocore.exceptions import ClientError
 
 from .aws import AWS
 from .helper import collect_vars, main_account_id, aws_accounts, aws_regions
@@ -46,6 +47,17 @@ def ack(message):
 
 @requires_stack_set
 def update_stack_set(args):
+    if args.create_missing:
+        client = AWS.current_session().client("cloudformation")
+        try:
+            client.describe_stack_set(StackSetName=args.stack_set)
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "StackSetNotFoundException":
+                create_stack_set(args)
+                return
+            else:
+                raise e
+
     compare_stack_set(
         stack=args.stack_set,
         vars=collect_vars(args),
@@ -53,6 +65,7 @@ def update_stack_set(args):
         tags=args.tags,
         main_account_parameter=args.main_account_parameter,
     )
+
     if args.yes or ack("Do you want to update the StackSet with above changes"):
         __manage_stack_set(args=args, create=False)
     else:

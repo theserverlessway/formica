@@ -117,6 +117,13 @@ def test_change_with_resource_types(change_set, client, loader):
                                                            role_arn=None)
 
 
+def test_change_create_if_missing_without_parameter(change_set, client, loader):
+    client.get_caller_identity.return_value = {'Account': ACCOUNT_ID}
+    loader.return_value.template.return_value = TEMPLATE
+    cli.main(['change', '--stack', STACK])
+    client.describe_stacks.assert_not_called()
+
+
 def test_change_create_if_missing(change_set, client, loader):
     client.get_caller_identity.return_value = {'Account': ACCOUNT_ID}
     exception = ClientError(
