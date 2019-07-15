@@ -84,7 +84,8 @@ optional arguments:
   --max-concurrent-percentage MAX_CONCURRENT_PERCENTAGE
                         Max Percentage of concurrent accounts to deploy to
   --organization-variables
-                        Add AWSAccounts, AWSSubAccounts and AWSRegions as
-                        Jinja variables
+                        Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
+                        AWSRegions as Jinja variables with an Email, Id and
+                        Name field for each account
   --yes, -y             Answer all input questions with yes
 ```

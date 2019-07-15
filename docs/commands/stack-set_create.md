@@ -53,6 +53,7 @@ optional arguments:
                         The Execution role name to use for the CloudFormation
                         Stack
   --organization-variables
-                        Add AWSAccounts, AWSSubAccounts and AWSRegions as
-                        Jinja variables
+                        Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
+                        AWSRegions as Jinja variables with an Email, Id and
+                        Name field for each account
 ```

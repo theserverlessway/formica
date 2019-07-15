@@ -51,6 +51,7 @@ optional arguments:
   --resource-types      Add Resource Types to the ChangeSet
   --create-missing      Create the Stack in case it's missing
   --organization-variables
-                        Add AWSAccounts, AWSSubAccounts and AWSRegions as
-                        Jinja variables
+                        Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
+                        AWSRegions as Jinja variables with an Email, Id and
+                        Name field for each account
 ```

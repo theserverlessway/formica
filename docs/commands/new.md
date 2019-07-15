@@ -47,6 +47,7 @@ optional arguments:
   --s3                  Upload template to S3 before deployment
   --resource-types      Add Resource Types to the ChangeSet
   --organization-variables
-                        Add AWSAccounts, AWSSubAccounts and AWSRegions as
-                        Jinja variables
+                        Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
+                        AWSRegions as Jinja variables with an Email, Id and
+                        Name field for each account
 ```

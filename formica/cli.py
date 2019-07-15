@@ -439,7 +439,7 @@ def add_stack_set_main_auto_regions_accounts(parser):
 def add_organization_account_template_variables(parser):
     parser.add_argument(
         "--organization-variables",
-        help="Add AWSAccounts, AWSSubAccounts and AWSRegions as Jinja variables",
+        help="Add AWSAccounts, AWSSubAccounts, AWSMainAccount and AWSRegions as Jinja variables with an Email, Id and Name field for each account",
         action="store_true",
         default=False,
     )
