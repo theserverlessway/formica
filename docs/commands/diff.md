@@ -51,6 +51,7 @@ optional arguments:
   --tags KEY=Value [KEY=Value ...]
                         Add one or multiple stack tags
   --organization-variables
-                        Add AWSAccounts, AWSSubAccounts and AWSRegions as
-                        Jinja variables
+                        Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
+                        AWSRegions as Jinja variables with an Email, Id and
+                        Name field for each account
 ```

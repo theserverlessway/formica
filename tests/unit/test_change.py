@@ -1,7 +1,7 @@
 import pytest
-from mock import Mock
 from formica import cli
 from tests.unit.constants import REGION, PROFILE, STACK, TEMPLATE, ROLE_ARN, ACCOUNT_ID
+from botocore.exceptions import ClientError
 
 
 def test_change_creates_update_change_set(change_set, client, loader):
@@ -115,3 +115,33 @@ def test_change_with_resource_types(change_set, client, loader):
                                                            parameters={},
                                                            tags={}, capabilities=None, s3=False, resource_types=True,
                                                            role_arn=None)
+
+
+def test_change_create_if_missing(change_set, client, loader):
+    client.get_caller_identity.return_value = {'Account': ACCOUNT_ID}
+    exception = ClientError(
+        dict(Error={'Code': 'ValidationError', 'Message': 'Stack with id teststack does not exist'}), "DescribeStack")
+    client.describe_stacks.side_effect = exception
+    loader.return_value.template.return_value = TEMPLATE
+    cli.main(['change', '--stack', STACK, '--create-missing'])
+    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
+                                                           parameters={},
+                                                           tags={}, capabilities=None, s3=False, resource_types=False,
+                                                           role_arn=None)
+
+
+def test_change_create_if_missing_exception_handling(change_set, client, loader):
+    client.get_caller_identity.return_value = {'Account': ACCOUNT_ID}
+    exception = ClientError(
+        dict(Error={'Code': 'OtherError', 'Message': 'Stack with id teststack does not exist'}), "DescribeStack")
+    client.describe_stacks.side_effect = exception
+    loader.return_value.template.return_value = TEMPLATE
+    with pytest.raises(SystemExit):
+        cli.main(['change', '--stack', STACK, '--create-missing'])
+
+    exception = ClientError(
+        dict(Error={'Code': 'ValidationError', 'Message': 'Other Error Message'}), "DescribeStack")
+    client.describe_stacks.side_effect = exception
+    with pytest.raises(SystemExit):
+        cli.main(['change', '--stack', STACK, '--create-missing'])

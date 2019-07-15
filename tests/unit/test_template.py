@@ -35,7 +35,7 @@ def test_with_organization_variables(aws_client, aws_session, tmpdir, logger):
     aws_client.list_accounts.return_value = ACCOUNTS
     aws_client.describe_regions.return_value = EC2_REGIONS
     aws_client.get_caller_identity.return_value = {'Account': '1234'}
-    example = '{"Resources": {"ModuleAccounts": {{ AWSAccounts | tojson }}, "ModuleSubAccounts": {{ AWSSubAccounts | tojson }}, "ModuleRegions": {{ AWSRegions | tojson }}}}'
+    example = '{"Resources": {"ModuleAccounts": {{ AWSAccounts | tojson }}, "ModuleSubAccounts": {{ AWSSubAccounts | tojson }}, "ModuleRegions": {{ AWSRegions | tojson }}, "ModuleMainAccount": {{ AWSMainAccount | tojson }}}}'
     with Path(tmpdir):
         os.mkdir('moduledir')
         with open('moduledir/test.template.json', 'w') as f:
@@ -55,5 +55,8 @@ def test_with_organization_variables(aws_client, aws_session, tmpdir, logger):
                                                      {'Email': 'email2@test.com', 'Id': '5678', 'Name': 'TestName2'}],
                                   'ModuleSubAccounts': [
                                       {'Email': 'email2@test.com', 'Id': '5678', 'Name': 'TestName2'}],
+                                  'ModuleMainAccount': {'Email': 'email1@test.com',
+                                                        'Id': '1234',
+                                                        'Name': 'TestName1'},
                                   'ModuleRegions': ['us-west-1', 'us-west-2'], 'Regions': ['us-west-1', 'us-west-2']}}
     assert actual == expected

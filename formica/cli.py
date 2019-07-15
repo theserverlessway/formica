@@ -5,13 +5,15 @@ import functools
 import logging
 import signal
 import sys
-
+from botocore.exceptions import ClientError
 import argcomplete
+
 
 from . import CHANGE_SET_FORMAT, __version__
 from . import stack_set
 from .aws import AWS
 from .helper import collect_vars
+
 
 STACK_HEADERS = ["Name", "Created At", "Updated At", "Status"]
 RESOURCE_HEADERS = ["Logical ID", "Physical ID", "Type", "Status"]
@@ -28,6 +30,7 @@ CONFIG_FILE_ARGUMENTS = {
     "region": str,
     "profile": str,
     "capabilities": list,
+    "create_missing": bool,
     "vars": dict,
     "timeout": int,
     "administration_role_arn": str,
@@ -126,6 +129,7 @@ def main(cli_args):
     add_stack_variables_argument(change_parser)
     add_s3_upload_argument(change_parser)
     add_resource_types(change_parser)
+    add_create_missing_argument(change_parser)
     add_organization_account_template_variables(change_parser)
     change_parser.set_defaults(func=change)
 
@@ -349,6 +353,12 @@ def add_stack_set_argument(parser):
     parser.add_argument("--stack-set", "-s", help="The Stack Set to use", metavar="STACK-Set")
 
 
+def add_create_missing_argument(parser):
+    parser.add_argument(
+        "--create-missing", help="Create the Stack in case it's missing", action="store_true", default=False
+    )
+
+
 def add_stack_parameters_argument(parser):
     parser.add_argument(
         "--parameters",
@@ -429,7 +439,7 @@ def add_stack_set_main_auto_regions_accounts(parser):
 def add_organization_account_template_variables(parser):
     parser.add_argument(
         "--organization-variables",
-        help="Add AWSAccounts, AWSSubAccounts and AWSRegions as Jinja variables",
+        help="Add AWSAccounts, AWSSubAccounts, AWSMainAccount and AWSRegions as Jinja variables with an Email, Id and Name field for each account",
         action="store_true",
         default=False,
     )
@@ -557,9 +567,20 @@ def change(args):
     loader.load()
 
     change_set = ChangeSet(stack=args.stack, client=client)
+
+    change_set_type = "UPDATE"
+    try:
+        client.describe_stacks(StackName=args.stack)
+    except ClientError as e:
+        error = e.response["Error"]
+        if error["Code"] == "ValidationError" and "does not exist" in error["Message"]:
+            change_set_type = "CREATE"
+        else:
+            raise e
+
     change_set.create(
         template=loader.template(indent=None),
-        change_set_type="UPDATE",
+        change_set_type=change_set_type,
         parameters=args.parameters,
         tags=args.tags,
         capabilities=args.capabilities,

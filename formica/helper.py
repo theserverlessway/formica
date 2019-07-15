@@ -38,7 +38,11 @@ def aws_accounts():
         {"Id": a["Id"], "Name": a["Name"], "Email": a["Email"]} for a in orgs["Accounts"] if a["Status"] == "ACTIVE"
     ]
     account_id = sts.get_caller_identity()["Account"]
-    return {"AWSAccounts": accounts, "AWSSubAccounts": [a for a in accounts if a["Id"] != account_id]}
+    return {
+        "AWSMainAccount": [a for a in accounts if a["Id"] == account_id][0],
+        "AWSAccounts": accounts,
+        "AWSSubAccounts": [a for a in accounts if a["Id"] != account_id],
+    }
 
 
 def main_account_id():

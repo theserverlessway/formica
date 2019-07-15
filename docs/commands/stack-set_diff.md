@@ -48,8 +48,9 @@ optional arguments:
   --vars KEY=Value [KEY=Value ...]
                         Add one or multiple Jinja2 variables
   --organization-variables
-                        Add AWSAccounts, AWSSubAccounts and AWSRegions as
-                        Jinja variables
+                        Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
+                        AWSRegions as Jinja variables with an Email, Id and
+                        Name field for each account
   --main-account-parameter
                         Set MainAccount Parameter
 ```
