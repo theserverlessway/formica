@@ -75,7 +75,16 @@ def update_stack_set(args):
 
 @requires_stack_set
 def create_stack_set(args):
-    __manage_stack_set(args=args, create=True)
+    try:
+        client = AWS.current_session().client("cloudformation")
+        client.describe_stack_set(StackSetName=args.stack_set)
+        logger.info(f"Stack Set {args.stack_set} already exists")
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "StackSetNotFoundException":
+            __manage_stack_set(args=args, create=True)
+            return
+        else:
+            raise e
 
 
 @requires_stack_set

@@ -24,6 +24,9 @@ def client(session, mocker):
     client_mock.delete_stack_instances.return_value = {'OperationId': OPERATION_ID}
     client_mock.update_stack_set.return_value = {'OperationId': OPERATION_ID}
     client_mock.get_paginator.return_value.paginate.return_value = []
+    exception = ClientError(
+        dict(Error={'Code': 'StackSetNotFoundException'}), "DescribeStackSet")
+    client_mock.describe_stack_set.side_effect = exception
     return client_mock
 
 
@@ -162,6 +165,23 @@ def test_create_stack_set_with_main_account_and_existing_parameters(session, cli
         Parameters=[{'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False}]
     )
 
+def test_do_not_create_if_existing(session, logger, tmpdir, mocker):
+    client = mocker.Mock()
+    session.return_value.client.return_value = client
+    accountid = str(uuid4())
+    client.get_caller_identity.return_value = {'Account': accountid}
+    client.describe_stack_set().return_value = {}
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Parameters': {'SomeParam': {'Type': 'String'}}}))
+        cli.main([
+            'stack-set',
+            'create',
+            '--stack-set', STACK,
+        ])
+
+    client.create_stack_set.assert_not_called()
+
 
 def test_update_stack_set_with_compare_check(client, loader, input, compare, wait):
     client.describe_stack_set_operation.return_value = {'StackSetOperation': {'Status': 'SUCCEEDED'}}
@@ -289,10 +309,6 @@ def test_update_with_create_missing(client, logger, loader, input, compare, wait
     client.list_accounts.return_value = ACCOUNTS
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.describe_regions.return_value = EC2_REGIONS
-    exception = ClientError(
-        dict(Error={'Code': 'StackSetNotFoundException'}), "DescribeStackSet")
-    print(exception)
-    client.describe_stack_set.side_effect = exception
     cli.main([
         'stack-set',
         'update',
