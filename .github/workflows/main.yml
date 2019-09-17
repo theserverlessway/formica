@@ -1,0 +1,20 @@
+name: CI
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.6', '3.7']
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-python@master
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install Dependencies
+      run: make dependencies
+    - name: Check Code
+      run: make check-code
+    - name: Run Unit Tests
+      run: make test
+
