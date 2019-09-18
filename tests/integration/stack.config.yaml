@@ -1,0 +1,4 @@
+stack: formica-integration-test-user
+capabilities:
+  - CAPABILITY_IAM
+region: eu-central-1

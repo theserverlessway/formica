@@ -1,7 +1,7 @@
 name: CI
 on: [push]
 jobs:
-  build:
+  unit-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -17,4 +17,21 @@ jobs:
       run: make check-code
     - name: Run Unit Tests
       run: make test
-
+  integration-test:
+    needs: unit-test
+    runs-on: ubuntu-latest
+#    on: [push]
+#      push:
+#        branches:
+#          - master
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@master
+        with:
+          python-version: 3.7
+      - run: |
+          make dependencies
+          make integration-test
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
