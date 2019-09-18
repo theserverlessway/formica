@@ -14,9 +14,10 @@ jobs:
     - run: make dependencies
     - run: make check-code
     - run: make test
-    - run: coveralls
-      env:
-        COVERALLS_REPO_TOKEN: iKd3pRRJvcQpdTiX3yKgAagmIwlob4DI2
+    - name: Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
   integration-test:
     needs: unit-test
     runs-on: ubuntu-latest
