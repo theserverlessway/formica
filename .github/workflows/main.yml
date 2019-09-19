@@ -25,10 +25,10 @@ jobs:
     needs: unit-test
     runs-on: ubuntu-latest
     steps:
-      - name: Coveralls Parallel finish
-        runs: curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=GITHUB_SHA&payload[status]=done"
-    env:
-      COVERALLS_REPO_TOKEN: iKd3pRRJvcQpdTiX3yKgAagmIwlob4DI2
+    - name: Coveralls Parallel finish
+      run: curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=GITHUB_SHA&payload[status]=done"
+      env:
+        COVERALLS_REPO_TOKEN: iKd3pRRJvcQpdTiX3yKgAagmIwlob4DI2
   integration-test:
     needs: unit-test
     runs-on: ubuntu-latest
