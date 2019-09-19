@@ -14,10 +14,9 @@ jobs:
     - run: make dependencies
     - run: make check-code
     - run: make test
-    - name: Coveralls
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.github_token }}
+    - run: GIT_BRANCH=$GITHUB_REF coveralls
+      env:
+        COVERALLS_REPO_TOKEN: iKd3pRRJvcQpdTiX3yKgAagmIwlob4DI2
   integration-test:
     needs: unit-test
     runs-on: ubuntu-latest
