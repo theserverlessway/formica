@@ -8,7 +8,7 @@ import pytest
 
 @pytest.fixture
 def stack_name():
-    return 'a' + str(uuid.uuid4())
+    return 'formica-it-' + str(uuid.uuid4())
 
 
 CONFIG_FILE = 'test.config.json'

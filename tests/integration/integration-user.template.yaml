@@ -1,0 +1,28 @@
+Resources:
+  FormicaIntegrationTestUser:
+    Properties:
+      PermissionsBoundary: !Sub arn:aws:iam::${AWS::AccountId}:policy/CreatedIdentitiesPermissionsBoundary
+      Policies:
+      - PolicyDocument:
+            Statement:
+              - Sid: S3Access
+                Effect: Allow
+                Action:
+                  - 's3:*'
+                Resource:
+                  - 'arn:aws:s3:::formica-it-*'
+                  - 'arn:aws:s3:::formica-deploy-*'
+              - Sid: CloudFormationAccess
+                Effect: Allow
+                Action:
+                  - 'cloudformation:*'
+                Resource:
+                  - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/formica-it-*
+              - Sid: CloudFormationDescribeStacks
+                Effect: Allow
+                Action:
+                  - 'cloudformation:DescribeStacks'
+                Resource:
+                  - '*'
+        PolicyName: formicadeployment
+    Type: AWS::IAM::User

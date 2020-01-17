@@ -31,8 +31,8 @@ def test_template_calls_template_with_yaml(tmpdir, logger):
         assert {"Description": "Test"} == yaml.load(logger.info.call_args[0][0])
 
 
-def test_with_organization_variables(aws_client, aws_session, tmpdir, logger):
-    aws_client.list_accounts.return_value = ACCOUNTS
+def test_with_organization_variables(aws_client, aws_session, tmpdir, logger, paginators):
+    aws_client.get_paginator.side_effect = paginators(list_accounts=[ACCOUNTS])
     aws_client.describe_regions.return_value = EC2_REGIONS
     aws_client.get_caller_identity.return_value = {'Account': '1234'}
     example = '{"Resources": {"ModuleAccounts": {{ AWSAccounts | tojson }}, "ModuleSubAccounts": {{ AWSSubAccounts | tojson }}, "ModuleRegions": {{ AWSRegions | tojson }}, "ModuleMainAccount": {{ AWSMainAccount | tojson }}}}'

@@ -28,6 +28,7 @@ Resources:
   CodeBuildRole:
     Type: 'AWS::IAM::Role'
     Properties:
+      PermissionsBoundary: !Sub arn:aws:iam::${AWS::AccountId}:policy/CreatedIdentitiesPermissionsBoundary
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:

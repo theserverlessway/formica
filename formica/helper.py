@@ -33,9 +33,15 @@ def aws_accounts():
     current_session = AWS.current_session()
     organizations = current_session.client("organizations")
     sts = current_session.client("sts")
-    orgs = organizations.list_accounts()
+
+    paginator = organizations.get_paginator("list_accounts")
+
+    pages = paginator.paginate()
     accounts = [
-        {"Id": a["Id"], "Name": a["Name"], "Email": a["Email"]} for a in orgs["Accounts"] if a["Status"] == "ACTIVE"
+        {"Id": a["Id"], "Name": a["Name"], "Email": a["Email"]}
+        for page in pages
+        for a in page["Accounts"]
+        if a["Status"] == "ACTIVE"
     ]
     account_id = sts.get_caller_identity()["Account"]
     return {

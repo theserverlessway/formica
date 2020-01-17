@@ -2,8 +2,7 @@ Resources:
   CodeCommitRepository:
     Type: AWS::CodeCommit::Repository
     Properties:
-      RepositoryName: formica-commit-build-test-repo
-      RepositoryDescription: A Test Repository for Formica
+      RepositoryDescription: CPR Test Repository
       Triggers:
         - DestinationArn: !GetAtt PostPushHookLambdaFunction.Arn
           Name: ChangeLambda

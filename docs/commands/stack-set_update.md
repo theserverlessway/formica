@@ -27,6 +27,7 @@ usage: formica stack-set update [-h] [--region REGION] [--profile PROFILE]
                                 [--accounts ACCOUNTS [ACCOUNTS ...]]
                                 [--regions REGIONS [REGIONS ...]]
                                 [--all-accounts] [--all-subaccounts]
+                                [--excluded-accounts EXCLUDED_ACCOUNTS [EXCLUDED_ACCOUNTS ...]]
                                 [--all-regions]
                                 [--excluded-regions EXCLUDED_REGIONS [EXCLUDED_REGIONS ...]]
                                 [--main-account]
@@ -34,6 +35,7 @@ usage: formica stack-set update [-h] [--region REGION] [--profile PROFILE]
                                 [--failure-tolerance-count FAILURE_TOLERANCE_COUNT | --failure-tolerance-percentage FAILURE_TOLERANCE_PERCENTAGE]
                                 [--max-concurrent-count MAX_CONCURRENT_COUNT | --max-concurrent-percentage MAX_CONCURRENT_PERCENTAGE]
                                 [--organization-variables] [--yes]
+                                [--create-missing]
 
 Update a Stack Set
 
@@ -69,6 +71,8 @@ optional arguments:
                         The Regions for this operation
   --all-accounts        Use All Accounts of this Org
   --all-subaccounts     Use Only Subaccounts of this Org
+  --excluded-accounts EXCLUDED_ACCOUNTS [EXCLUDED_ACCOUNTS ...]
+                        All Accounts excluding these
   --all-regions         Use all Regions
   --excluded-regions EXCLUDED_REGIONS [EXCLUDED_REGIONS ...]
                         Excluded Regions from deployment
@@ -88,4 +92,5 @@ optional arguments:
                         AWSRegions as Jinja variables with an Email, Id and
                         Name field for each account
   --yes, -y             Answer all input questions with yes
+  --create-missing      Create the Stack in case it's missing
 ```

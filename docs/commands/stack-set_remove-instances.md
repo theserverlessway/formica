@@ -23,6 +23,7 @@ usage: formica stack-set remove-instances [-h] [--region REGION]
                                           [--retain]
                                           [--config-file CONFIG_FILE [CONFIG_FILE ...]]
                                           [--all-accounts] [--all-subaccounts]
+                                          [--excluded-accounts EXCLUDED_ACCOUNTS [EXCLUDED_ACCOUNTS ...]]
                                           [--all-regions]
                                           [--excluded-regions EXCLUDED_REGIONS [EXCLUDED_REGIONS ...]]
                                           [--main-account]
@@ -48,6 +49,8 @@ optional arguments:
                         Set the config files to use
   --all-accounts        Use All Accounts of this Org
   --all-subaccounts     Use Only Subaccounts of this Org
+  --excluded-accounts EXCLUDED_ACCOUNTS [EXCLUDED_ACCOUNTS ...]
+                        All Accounts excluding these
   --all-regions         Use all Regions
   --excluded-regions EXCLUDED_REGIONS [EXCLUDED_REGIONS ...]
                         Excluded Regions from deployment

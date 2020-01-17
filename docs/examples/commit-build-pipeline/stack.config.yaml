@@ -6,4 +6,4 @@ parameters:
   TimeoutInMinutes: '25'
 tags:
   Key: Value1
-  Some: 2
+  Some: '2'

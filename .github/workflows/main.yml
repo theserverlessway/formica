@@ -1,0 +1,45 @@
+name: CI
+on: [push]
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.6', '3.7']
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-python@master
+      with:
+        python-version: ${{ matrix.python }}
+    - run: make dependencies
+    - run: make check-code
+    - run: make test
+    - name: Coveralls Reporting
+      run: |
+        echo "$GITHUB_REF" | sed "s/refs\/heads\///g"
+        GIT_BRANCH=$(echo "$GITHUB_REF" | sed "s/refs\/heads\///g") coveralls
+      env:
+        COVERALLS_REPO_TOKEN: iKd3pRRJvcQpdTiX3yKgAagmIwlob4DI2
+        COVERALLS_PARALLEL: true
+  coveralls_merge:
+    needs: unit-test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Parallel finish
+      run: curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$GITHUB_SHA&payload[status]=done"
+      env:
+        COVERALLS_REPO_TOKEN: iKd3pRRJvcQpdTiX3yKgAagmIwlob4DI2
+  integration-test:
+    needs: unit-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@master
+        with:
+          python-version: 3.7
+      - run: make dependencies
+      - run: make integration-test
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-central-1

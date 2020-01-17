@@ -17,13 +17,13 @@ def logger(mocker):
 
 
 @pytest.fixture
-def client(session, mocker):
+def client(session, mocker, paginators):
     client_mock = mocker.Mock()
     session.return_value.client.return_value = client_mock
     client_mock.create_stack_instances.return_value = {'OperationId': OPERATION_ID}
     client_mock.delete_stack_instances.return_value = {'OperationId': OPERATION_ID}
     client_mock.update_stack_set.return_value = {'OperationId': OPERATION_ID}
-    client_mock.get_paginator.return_value.paginate.return_value = []
+    client_mock.get_paginator.side_effect = paginators(list_stack_instances=[], list_accounts=[ACCOUNTS])
     exception = ClientError(
         dict(Error={'Code': 'StackSetNotFoundException'}), "DescribeStackSet")
     client_mock.describe_stack_set.side_effect = exception
@@ -267,7 +267,6 @@ def test_update_stack_set_with_main_account(session, client, logger, tmpdir, inp
 
 def test_update_stack_set_with_all_regions_and_accounts(client, logger, loader, input, compare, wait):
     client.get_caller_identity.return_value = {'Account': '5678'}
-    client.list_accounts.return_value = ACCOUNTS
     client.describe_regions.return_value = EC2_REGIONS
     cli.main([
         'stack-set',
@@ -287,7 +286,6 @@ def test_update_stack_set_with_all_regions_and_accounts(client, logger, loader, 
 
 def test_update_stack_set_with_all_subaccounts(client, logger, loader, input, compare, wait):
     client.update_stack_set.return_value = {'OperationId': '12345'}
-    client.list_accounts.return_value = ACCOUNTS
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.describe_regions.return_value = EC2_REGIONS
     cli.main([
@@ -303,10 +301,26 @@ def test_update_stack_set_with_all_subaccounts(client, logger, loader, input, co
         Accounts=['1234']
     )
 
+def test_update_stack_set_with_excluded_accounts(client, logger, loader, input, compare, wait):
+    client.update_stack_set.return_value = {'OperationId': '12345'}
+    client.get_caller_identity.return_value = {'Account': '5678'}
+    client.describe_regions.return_value = EC2_REGIONS
+    cli.main([
+        'stack-set',
+        'update',
+        '--stack-set', STACK,
+        '--excluded-accounts', '1234'
+    ])
+
+    client.update_stack_set.assert_called_with(
+        StackSetName=STACK,
+        TemplateBody=TEMPLATE,
+        Accounts=['5678']
+    )
+
 
 def test_update_with_create_missing(client, logger, loader, input, compare, wait):
     client.update_stack_set.return_value = {'OperationId': '12345'}
-    client.list_accounts.return_value = ACCOUNTS
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.describe_regions.return_value = EC2_REGIONS
     cli.main([
@@ -348,7 +362,6 @@ def test_stack_set_accounts_converts_to_string():
 
 
 def test_add_all_stack_set_instances(client, loader, wait, input):
-    client.list_accounts.return_value = ACCOUNTS
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.describe_regions.return_value = EC2_REGIONS
     cli.main([
@@ -388,9 +401,9 @@ def test_add_stack_set_instances_with_operation_preferences(client, loader, wait
     )
 
 
-def test_add_only_missing_stack_set_instances(client, loader, wait, input, mocker):
-    client.get_paginator.return_value.paginate.return_value = [
-        {'Summaries': [{'Account': '123456789', "Region": 'eu-central-1'}]}]
+def test_add_only_missing_stack_set_instances(client, loader, wait, input, mocker, paginators):
+    client.get_paginator.side_effect = paginators(list_stack_instances=[
+        {'Summaries': [{'Account': '123456789', "Region": 'eu-central-1'}]}])
     cli.main([
         'stack-set',
         'add-instances',
@@ -413,10 +426,10 @@ def test_add_only_missing_stack_set_instances(client, loader, wait, input, mocke
     ]
 
 
-def test_add_only_missing_stack_set_instances_with_one_call_if_possible(client, loader, wait, input, mocker):
-    client.get_paginator.return_value.paginate.return_value = [
+def test_add_only_missing_stack_set_instances_with_one_call_if_possible(client, loader, wait, input, mocker, paginators):
+    client.get_paginator.side_effect = paginators(list_stack_instances=[
         {'Summaries': [{'Account': '123456789', "Region": 'eu-central-1'},
-                       {'Account': '987654321', "Region": 'eu-central-1'}]}]
+                       {'Account': '987654321', "Region": 'eu-central-1'}]}])
     cli.main([
         'stack-set',
         'add-instances',
@@ -433,9 +446,9 @@ def test_add_only_missing_stack_set_instances_with_one_call_if_possible(client, 
         )
     ]
 
-    client.get_paginator.return_value.paginate.return_value = [
+    client.get_paginator.side_effect = paginators(list_stack_instances=[
         {'Summaries': [{'Account': '123456789', "Region": 'eu-central-1'},
-                       {'Account': '123456789', "Region": 'eu-west-1'}]}]
+                       {'Account': '123456789', "Region": 'eu-west-1'}]}])
 
     cli.main([
         'stack-set',
@@ -483,7 +496,6 @@ def test_remove_stack_set_instances(client, loader, wait, input):
 
 
 def test_remove_all_stack_set_instances(client, loader, wait, input):
-    client.list_accounts.return_value = ACCOUNTS
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.describe_regions.return_value = EC2_REGIONS
     cli.main([
@@ -517,7 +529,6 @@ def test_remove_stack_set(client, loader):
 def test_excluded_regions_with_preference(client, logger, loader, input, compare, wait):
     client.update_stack_set.return_value = {'OperationId': '12345'}
     client.get_caller_identity.return_value = {'Account': '5678'}
-    client.list_accounts.return_value = ACCOUNTS
     client.describe_regions.return_value = EC2_REGIONS
     cli.main([
         'stack-set',
@@ -539,7 +550,6 @@ def test_excluded_regions_with_preference(client, logger, loader, input, compare
 
 def test_main_account_only_deployment_with_preference(client, logger, loader, compare, input, wait):
     client.update_stack_set.return_value = {'OperationId': '12345'}
-    client.list_accounts.return_value = ACCOUNTS
     client.describe_regions.return_value = EC2_REGIONS
     accountid = str(uuid4())
     client.get_caller_identity.return_value = {'Account': accountid}

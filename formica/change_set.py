@@ -41,7 +41,7 @@ class ChangeSet:
                 key=lambda param: param["ParameterKey"],
             )
         if tags:
-            optional_arguments["Tags"] = [{"Key": key, "Value": value} for (key, value) in tags.items()]
+            optional_arguments["Tags"] = [{"Key": key, "Value": str(value)} for (key, value) in tags.items()]
         if role_arn:
             optional_arguments["RoleARN"] = role_arn
         if capabilities:
