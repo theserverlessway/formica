@@ -48,3 +48,14 @@ def change_set(mocker):
 @pytest.fixture
 def stack_waiter(mocker):
     return mocker.patch('formica.stack_waiter.StackWaiter')
+
+@pytest.fixture
+def paginators(mocker):
+    def mock_paginate(**kwargs):
+        def sideeffect(paginator):
+            m = mocker.Mock()
+            m.paginate.return_value = kwargs.get(paginator)
+            return m
+        return sideeffect
+
+    return mock_paginate

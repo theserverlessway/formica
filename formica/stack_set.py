@@ -211,6 +211,8 @@ def accounts(args):
         return [str(a) for a in args["accounts"]]
     elif args["main_account"]:
         return [main_account_id()]
+    elif args["excluded_accounts"]:
+        return [a["Id"] for a in aws_accounts()["AWSAccounts"] if a['Id'] not in args['excluded_accounts']]
     elif args["all_subaccounts"]:
         return [a["Id"] for a in aws_accounts()["AWSSubAccounts"]]
     elif args["all_accounts"]:
@@ -236,6 +238,7 @@ def __manage_stack_set(args, create):
     if not create:
         account_regions = dict(accounts=accounts(args), regions=regions(args))
 
+    print(account_regions)
     params = parameters(
         parameters=params,
         tags=args.tags,
@@ -254,6 +257,8 @@ def __manage_stack_set(args, create):
     loader.load()
     template = loader.template(indent=None)
 
+
+    print(params)
     if create:
         result = client.create_stack_set(StackSetName=args.stack_set, TemplateBody=template, **params)
         logger.info("StackSet {} created".format(args.stack_set))

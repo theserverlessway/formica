@@ -8,12 +8,10 @@ import sys
 from botocore.exceptions import ClientError
 import argcomplete
 
-
 from . import CHANGE_SET_FORMAT, __version__
 from . import stack_set
 from .aws import AWS
 from .helper import collect_vars
-
 
 STACK_HEADERS = ["Name", "Created At", "Updated At", "Status"]
 RESOURCE_HEADERS = ["Logical ID", "Physical ID", "Type", "Status"]
@@ -42,6 +40,7 @@ CONFIG_FILE_ARGUMENTS = {
     "regions": list,
     "all_accounts": bool,
     "all_subaccounts": bool,
+    "excluded_accounts": list,
     "all_regions": bool,
     "excluded_regions": list,
     "organization_variables": bool,
@@ -432,6 +431,7 @@ def add_stack_set_main_auto_regions_accounts(parser):
     parser.add_argument(
         "--all-subaccounts", help="Use Only Subaccounts of this Org", action="store_true", default=False
     )
+    parser.add_argument("--excluded-accounts", help="All Accounts excluding these", nargs="+")
     parser.add_argument("--all-regions", help="Use all Regions", action="store_true", default=False)
     parser.add_argument("--excluded-regions", help="Excluded Regions from deployment", nargs="+")
     parser.add_argument("--main-account", help="Deploy to Main Account only", action="store_true", default=False)
