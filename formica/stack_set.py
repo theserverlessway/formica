@@ -212,7 +212,11 @@ def accounts(args):
     elif args["main_account"]:
         return [main_account_id()]
     elif args["excluded_accounts"]:
-        return [a["Id"] for a in aws_accounts()["AWSAccounts"] if a["Id"] not in args["excluded_accounts"]]
+        return [
+            a["Id"]
+            for a in aws_accounts()["AWSAccounts"]
+            if a["Id"] not in [str(i) for i in args["excluded_accounts"]]
+        ]
     elif args["all_subaccounts"]:
         return [a["Id"] for a in aws_accounts()["AWSSubAccounts"]]
     elif args["all_accounts"]:
