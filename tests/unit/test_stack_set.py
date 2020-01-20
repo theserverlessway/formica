@@ -165,6 +165,7 @@ def test_create_stack_set_with_main_account_and_existing_parameters(session, cli
         Parameters=[{'ParameterKey': 'A', 'ParameterValue': 'B', 'UsePreviousValue': False}]
     )
 
+
 def test_do_not_create_if_existing(session, logger, tmpdir, mocker):
     client = mocker.Mock()
     session.return_value.client.return_value = client
@@ -301,21 +302,23 @@ def test_update_stack_set_with_all_subaccounts(client, logger, loader, input, co
         Accounts=['1234']
     )
 
+
 def test_update_stack_set_with_excluded_accounts(client, logger, loader, input, compare, wait):
     client.update_stack_set.return_value = {'OperationId': '12345'}
     client.get_caller_identity.return_value = {'Account': '5678'}
     client.describe_regions.return_value = EC2_REGIONS
     cli.main([
         'stack-set',
-        'update',
+        'add-instances',
         '--stack-set', STACK,
-        '--excluded-accounts', '1234'
+        '--excluded-accounts', '1234',
+        '--regions', 'eu-central-1'
     ])
 
-    client.update_stack_set.assert_called_with(
+    client.create_stack_instances.assert_called_with(
         StackSetName=STACK,
-        TemplateBody=TEMPLATE,
-        Accounts=['5678']
+        Accounts=['5678'],
+        Regions=['eu-central-1']
     )
 
 
@@ -426,7 +429,8 @@ def test_add_only_missing_stack_set_instances(client, loader, wait, input, mocke
     ]
 
 
-def test_add_only_missing_stack_set_instances_with_one_call_if_possible(client, loader, wait, input, mocker, paginators):
+def test_add_only_missing_stack_set_instances_with_one_call_if_possible(client, loader, wait, input, mocker,
+                                                                        paginators):
     client.get_paginator.side_effect = paginators(list_stack_instances=[
         {'Summaries': [{'Account': '123456789', "Region": 'eu-central-1'},
                        {'Account': '987654321', "Region": 'eu-central-1'}]}])

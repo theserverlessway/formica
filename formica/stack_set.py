@@ -29,11 +29,11 @@ def requires_stack_set(function):
 
 
 def requires_accounts_regions(function):
-    def validate_stack_set(args):
-        if (args.accounts or args.all_accounts or args.all_subaccounts or args.main_account) and (
-            args.regions or args.all_regions or args.excluded_regions
-        ):
-            function(args)
+    def validate_stack_set(args, **other):
+        if (
+            args.accounts or args.all_accounts or args.all_subaccounts or args.main_account or args.excluded_accounts
+        ) and (args.regions or args.all_regions or args.excluded_regions):
+            function(args, **other)
         else:
             logger.error("You need to set the regions and accounts you want to update.")
             sys.exit(1)
@@ -212,7 +212,11 @@ def accounts(args):
     elif args["main_account"]:
         return [main_account_id()]
     elif args["excluded_accounts"]:
-        return [a["Id"] for a in aws_accounts()["AWSAccounts"] if a["Id"] not in args["excluded_accounts"]]
+        return [
+            a["Id"]
+            for a in aws_accounts()["AWSAccounts"]
+            if a["Id"] not in [str(i) for i in args["excluded_accounts"]]
+        ]
     elif args["all_subaccounts"]:
         return [a["Id"] for a in aws_accounts()["AWSSubAccounts"]]
     elif args["all_accounts"]:
@@ -229,6 +233,8 @@ def regions(args):
         return aws_regions()["AWSRegions"]
 
 
+# Manage Stacks doesn't require accounts or regions as those commands can be called without accounts/regions
+# to update all stack set instances
 def __manage_stack_set(args, create):
     from .loader import Loader
 
