@@ -26,16 +26,28 @@ class ChangeSet:
         s3=False,
         resource_types=False,
         use_previous_template=False,
+        use_previous_parameters=False,
     ):
         optional_arguments = {}
+        parameters_set = []
+        if use_previous_parameters:
+            stacks = self.client.describe_stacks(StackName=self.stack)
+            parameters_set = [
+                {"ParameterKey": p["ParameterKey"], "UsePreviousValue": True}
+                for p in stacks["Stacks"][0]["Parameters"]
+            ]
         if parameters:
-            optional_arguments["Parameters"] = sorted(
-                [
-                    {"ParameterKey": key, "ParameterValue": str(value), "UsePreviousValue": False}
-                    for (key, value) in parameters.items()
-                ],
-                key=lambda param: param["ParameterKey"],
-            )
+            for (key, value) in parameters.items():
+                item = next((x for x in parameters_set if x["ParameterKey"] == key), None)
+                values = {"ParameterKey": key, "ParameterValue": str(value), "UsePreviousValue": False}
+                if item:
+                    item.update(values)
+                else:
+                    parameters_set.append(values)
+
+        if parameters_set:
+            optional_arguments["Parameters"] = parameters_set
+
         if tags:
             optional_arguments["Tags"] = [{"Key": key, "Value": str(value)} for (key, value) in tags.items()]
         if role_arn:
