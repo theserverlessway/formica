@@ -152,3 +152,12 @@ def test_change_create_if_missing_exception_handling(change_set, client, loader)
     client.describe_stacks.side_effect = exception
     with pytest.raises(SystemExit):
         cli.main(['change', '--stack', STACK, '--create-missing'])
+
+
+def test_allow_previous_template_usage(change_set, client):
+    cli.main(['change', '--stack', STACK, '--use-previous-template'])
+    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.return_value.create.assert_called_once_with(change_set_type='UPDATE',
+                                                           parameters={},
+                                                           tags={}, capabilities=None, resource_types=False,
+                                                           role_arn=None, s3=False, use_previous_template=True)

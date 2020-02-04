@@ -265,3 +265,13 @@ def test_change_set_with_resource_types():
     cf_client_mock.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=template,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, ResourceTypes=list(set(RESOURCES)))
+
+
+def test_change_set_with_previous_template(client):
+    change_set = ChangeSet(STACK, client)
+
+    change_set.create(change_set_type=CHANGE_SET_TYPE, use_previous_template=True)
+
+    client.create_change_set.assert_called_with(
+        StackName=STACK,
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, UsePreviousTemplate=True)

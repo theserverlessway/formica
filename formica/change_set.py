@@ -15,21 +15,17 @@ logger = logging.getLogger(__name__)
 
 
 class ChangeSet:
-    def __init__(self, stack, client):
-        self.name = CHANGE_SET_FORMAT.format(stack=stack)
-        self.stack = stack
-        self.client = client
-
     def create(
         self,
-        template,
-        change_set_type,
+        template="",
+        change_set_type="",
         parameters=None,
         tags=None,
         capabilities=None,
         role_arn=None,
         s3=False,
         resource_types=False,
+        use_previous_template=False,
     ):
         optional_arguments = {}
         if parameters:
@@ -54,23 +50,26 @@ class ChangeSet:
             )
 
         try:
-            if s3:
-                session = AWS.current_session()
-                s3_client = session.client("s3")
-                bucket_name = "formica-deploy-{}".format(str(uuid.uuid4()).lower())
-                bucket_path = "{}-template.json".format(self.stack)
-                logger.info("Creating Bucket: {}".format(bucket_name))
-
-                s3_client.create_bucket(
-                    Bucket=bucket_name, CreateBucketConfiguration=dict(LocationConstraint=session.region_name)
-                )
-
-                logger.info("Uploading to bucket: {}/{}".format(bucket_name, bucket_path))
-                s3_client.put_object(Bucket=bucket_name, Key=bucket_path, Body=template)
-                template_url = "https://{}.s3.amazonaws.com/{}".format(bucket_name, bucket_path)
-                optional_arguments["TemplateURL"] = template_url
+            if use_previous_template:
+                optional_arguments["UsePreviousTemplate"] = True
             else:
-                optional_arguments["TemplateBody"] = template
+                if s3:
+                    session = AWS.current_session()
+                    s3_client = session.client("s3")
+                    bucket_name = "formica-deploy-{}".format(str(uuid.uuid4()).lower())
+                    bucket_path = "{}-template.json".format(self.stack)
+                    logger.info("Creating Bucket: {}".format(bucket_name))
+
+                    s3_client.create_bucket(
+                        Bucket=bucket_name, CreateBucketConfiguration=dict(LocationConstraint=session.region_name)
+                    )
+
+                    logger.info("Uploading to bucket: {}/{}".format(bucket_name, bucket_path))
+                    s3_client.put_object(Bucket=bucket_name, Key=bucket_path, Body=template)
+                    template_url = "https://{}.s3.amazonaws.com/{}".format(bucket_name, bucket_path)
+                    optional_arguments["TemplateURL"] = template_url
+                else:
+                    optional_arguments["TemplateBody"] = template
 
             self.client.create_change_set(
                 StackName=self.stack, ChangeSetName=self.name, ChangeSetType=change_set_type, **optional_arguments
@@ -89,6 +88,11 @@ class ChangeSet:
                 logger.info("Deleting Object and Bucket: {}/{}".format(bucket_name, bucket_path))
                 s3_client.delete_object(Bucket=bucket_name, Key=bucket_path)
                 s3_client.delete_bucket(Bucket=bucket_name)
+
+    def __init__(self, stack, client):
+        self.name = CHANGE_SET_FORMAT.format(stack=stack)
+        self.stack = stack
+        self.client = client
 
     def describe(self):
         change_set = self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
