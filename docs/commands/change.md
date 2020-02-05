@@ -24,7 +24,8 @@ usage: formica change [-h] [--region REGION] [--profile PROFILE]
                       [--config-file CONFIG_FILE [CONFIG_FILE ...]]
                       [--vars KEY=Value [KEY=Value ...]] [--s3]
                       [--resource-types] [--create-missing]
-                      [--organization-variables]
+                      [--organization-variables] [--use-previous-template]
+                      [--use-previous-parameters]
 
 Create a change set for an existing stack
 
@@ -54,4 +55,8 @@ optional arguments:
                         Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
                         AWSRegions as Jinja variables with an Email, Id and
                         Name field for each account
+  --use-previous-template
+                        Use the previously deployed template
+  --use-previous-parameters
+                        Reuse Stack Parameters not specifically set
 ```
