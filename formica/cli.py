@@ -50,6 +50,8 @@ CONFIG_FILE_ARGUMENTS = {
     "max_concurrent_count": int,
     "max_concurrent_percentage": int,
     "resource_types": bool,
+    "use_previous_template": bool,
+    "use_previous_parameters": bool,
     "s3": bool,
 }
 
@@ -130,6 +132,7 @@ def main(cli_args):
     add_resource_types(change_parser)
     add_create_missing_argument(change_parser)
     add_organization_account_template_variables(change_parser)
+    add_use_previous(change_parser)
     change_parser.set_defaults(func=change)
 
     # Deploy Command Arguments
@@ -486,6 +489,13 @@ def add_timeout_parameter(parser):
     parser.add_argument("--timeout", help="Set the Timeout in minutes before the Update is canceled", type=int)
 
 
+def add_use_previous(parser):
+    parser.add_argument("--use-previous-template", help="Use the previously deployed template", action="store_true")
+    parser.add_argument(
+        "--use-previous-parameters", help="Reuse Stack Parameters not specifically set", action="store_true"
+    )
+
+
 def template(args):
     from .loader import Loader
     import yaml
@@ -564,8 +574,6 @@ def change(args):
     from .loader import Loader
 
     client = cloudformation_client()
-    loader = Loader(variables=collect_vars(args))
-    loader.load()
 
     change_set = ChangeSet(stack=args.stack, client=client)
 
@@ -580,8 +588,7 @@ def change(args):
             else:
                 raise e
 
-    change_set.create(
-        template=loader.template(indent=None),
+    options = dict(
         change_set_type=change_set_type,
         parameters=args.parameters,
         tags=args.tags,
@@ -590,6 +597,18 @@ def change(args):
         s3=args.s3,
         resource_types=args.resource_types,
     )
+
+    if args.use_previous_template:
+        options["use_previous_template"] = True
+    else:
+        loader = Loader(variables=collect_vars(args))
+        loader.load()
+        options["template"] = loader.template(indent=None)
+
+    if args.use_previous_parameters:
+        options["use_previous_parameters"] = True
+
+    change_set.create(**options)
     change_set.describe()
 
 

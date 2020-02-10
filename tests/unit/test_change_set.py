@@ -265,3 +265,35 @@ def test_change_set_with_resource_types():
     cf_client_mock.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=template,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, ResourceTypes=list(set(RESOURCES)))
+
+
+def test_change_set_with_previous_template(client):
+    change_set = ChangeSet(STACK, client)
+
+    change_set.create(change_set_type=CHANGE_SET_TYPE, use_previous_template=True)
+
+    client.create_change_set.assert_called_with(
+        StackName=STACK,
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, UsePreviousTemplate=True)
+
+
+def test_change_set_with_previous_parameters(client):
+    Parameters = [
+        {'ParameterKey': 'A', 'UsePreviousValue': True},
+        {'ParameterKey': 'B', 'UsePreviousValue': True},
+        {'ParameterKey': 'C', 'ParameterValue': '12345', 'UsePreviousValue': False},
+        {'ParameterKey': 'D', 'ParameterValue': '7890', 'UsePreviousValue': False},
+    ]
+
+    client.describe_stacks.return_value = {
+        'Stacks': [{'Parameters': [{'ParameterKey': 'A'}, {'ParameterKey': 'B'}]}]
+    }
+    change_set = ChangeSet(STACK, client)
+
+    change_set.create(change_set_type=CHANGE_SET_TYPE, use_previous_template=True, use_previous_parameters=True,
+                      parameters={'C': '12345', 'D': '7890'})
+    client.describe_stacks.assert_called_once_with(StackName=STACK)
+
+    client.create_change_set.assert_called_with(
+        StackName=STACK,
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters, UsePreviousTemplate=True)

@@ -1,11 +1,18 @@
 Parameters:
-  Key:
-    Default: Value
+  BucketName:
+    Default: testbucket
+    Type: String
+  BucketName2:
+    Default: testbucket2
     Type: String
 
 {% set bucket = "DeploymentBucket" %}
 Resources:
   {{ bucket }}:
     Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-${BucketName}-${AWS::AccountId}
   {{ bucket }}2:
     Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-${BucketName2}-${AWS::AccountId}
