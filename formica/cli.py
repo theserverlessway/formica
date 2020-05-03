@@ -44,6 +44,8 @@ CONFIG_FILE_ARGUMENTS = {
     "all_regions": bool,
     "excluded_regions": list,
     "organization_variables": bool,
+    "organization_region_variables": bool,
+    "organization_account_variables": bool,
     "region_order": list,
     "failure_tolerance_count": int,
     "failure_tolerance_percentage": int,
@@ -444,6 +446,18 @@ def add_organization_account_template_variables(parser):
     parser.add_argument(
         "--organization-variables",
         help="Add AWSAccounts, AWSSubAccounts, AWSMainAccount and AWSRegions as Jinja variables with an Email, Id and Name field for each account",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--organization-region-variables",
+        help="Add AWSRegions as Jinja variables",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--organization-account-variables",
+        help="Add AWSAccounts, AWSSubAccounts, and AWSMainAccount as Jinja variables with an Email, Id, and Name field for each account",
         action="store_true",
         default=False,
     )
