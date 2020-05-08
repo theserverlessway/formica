@@ -6,7 +6,7 @@ import yaml
 from path import Path
 
 from formica.loader import Loader
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 @pytest.fixture()
@@ -467,7 +467,7 @@ def test_utcnow(load, tmpdir):
         load.load()
 
         actual = json.loads(load.template())
-    assert actual == {"Resources": {"Test": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d %H:%M")}}
+    assert actual == {"Resources": {"Test": (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d %H:%M")}}
 
 
 def test_files(load, tmpdir):
