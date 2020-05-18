@@ -2,6 +2,7 @@ import glob
 import json
 import os
 import sys
+import re
 
 import logging
 import yaml
@@ -137,7 +138,7 @@ class Loader(object):
             logger.info("File {} is empty".format(file))
 
     def load_module(self, module_path, element_key, element_value):
-        module_path = self.path + "/" + "/".join(module_path.lower().split("::"))
+        module_path = self.path + "/" + "/".join(module_path.split("::"))
         file_name = "*"
 
         if not os.path.isdir(module_path):
@@ -164,7 +165,8 @@ class Loader(object):
         files = []
 
         for file_type in FILE_TYPES:
-            files.extend(glob.glob("{}/{}.template.{}".format(self.path, self.filename, file_type)))
+            pattern = re.compile(fnmatch.translate("{}.template.{}".format(self.filename, file_type)), re.IGNORECASE)
+            files.extend([filename for filename in os.listdir(self.path) if pattern.match(filename)])
 
         if not files:
             logger.info("Could not find any template files in {}".format(self.path))
