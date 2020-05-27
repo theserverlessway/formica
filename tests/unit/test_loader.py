@@ -333,6 +333,19 @@ def test_code_includes_and_escapes_code(load, tmpdir):
     assert actual == {"Description": "test\n\"something\""}
 
 
+def test_code_with_code_array(load, tmpdir):
+    example = '{"Resources": {"Test": {{ code("test.py") | code_array }} }}'
+    pycode = "test\n\"something\"\nanother line"
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with open('test.py', 'w') as f:
+            f.write(pycode)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Resources": {"Test": ["test", "\"something\"", "another line"]}}
+
+
 def test_code_allows_to_include_files_from_parent(load, tmpdir):
     parent = '{"Resources": {"Test": {"From": "Moduledir"}}}'
     module = '{"Description": "{{ code("../test.txt") }}"}'

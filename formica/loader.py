@@ -41,6 +41,9 @@ ALLOWED_ATTRIBUTES = {
 def code_escape(source):
     return source.replace("\n", "\\n").replace('"', '\\"')
 
+def code_array(source):
+    lines = source.split("\\n")
+    return '[' + ','.join(['"%s"' % line for line in lines]) + ']'
 
 def mandatory(a):
     from jinja2.runtime import Undefined
@@ -69,9 +72,13 @@ class Loader(object):
         self.path = path
         self.filename = filename
         self.env = Environment(loader=FileSystemLoader("./", followlinks=True))
-        self.env.filters.update(
-            {"code_escape": code_escape, "mandatory": mandatory, "resource": resource, "novalue": novalue}
-        )
+        self.env.filters.update({
+            "code_escape": code_escape, 
+            "code_array": code_array, 
+            "mandatory": mandatory, 
+            "resource": resource, 
+            "novalue": novalue,
+        })
         self.variables = variables
         self.main_account_parameter = main_account_parameter
 
