@@ -178,6 +178,34 @@ def test_template_loads_submodules_with_specific_file(load, tmpdir):
     assert actual == {"Description": "test"}
 
 
+def test_template_loads_submodule_case_insensitive(load, tmpdir):
+    example = '{"Description": "{{ \'test\'}}"}'
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/TesT.template.json', 'w') as f:
+            f.write(example)
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Resources': {'TestResource': {'From': 'Moduledir'}}}))
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "test"}
+
+
+def test_template_loads_submodules_with_specific_file(load, tmpdir):
+    example = '{"Description": "{{ \'test\'}}"}'
+    with Path(tmpdir):
+        os.mkdir('moduledir')
+        with open('moduledir/TesT.template.json', 'w') as f:
+            f.write(example)
+        with open('moduledir/test2.template.yml', 'w') as f:
+            f.write('Sometestthing: does not fail')
+        with open('test.template.json', 'w') as f:
+            f.write(json.dumps({'Resources': {'TestResource': {'From': 'ModuleDir::tESt'}}}))
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {"Description": "test"}
+
+
 def test_template_submodule_loads_variables(load, tmpdir):
     example = '{"Description": "{{ test }}"}'
     with Path(tmpdir):
