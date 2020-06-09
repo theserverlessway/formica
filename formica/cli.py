@@ -657,7 +657,7 @@ def deploy(args, client):
     elif status == "FAILED" and "The submitted information didn't contain changes." in reason:
         logger.info("ChangeSet did not contain any changes")
     else:
-        logger.info("ChangeSet is not executable. Status: {}, Reason: ".format(status, reason))
+        logger.info("ChangeSet is not executable. Status: {}, Reason: {}".format(status, reason))
         sys.exit(1)
 
 
