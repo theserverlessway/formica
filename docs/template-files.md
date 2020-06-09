@@ -207,6 +207,17 @@ Resources:
       Runtime: "python3.7"
 ```
 
+### code_array
+
+Sometimes you might want to take the contents of a file as input for an array (line-by-line). Combine `code()` with `code_array` to make that happen:
+
+```yaml
+Resources:
+  ...
+  ListOfItems: {{ code('my-list') | code_array }}
+```
+
+
 
 ### file
 
