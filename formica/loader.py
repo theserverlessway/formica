@@ -148,7 +148,15 @@ class Loader(object):
             logger.info("File {} is empty".format(file))
 
     def load_module(self, module_path, element_key, element_value):
-        module_path = self.path + "/" + "/".join(module_path.split("::"))
+        path_elements = module_path.split("::")
+        dir_pattern = re.compile(fnmatch.translate(path_elements.pop(0)), re.IGNORECASE)
+        matched_dirs = [dir for dir in os.listdir(self.path) if dir_pattern.match(dir)]
+        matched_dir = module_path
+        if matched_dirs:
+            matched_dir = matched_dirs[0]
+
+        module_path = self.path + "/" + "/".join([matched_dir] + path_elements)
+
         file_name = "*"
 
         if not os.path.isdir(module_path):
