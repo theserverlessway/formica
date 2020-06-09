@@ -450,10 +450,7 @@ def add_organization_account_template_variables(parser):
         default=False,
     )
     parser.add_argument(
-        "--organization-region-variables",
-        help="Add AWSRegions as Jinja variables",
-        action="store_true",
-        default=False,
+        "--organization-region-variables", help="Add AWSRegions as Jinja variables", action="store_true", default=False
     )
     parser.add_argument(
         "--organization-account-variables",

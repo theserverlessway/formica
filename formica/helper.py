@@ -12,7 +12,7 @@ def collect_vars(args):
         if args.organization_region_variables:
             variables.update(aws_regions())
         if args.organization_account_variables:
-            variables.update(aws_accounts())    
+            variables.update(aws_accounts())
     return variables
 
 
