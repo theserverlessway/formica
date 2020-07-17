@@ -151,6 +151,26 @@ Resources:
       Runtime: "python3.7"
 ```
 
+Sometimes including it directly leads to issues with characters yaml wants to interpret, so another way to include code is through the pipe string handling in yaml:
+
+```yaml
+Resources:
+  LambdaTestFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Handler: "index.handler"
+      Role:
+        Fn::GetAtt:
+          - "LambdaExecutionRole"
+          - "Arn"
+      Code:
+        Zipfile: |
+          {{ code('code.py') | indent (10)}}
+      Runtime: "python3.7"
+```
+
+Indention is important here as otherwise whitespace will be added to the file making the string handling problematic.
+
 By default 'code' escapes newlines and apostrophes by using the `code_escape` function defined below. Use the `file` function if you don't want to escape the content.
 
 ```python
