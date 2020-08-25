@@ -7,7 +7,7 @@ from tests.unit.constants import REGION, PROFILE, STACK, TEMPLATE
 def test_create_changeset_for_new_stack(change_set, client, loader):
     loader.return_value.template.return_value = TEMPLATE
     cli.main(['new', '--stack', STACK, '--profile', PROFILE, '--region', REGION])
-    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.assert_called_with(stack=STACK)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
                                                            parameters={}, tags={}, capabilities=None,
                                                            resource_types=False, role_arn=None, s3=False)
@@ -17,7 +17,7 @@ def test_create_changeset_for_new_stack(change_set, client, loader):
 def test_new_uses_parameters_for_creation(change_set, client, loader):
     loader.return_value.template.return_value = TEMPLATE
     cli.main(['new', '--stack', STACK, '--parameters', 'A=B', 'C=D', '--profile', PROFILE, '--region', REGION, ])
-    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.assert_called_with(stack=STACK)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
                                                            parameters={'A': 'B', 'C': 'D'}, tags={},
                                                            capabilities=None, resource_types=False, role_arn=None,
@@ -25,10 +25,9 @@ def test_new_uses_parameters_for_creation(change_set, client, loader):
 
 
 def test_new_uses_tags_for_creation(change_set, client, loader):
-    print(change_set)
     loader.return_value.template.return_value = TEMPLATE
     cli.main(['new', '--stack', STACK, '--tags', 'A=C', 'C=D', '--profile', PROFILE, '--region', REGION, ])
-    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.assert_called_with(stack=STACK)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
                                                            parameters={},
                                                            tags={'A': 'C', 'C': 'D'}, capabilities=None,
@@ -49,7 +48,7 @@ def test_new_tests_parameter_format(capsys):
 def test_new_uses_capabilities_for_creation(change_set, client, loader):
     loader.return_value.template.return_value = TEMPLATE
     cli.main(['new', '--stack', STACK, '--capabilities', 'A', 'B'])
-    change_set.assert_called_with(stack=STACK, client=client)
+    change_set.assert_called_with(stack=STACK)
     change_set.return_value.create.assert_called_once_with(template=TEMPLATE, change_set_type='CREATE',
                                                            parameters={},
                                                            tags={}, capabilities=['A', 'B'], resource_types=False,

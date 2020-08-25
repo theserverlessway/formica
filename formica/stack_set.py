@@ -2,8 +2,8 @@ import logging
 import sys
 import time
 from botocore.exceptions import ClientError
+import boto3
 
-from .aws import AWS
 from .helper import collect_vars, main_account_id, aws_accounts, aws_regions
 from .diff import compare_stack_set
 from texttable import Texttable
@@ -48,7 +48,7 @@ def ack(message):
 @requires_stack_set
 def update_stack_set(args):
     if args.create_missing:
-        client = AWS.current_session().client("cloudformation")
+        client = boto3.client("cloudformation")
         try:
             client.describe_stack_set(StackSetName=args.stack_set)
         except ClientError as e:
@@ -76,7 +76,7 @@ def update_stack_set(args):
 @requires_stack_set
 def create_stack_set(args):
     try:
-        client = AWS.current_session().client("cloudformation")
+        client = boto3.client("cloudformation")
         client.describe_stack_set(StackSetName=args.stack_set)
         logger.info(f"Stack Set {args.stack_set} already exists")
     except ClientError as e:
@@ -89,7 +89,7 @@ def create_stack_set(args):
 
 @requires_stack_set
 def remove_stack_set(args):
-    client = AWS.current_session().client("cloudformation")
+    client = boto3.client("cloudformation")
     client.delete_stack_set(StackSetName=args.stack_set)
     logger.info("Removed StackSet with name {}".format(args.stack_set))
 
@@ -108,7 +108,7 @@ def accounts_table(accounts_map):
 @requires_stack_set
 @requires_accounts_regions
 def add_stack_set_instances(args):
-    client = AWS.current_session().client("cloudformation")
+    client = boto3.client("cloudformation")
     paginator = client.get_paginator("list_stack_instances")
     deployed = [
         {"Account": stack["Account"], "Region": stack["Region"]}
@@ -153,7 +153,7 @@ def add_stack_set_instances(args):
 @requires_stack_set
 @requires_accounts_regions
 def remove_stack_set_instances(args):
-    client = AWS.current_session().client("cloudformation")
+    client = boto3.client("cloudformation")
     preferences = operation_preferences(args)
     acc = accounts(args)
     reg = regions(args)
@@ -184,7 +184,7 @@ def diff_stack_set(args):
 
 def wait_for_stack_set_operation(stack_set_name, operation_id):
     logger.info("Waiting for StackSet Operation {} on StackSet {} to finish".format(operation_id, stack_set_name))
-    client = AWS.current_session().client("cloudformation")
+    client = boto3.client("cloudformation")
     finished = False
     status = ""
     while not finished:
@@ -238,7 +238,7 @@ def regions(args):
 def __manage_stack_set(args, create):
     from .loader import Loader
 
-    client = AWS.current_session().client("cloudformation")
+    client = boto3.client("cloudformation")
     params = args.parameters or {}
     account_regions = {}
     if not create:

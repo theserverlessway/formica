@@ -10,13 +10,10 @@ from tests.unit.constants import STACK
 
 
 @pytest.fixture
-def client(mocker):
-    AWS = mocker.patch('formica.diff.AWS')
-    client_mock = mocker.Mock()
-    AWS.current_session.return_value.client.return_value = client_mock
-    client_mock.get_template.return_value = {'TemplateBody': template}
-    client_mock.describe_stacks.return_value = {'Stacks': [{}]}
-    return client_mock
+def client(aws_client):
+    aws_client.get_template.return_value = {'TemplateBody': template}
+    aws_client.describe_stacks.return_value = {'Stacks': [{}]}
+    return aws_client
 
 
 @pytest.fixture

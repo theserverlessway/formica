@@ -2,16 +2,18 @@ import json
 import sys
 
 import logging
-import uuid
-from formica.aws import AWS
+from formica.s3 import temporary_bucket
 from botocore.exceptions import ClientError, WaiterError
 from texttable import Texttable
+import boto3
 
 from formica import CHANGE_SET_FORMAT
 
 CHANGE_SET_HEADER = ["Action", "LogicalId", "PhysicalId", "Type", "Replacement", "Changed"]
 
 logger = logging.getLogger(__name__)
+
+cf = boto3.client("cloudformation")
 
 
 class ChangeSet:
@@ -31,7 +33,7 @@ class ChangeSet:
         optional_arguments = {}
         parameters_set = []
         if use_previous_parameters:
-            stacks = self.client.describe_stacks(StackName=self.stack)
+            stacks = cf.describe_stacks(StackName=self.stack)
             parameters_set = [
                 {"ParameterKey": p["ParameterKey"], "UsePreviousValue": True}
                 for p in stacks["Stacks"][0]["Parameters"]
@@ -61,33 +63,26 @@ class ChangeSet:
                 set([resource["Type"] for key, resource in json.loads(template)["Resources"].items()])
             )
 
-        try:
-            if use_previous_template:
-                optional_arguments["UsePreviousTemplate"] = True
+        if use_previous_template:
+            optional_arguments["UsePreviousTemplate"] = True
+            self.__change_and_wait(change_set_type, optional_arguments)
+        else:
+            if s3:
+                with temporary_bucket() as t:
+                    bucket_name = t.name
+                    file_name = t.upload(template)
+                    template_url = "https://{}.s3.amazonaws.com/{}".format(bucket_name, file_name)
+                    self.__change_and_wait(change_set_type, {"TemplateURL": template_url, **optional_arguments})
             else:
-                if s3:
-                    session = AWS.current_session()
-                    s3_client = session.client("s3")
-                    bucket_name = "formica-deploy-{}".format(str(uuid.uuid4()).lower())
-                    bucket_path = "{}-template.json".format(self.stack)
-                    logger.info("Creating Bucket: {}".format(bucket_name))
+                self.__change_and_wait(change_set_type, {"TemplateBody": template, **optional_arguments})
 
-                    s3_client.create_bucket(
-                        Bucket=bucket_name, CreateBucketConfiguration=dict(LocationConstraint=session.region_name)
-                    )
-
-                    logger.info("Uploading to bucket: {}/{}".format(bucket_name, bucket_path))
-                    s3_client.put_object(Bucket=bucket_name, Key=bucket_path, Body=template)
-                    template_url = "https://{}.s3.amazonaws.com/{}".format(bucket_name, bucket_path)
-                    optional_arguments["TemplateURL"] = template_url
-                else:
-                    optional_arguments["TemplateBody"] = template
-
-            self.client.create_change_set(
+    def __change_and_wait(self, change_set_type, optional_arguments):
+        try:
+            cf.create_change_set(
                 StackName=self.stack, ChangeSetName=self.name, ChangeSetType=change_set_type, **optional_arguments
             )
             logger.info("Change set submitted, waiting for CloudFormation to calculate changes ...")
-            waiter = self.client.get_waiter("change_set_create_complete")
+            waiter = cf.get_waiter("change_set_create_complete")
             waiter.wait(ChangeSetName=self.name, StackName=self.stack)
             logger.info("Change set created successfully")
         except WaiterError as e:
@@ -95,19 +90,13 @@ class ChangeSet:
             logger.info(status_reason)
             if "didn't contain changes" not in status_reason:
                 sys.exit(1)
-        finally:
-            if s3:
-                logger.info("Deleting Object and Bucket: {}/{}".format(bucket_name, bucket_path))
-                s3_client.delete_object(Bucket=bucket_name, Key=bucket_path)
-                s3_client.delete_bucket(Bucket=bucket_name)
 
-    def __init__(self, stack, client):
+    def __init__(self, stack):
         self.name = CHANGE_SET_FORMAT.format(stack=stack)
         self.stack = stack
-        self.client = client
 
     def describe(self):
-        change_set = self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
+        change_set = cf.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
         table = Texttable(max_width=150)
 
         logger.info("Deployment metadata:")
@@ -153,9 +142,9 @@ class ChangeSet:
 
     def remove_existing_changeset(self):
         try:
-            self.client.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
+            cf.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
             logger.info("Removing existing change set")
-            self.client.delete_change_set(StackName=self.stack, ChangeSetName=self.name)
+            cf.delete_change_set(StackName=self.stack, ChangeSetName=self.name)
         except ClientError as e:
             if e.response["Error"]["Code"] != "ChangeSetNotFound":
                 raise e

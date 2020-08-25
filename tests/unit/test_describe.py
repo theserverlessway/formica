@@ -5,10 +5,7 @@ from formica import cli
 from tests.unit.constants import STACK
 
 
-def test_describes_change_set(session, change_set):
-    client_mock = Mock()
-    session.return_value.client.return_value = client_mock
+def test_describes_change_set(boto_client, change_set):
     cli.main(['describe', '--stack', STACK])
-    session.return_value.client.assert_called_with('cloudformation')
-    change_set.assert_called_with(stack=STACK, client=client_mock)
+    change_set.assert_called_with(stack=STACK)
     change_set.return_value.describe.assert_called_once()

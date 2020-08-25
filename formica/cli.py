@@ -10,7 +10,8 @@ import argcomplete
 
 from . import CHANGE_SET_FORMAT, __version__
 from . import stack_set
-from .aws import AWS
+from . import aws
+import boto3
 from .helper import collect_vars
 
 STACK_HEADERS = ["Name", "Created At", "Updated At", "Status"]
@@ -211,7 +212,7 @@ def main(cli_args):
 
     try:
         # Initialise the AWS Profile and Region
-        AWS.initialize(args_dict.get("region"), args_dict.get("profile"))
+        aws.initialize(args_dict.get("region"), args_dict.get("profile"))
 
         convert_role_name_to_arn(args)
 
@@ -235,7 +236,7 @@ def main(cli_args):
 
 def convert_role_name_to_arn(args):
     args_dict = vars(args)
-    sts = AWS.current_session().client("sts")
+    sts = boto3.client("sts")
     if args_dict.get("role_name") and not args_dict.get("role_arn"):
         account_id = sts.get_caller_identity()["Account"]
         args.role_arn = "arn:aws:iam::{}:role/{}".format(account_id, args.role_name)
@@ -346,8 +347,8 @@ def requires_stack(function):
 
 
 def add_aws_arguments(parser):
-    parser.add_argument("--region", help="The AWS region to use", metavar="REGION")
-    parser.add_argument("--profile", help="The AWS profile to use", metavar="PROFILE")
+    parser.add_argument("--region", help="The AWS region to use", metavar="REGION", default=None)
+    parser.add_argument("--profile", help="The AWS profile to use", metavar="PROFILE", default=None)
 
 
 def add_stack_argument(parser):
@@ -526,7 +527,7 @@ def template(args):
 def stacks(args):
     from texttable import Texttable
 
-    client = AWS.current_session().client("cloudformation")
+    client = boto3.client("cloudformation")
     stacks = client.describe_stacks()
     table = Texttable(max_width=150)
     table.add_rows([STACK_HEADERS])
@@ -550,8 +551,7 @@ def diff(args):
 def describe(args):
     from .change_set import ChangeSet
 
-    client = cloudformation_client()
-    change_set = ChangeSet(stack=args.stack, client=client)
+    change_set = ChangeSet(stack=args.stack)
     change_set.describe()
 
 
@@ -586,7 +586,7 @@ def change(args):
 
     client = cloudformation_client()
 
-    change_set = ChangeSet(stack=args.stack, client=client)
+    change_set = ChangeSet(stack=args.stack)
 
     change_set_type = "UPDATE"
     if args.create_missing:
@@ -624,7 +624,7 @@ def change(args):
 
 
 def cloudformation_client():
-    client = AWS.current_session().client("cloudformation")
+    client = boto3.client("cloudformation")
     return client
 
 
@@ -639,7 +639,7 @@ def wait_for_stack(function):
         options = {}
         if vars(args).get("timeout"):
             options["timeout"] = args.timeout
-        StackWaiter(stack_id, client, **options).wait(last_event)
+        StackWaiter(stack_id, **options).wait(last_event)
 
     return stack_wait_handler
 
@@ -690,11 +690,10 @@ def new(args):
     from .change_set import ChangeSet
     from .loader import Loader
 
-    client = cloudformation_client()
     loader = Loader(variables=collect_vars(args))
     loader.load()
     logger.info("Creating change set for new stack, ...")
-    change_set = ChangeSet(stack=args.stack, client=client)
+    change_set = ChangeSet(stack=args.stack)
     change_set.create(
         template=loader.template(indent=None),
         change_set_type="CREATE",

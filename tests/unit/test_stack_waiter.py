@@ -22,67 +22,66 @@ def logger(mocker):
 
 
 @pytest.fixture
-def stack_waiter(cf_client_mock):
-    return StackWaiter(STACK, cf_client_mock)
-
+def stack_waiter():
+    return StackWaiter(STACK)
 
 @pytest.fixture
-def cf_client_mock():
-    return Mock()
+def client(mocker):
+    client = mocker.patch('formica.stack_waiter.cf')
+    return client
 
-
-def set_stack_status_returns(cf_client_mock, statuses):
-    cf_client_mock.describe_stacks.side_effect = [{'Stacks': [{'StackStatus': status}]} for status in
+def set_stack_status_returns(client, statuses):
+    client.describe_stacks.side_effect = [{'Stacks': [{'StackStatus': status}]} for status in
                                                   statuses]
 
 
-def set_stack_events(cf_client_mock, events=1):
+def set_stack_events(client, events=1):
     stack_events = {'StackEvents': [{"EventId": str(num)} for num in range(events)]}
-    cf_client_mock.describe_stack_events.return_value = stack_events
+    client.describe_stack_events.return_value = stack_events
 
 
-def test_prints_header(time, mocker, cf_client_mock, stack_waiter):
+def test_prints_header(time, mocker, client, stack_waiter):
     header = mocker.patch.object(StackWaiter, 'print_header')
-    set_stack_status_returns(cf_client_mock, ['CREATE_COMPLETE'])
-    cf_client_mock.describe_stack_events.return_value = STACK_EVENTS
+    set_stack_status_returns(client, ['CREATE_COMPLETE'])
+    client.describe_stack_events.return_value = STACK_EVENTS
     stack_waiter.wait('DeploymentBucket3-7c92066b-c2e7-427a-ab29-53b928925473')
     header.assert_called()
 
 
-def test_waits_until_successful(cf_client_mock, time, stack_waiter):
-    set_stack_status_returns(cf_client_mock, ['UPDATE_IN_PROGRESS', 'CREATE_COMPLETE'])
-    set_stack_events(cf_client_mock)
+def test_waits_until_successful(client, time, stack_waiter):
+    set_stack_status_returns(client, ['UPDATE_IN_PROGRESS', 'CREATE_COMPLETE'])
+    set_stack_events(client)
     stack_waiter.wait('0')
     assert time.sleep.call_count == 1
     time.sleep.assert_called_with(5)
 
 
-def test_waits_until_failed_and_raises(cf_client_mock, time, stack_waiter):
-    set_stack_status_returns(cf_client_mock, ['UPDATE_IN_PROGRESS', 'CREATE_FAILED'])
-    set_stack_events(cf_client_mock)
+def test_waits_until_failed_and_raises(client, time, stack_waiter):
+    set_stack_status_returns(client, ['UPDATE_IN_PROGRESS', 'CREATE_FAILED'])
+    set_stack_events(client)
     with pytest.raises(SystemExit, match='1'):
         stack_waiter.wait('0')
     assert time.sleep.call_count == 1
 
 
-def test_waits_until_timeout(cf_client_mock, time, datetime_mock):
+def test_waits_until_timeout(client, time, datetime_mock):
     first_timestamp = datetime.now()
     second_timestamp = datetime.now() + timedelta(0, 50, 0)
     last_timestamp = datetime.now() + timedelta(0, 61, 0)
     datetime_mock.now.side_effect = [first_timestamp, second_timestamp, last_timestamp]
-    set_stack_status_returns(cf_client_mock,
+    set_stack_status_returns(client,
                              ['UPDATE_IN_PROGRESS', 'UPDATE_IN_PROGRESS', 'UPDATE_IN_PROGRESS', 'CREATE_FAILED'])
-    set_stack_events(cf_client_mock)
-    stack_waiter = StackWaiter(STACK, cf_client_mock, timeout=1)
+    set_stack_events(client)
+    stack_waiter = StackWaiter(STACK, timeout=1)
     with pytest.raises(SystemExit, match='1'):
         stack_waiter.wait('0')
     assert time.sleep.call_count == 2
-    cf_client_mock.cancel_update_stack.assert_called_with(StackName=STACK)
+    client.cancel_update_stack.assert_called_with(StackName=STACK)
 
 
-def test_prints_new_events(logger, time, cf_client_mock, stack_waiter):
-    set_stack_status_returns(cf_client_mock, ['CREATE_COMPLETE'])
-    cf_client_mock.describe_stack_events.return_value = STACK_EVENTS
+def test_prints_new_events(logger, time, client, stack_waiter):
+    set_stack_status_returns(client, ['CREATE_COMPLETE'])
+    client.describe_stack_events.return_value = STACK_EVENTS
     stack_waiter.wait('DeploymentBucket3-7c92066b-c2e7-427a-ab29-53b928925473')
 
     logger.info.assert_called()

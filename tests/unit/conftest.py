@@ -7,27 +7,26 @@ def botocore_session(mocker):
 
 
 @pytest.fixture
-def session(mocker, botocore_session):
-    return mocker.patch('boto3.session.Session')
+def session(botocore_session):
+    return botocore_session
 
 
 @pytest.fixture
-def aws_session(mocker):
-    return mocker.patch('formica.aws.AWS.current_session')
-
+def boto_client(mocker):
+    mocker.patch('formica.aws.boto3')
+    mocker.patch('formica.aws.botocore')
+    return mocker.patch('boto3.client')
 
 @pytest.fixture
-def aws_client(aws_session, mocker):
+def aws_client(boto_client, mocker):
     client_mock = mocker.Mock()
-    aws_session.return_value.client.return_value = client_mock
+    boto_client.return_value = client_mock
     return client_mock
 
 
 @pytest.fixture
-def client(session, mocker):
-    client_mock = mocker.Mock()
-    session.return_value.client.return_value = client_mock
-    return client_mock
+def client(aws_client):
+    return aws_client
 
 
 @pytest.fixture
@@ -59,3 +58,8 @@ def paginators(mocker):
         return sideeffect
 
     return mock_paginate
+
+
+@pytest.fixture
+def uuid4(mocker):
+    return mocker.patch('uuid.uuid4')

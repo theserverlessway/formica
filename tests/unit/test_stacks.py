@@ -7,10 +7,8 @@ from formica.cli import STACK_HEADERS
 from tests.unit.constants import DESCRIBE_STACKS
 
 
-def test_print_stacks(session, logger):
-    client_mock = Mock()
-    session.return_value.client.return_value = client_mock
-    client_mock.describe_stacks.return_value = DESCRIBE_STACKS
+def test_print_stacks(client, logger):
+    client.describe_stacks.return_value = DESCRIBE_STACKS
     cli.main(['stacks'])
 
     logger.info.assert_called_with(mock.ANY)
@@ -28,10 +26,8 @@ def test_print_stacks(session, logger):
     assert 'None' not in change_set_output
 
 
-def test_does_not_fail_without_update_date(session, logger):
-    client_mock = Mock()
-    session.return_value.client.return_value = client_mock
-    client_mock.describe_stacks.return_value = {
+def test_does_not_fail_without_update_date(client, logger):
+    client.describe_stacks.return_value = {
         "Stacks": [{'StackName': 'abc', 'CreationTime': '12345', 'StackStatus': 'status'}]
     }
 
