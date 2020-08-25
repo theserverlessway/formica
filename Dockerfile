@@ -5,7 +5,7 @@ WORKDIR /app
 #RUN apt-get update -y
 #RUN apt-get install -y groff pandoc
 
-RUN apk add --no-cache --update build-base gcc libffi-dev openssl-dev openssl musl-dev python-dev
+RUN apk add --no-cache --update build-base gcc libffi-dev openssl-dev openssl musl-dev python-dev bash
 
 RUN pip install -U wheel pygments twine
 RUN pip install -U awslogs awscli
