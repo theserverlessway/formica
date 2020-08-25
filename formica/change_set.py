@@ -70,7 +70,6 @@ class ChangeSet:
             if s3:
                 with temporary_bucket() as t:
                     bucket_name = t.name
-                    logger.info("Uploading to Bucket {}".format(bucket_name))
                     file_name = t.upload(template)
                     template_url = "https://{}.s3.amazonaws.com/{}".format(bucket_name, file_name)
                     self.__change_and_wait(change_set_type, {"TemplateURL": template_url, **optional_arguments})
