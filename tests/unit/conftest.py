@@ -58,3 +58,8 @@ def paginators(mocker):
         return sideeffect
 
     return mock_paginate
+
+
+@pytest.fixture
+def uuid4(mocker):
+    return mocker.patch('uuid.uuid4')
