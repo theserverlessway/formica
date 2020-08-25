@@ -19,59 +19,60 @@ def logger(mocker):
 
 @pytest.fixture
 def client(mocker):
-    AWS = mocker.patch('formica.change_set.AWS')
-    client_mock = mocker.Mock()
-    AWS.current_session.return_value.client.return_value = client_mock
-    AWS.current_session.return_value.region_name = REGION
-    return client_mock
-
+    s3_boto = mocker.patch('formica.s3.boto3')
+    boto = mocker.patch('formica.change_set.boto3')
+    client = mocker.patch('formica.change_set.cf')
+    return client
 
 @pytest.fixture
-def uuid(mocker):
-    uuid = mocker.patch('formica.change_set.uuid')
-    uuid.uuid4.return_value = UUID
-    return uuid
+def temp_bucket(mocker):
+    t = mocker.patch('formica.change_set.temporary_bucket')
+    tempbucket_mock = mocker.Mock()
+    t.return_value.__enter__.return_value = tempbucket_mock
+    return tempbucket_mock
 
 
-def test_submits_changeset_and_waits():
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+# @pytest.fixture
+# def uuid(mocker):
+#     uuid = mocker.patch('formica.change_set.uuid')
+#     uuid.uuid4.return_value = UUID
+#     return uuid
+
+
+def test_submits_changeset_and_waits(client):
+    change_set = ChangeSet(STACK)
 
     change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE)
 
-    cf_client_mock.create_change_set.assert_called_with(
+    client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE)
 
-    cf_client_mock.get_waiter.assert_called_with(
+    client.get_waiter.assert_called_with(
         'change_set_create_complete')
-    cf_client_mock.get_waiter.return_value.wait.assert_called_with(
+    client.get_waiter.return_value.wait.assert_called_with(
         StackName=STACK, ChangeSetName=CHANGESETNAME)
 
 
-def test_creates_and_removes_bucket_for_s3_flag(client, uuid):
-    change_set = ChangeSet(STACK, client)
-
-    change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, s3=True)
+def test_creates_and_removes_bucket_for_s3_flag(client, temp_bucket):
+    change_set = ChangeSet(STACK)
     bucket_name = 'formica-deploy-{}'.format(UUID)
     bucket_path = '{}-template.json'.format(STACK)
     template_url = 'https://{}.s3.amazonaws.com/{}'.format(bucket_name, bucket_path)
+    temp_bucket.name = bucket_name
+    temp_bucket.upload.return_value = bucket_path
 
-    client.create_bucket.assert_called_with(Bucket=bucket_name,
-                                            CreateBucketConfiguration=dict(LocationConstraint=REGION))
-    client.put_object.assert_called_with(Bucket=bucket_name, Key=bucket_path, Body=TEMPLATE)
+    change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, s3=True)
+
+    temp_bucket.upload.assert_called_with(TEMPLATE)
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateURL=template_url,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE)
 
-    client.delete_object.assert_called_with(Bucket=bucket_name, Key=bucket_path)
-    client.delete_bucket.assert_called_with(Bucket=bucket_name)
 
-
-def test_submits_changeset_with_parameters():
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+def test_submits_changeset_with_parameters(client):
+    change_set = ChangeSet(STACK)
 
     change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, parameters=CHANGE_SET_PARAMETERS)
 
@@ -80,19 +81,18 @@ def test_submits_changeset_with_parameters():
         {'ParameterKey': 'B', 'ParameterValue': '2', 'UsePreviousValue': False},
         {'ParameterKey': 'C', 'ParameterValue': 'True', 'UsePreviousValue': False},
     ]
-    cf_client_mock.create_change_set.assert_called_with(
+    client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters)
 
-    cf_client_mock.get_waiter.assert_called_with(
+    client.get_waiter.assert_called_with(
         'change_set_create_complete')
-    cf_client_mock.get_waiter.return_value.wait.assert_called_with(
+    client.get_waiter.return_value.wait.assert_called_with(
         StackName=STACK, ChangeSetName=CHANGESETNAME)
 
 
-def test_submits_changeset_with_stack_tags():
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+def test_submits_changeset_with_stack_tags(client):
+    change_set = ChangeSet(STACK)
 
     change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, tags=CHANGE_SET_STACK_TAGS)
 
@@ -100,55 +100,52 @@ def test_submits_changeset_with_stack_tags():
         {'Key': 'T1', 'Value': 'TV1'},
         {'Key': 'T2', 'Value': 'TV2'}
     ]
-    cf_client_mock.create_change_set.assert_called_with(
+    client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Tags=Tags)
 
-    cf_client_mock.get_waiter.assert_called_with(
+    client.get_waiter.assert_called_with(
         'change_set_create_complete')
-    cf_client_mock.get_waiter.return_value.wait.assert_called_with(
+    client.get_waiter.return_value.wait.assert_called_with(
         StackName=STACK, ChangeSetName=CHANGESETNAME)
 
 
-def test_submits_changeset_with_role_arn():
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+def test_submits_changeset_with_role_arn(client):
+    change_set = ChangeSet(STACK)
 
     change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, role_arn=ROLE_ARN)
 
-    cf_client_mock.create_change_set.assert_called_with(
+    client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, RoleARN=ROLE_ARN)
 
-    cf_client_mock.get_waiter.assert_called_with(
+    client.get_waiter.assert_called_with(
         'change_set_create_complete')
-    cf_client_mock.get_waiter.return_value.wait.assert_called_with(
+    client.get_waiter.return_value.wait.assert_called_with(
         StackName=STACK, ChangeSetName=CHANGESETNAME)
 
 
-def test_submits_changeset_with_capabilities():
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+def test_submits_changeset_with_capabilities(client):
+    change_set = ChangeSet(STACK)
 
     change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, parameters={},
                       tags={}, capabilities=['A', 'B'])
 
-    cf_client_mock.create_change_set.assert_called_with(
+    client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Capabilities=['A', 'B'])
 
-    cf_client_mock.get_waiter.assert_called_with(
+    client.get_waiter.assert_called_with(
         'change_set_create_complete')
-    cf_client_mock.get_waiter.return_value.wait.assert_called_with(
+    client.get_waiter.return_value.wait.assert_called_with(
         StackName=STACK, ChangeSetName=CHANGESETNAME)
 
 
-def test_prints_error_message_for_failed_submit_and_exits(capsys, logger):
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+def test_prints_error_message_for_failed_submit_and_exits(capsys, logger, client):
+    change_set = ChangeSet(STACK)
 
     error = WaiterError('name', 'reason', {'StatusReason': 'StatusReason'})
-    cf_client_mock.get_waiter.return_value.wait.side_effect = error
+    client.get_waiter.return_value.wait.side_effect = error
 
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE)
@@ -156,12 +153,11 @@ def test_prints_error_message_for_failed_submit_and_exits(capsys, logger):
     assert pytest_wrapped_e.value.code == 1
 
 
-def test_prints_error_message_and_does_not_fail_without_StatusReason(capsys, logger):
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+def test_prints_error_message_and_does_not_fail_without_StatusReason(capsys, logger, client):
+    change_set = ChangeSet(STACK)
 
     error = WaiterError('name', 'reason', {})
-    cf_client_mock.get_waiter.return_value.wait.side_effect = error
+    client.get_waiter.return_value.wait.side_effect = error
 
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE)
@@ -169,51 +165,46 @@ def test_prints_error_message_and_does_not_fail_without_StatusReason(capsys, log
     assert pytest_wrapped_e.value.code == 1
 
 
-def test_prints_error_message_but_exits_successfully_for_no_changes(capsys, logger, mocker):
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+def test_prints_error_message_but_exits_successfully_for_no_changes(capsys, logger, mocker, client):
+    change_set = ChangeSet(STACK)
     status_reason = "The submitted information didn't contain changes. " \
                     "Submit different information to create a change set."
 
     error = WaiterError('name', 'reason', {'StatusReason': status_reason})
-    cf_client_mock.get_waiter.return_value.wait.side_effect = error
+    client.get_waiter.return_value.wait.side_effect = error
 
     change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE)
     logger.info.assert_called_with(status_reason)
 
 
-def test_remove_existing_changeset_for_update_type(mocker, capsys):
+def test_remove_existing_changeset_for_update_type(mocker, capsys, client):
     mocker.patch.object(ChangeSet, 'describe')
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+    change_set = ChangeSet(STACK)
     change_set.create(template=TEMPLATE, change_set_type='UPDATE')
-    cf_client_mock.describe_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
-    cf_client_mock.delete_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
+    client.describe_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
+    client.delete_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
 
 
-def test_do_not_remove_changeset_if_non_existent():
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+def test_do_not_remove_changeset_if_non_existent(client):
+    change_set = ChangeSet(STACK)
     exception = ClientError(dict(Error=dict(Code='ChangeSetNotFound')), "DescribeChangeSet")
-    cf_client_mock.describe_change_set.side_effect = exception
+    client.describe_change_set.side_effect = exception
     change_set.remove_existing_changeset()
-    cf_client_mock.delete_change_set.assert_not_called()
+    client.delete_change_set.assert_not_called()
 
 
-def test_reraises_exception_when_not_change_set_not_found():
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+def test_reraises_exception_when_not_change_set_not_found(client):
+    change_set = ChangeSet(STACK)
     exception = ClientError(dict(Error=dict(
         Code='ValidationError')), "DescribeChangeSet")
-    cf_client_mock.describe_change_set.side_effect = exception
+    client.describe_change_set.side_effect = exception
     with pytest.raises(ClientError):
         change_set.remove_existing_changeset()
 
 
-def test_prints_changes(logger):
-    cf_client_mock = Mock()
-    cf_client_mock.describe_change_set.return_value = CHANGESETCHANGES
-    change_set = ChangeSet(STACK, cf_client_mock)
+def test_prints_changes(logger, client):
+    client.describe_change_set.return_value = CHANGESETCHANGES
+    change_set = ChangeSet(STACK)
 
     change_set.describe()
 
@@ -240,10 +231,9 @@ def test_prints_changes(logger):
     assert 'None' not in change_set_output
 
 
-def test_only_prints_unique_changed_parameters(logger):
-    cf_client_mock = Mock()
-    cf_client_mock.describe_change_set.return_value = CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER
-    change_set = ChangeSet(STACK, cf_client_mock)
+def test_only_prints_unique_changed_parameters(logger, client):
+    client.describe_change_set.return_value = CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER
+    change_set = ChangeSet(STACK)
 
     change_set.describe()
 
@@ -252,23 +242,22 @@ def test_only_prints_unique_changed_parameters(logger):
     assert change_set_output.count('BucketName') == 1
 
 
-def test_change_set_with_resource_types():
+def test_change_set_with_resource_types(client):
     resources = {
         'Resources': {resource: {'Type': resource} for resource in RESOURCES}
     }
     template = json.dumps(resources)
-    cf_client_mock = Mock()
-    change_set = ChangeSet(STACK, cf_client_mock)
+    change_set = ChangeSet(STACK)
 
     change_set.create(template=template, change_set_type=CHANGE_SET_TYPE, resource_types=True)
 
-    cf_client_mock.create_change_set.assert_called_with(
+    client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=template,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, ResourceTypes=list(set(RESOURCES)))
 
 
 def test_change_set_with_previous_template(client):
-    change_set = ChangeSet(STACK, client)
+    change_set = ChangeSet(STACK)
 
     change_set.create(change_set_type=CHANGE_SET_TYPE, use_previous_template=True)
 
@@ -288,7 +277,7 @@ def test_change_set_with_previous_parameters(client):
     client.describe_stacks.return_value = {
         'Stacks': [{'Parameters': [{'ParameterKey': 'A'}, {'ParameterKey': 'B'}]}]
     }
-    change_set = ChangeSet(STACK, client)
+    change_set = ChangeSet(STACK)
 
     change_set.create(change_set_type=CHANGE_SET_TYPE, use_previous_template=True, use_previous_parameters=True,
                       parameters={'C': '12345', 'D': '7890'})

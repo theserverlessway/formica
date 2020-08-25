@@ -3,7 +3,7 @@ import re
 import yaml
 import logging
 from deepdiff import DeepDiff
-from formica.aws import AWS
+import boto3
 from texttable import Texttable
 
 from formica.loader import Loader
@@ -31,7 +31,7 @@ def convert(data):
 
 
 def compare_stack(stack, vars=None, parameters={}, tags={}):
-    client = AWS.current_session().client("cloudformation")
+    client = boto3.client("cloudformation")
     template = client.get_template(StackName=stack)["TemplateBody"]
 
     stack = client.describe_stacks(StackName=stack)["Stacks"][0]
@@ -39,7 +39,7 @@ def compare_stack(stack, vars=None, parameters={}, tags={}):
 
 
 def compare_stack_set(stack, vars=None, parameters={}, tags={}, main_account_parameter=False):
-    client = AWS.current_session().client("cloudformation")
+    client = boto3.client("cloudformation")
 
     stack_set = client.describe_stack_set(StackSetName=stack)["StackSet"]
     __compare(stack_set["TemplateBody"], stack_set, vars, parameters, tags, main_account_parameter)

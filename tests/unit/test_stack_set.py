@@ -17,17 +17,15 @@ def logger(mocker):
 
 
 @pytest.fixture
-def client(session, mocker, paginators):
-    client_mock = mocker.Mock()
-    session.return_value.client.return_value = client_mock
-    client_mock.create_stack_instances.return_value = {'OperationId': OPERATION_ID}
-    client_mock.delete_stack_instances.return_value = {'OperationId': OPERATION_ID}
-    client_mock.update_stack_set.return_value = {'OperationId': OPERATION_ID}
-    client_mock.get_paginator.side_effect = paginators(list_stack_instances=[], list_accounts=[ACCOUNTS])
+def client(aws_client, paginators):
+    aws_client.create_stack_instances.return_value = {'OperationId': OPERATION_ID}
+    aws_client.delete_stack_instances.return_value = {'OperationId': OPERATION_ID}
+    aws_client.update_stack_set.return_value = {'OperationId': OPERATION_ID}
+    aws_client.get_paginator.side_effect = paginators(list_stack_instances=[], list_accounts=[ACCOUNTS])
     exception = ClientError(
         dict(Error={'Code': 'StackSetNotFoundException'}), "DescribeStackSet")
-    client_mock.describe_stack_set.side_effect = exception
-    return client_mock
+    aws_client.describe_stack_set.side_effect = exception
+    return aws_client
 
 
 @pytest.fixture
@@ -122,7 +120,7 @@ def test_create_stack_set_without_arguments(client, logger, loader):
     )
 
 
-def test_create_stack_set_with_main_account(session, client, logger, tmpdir):
+def test_create_stack_set_with_main_account(boto_client, client, logger, tmpdir):
     accountid = str(uuid4())
     client.get_caller_identity.return_value = {'Account': accountid}
     with Path(tmpdir):
@@ -135,7 +133,7 @@ def test_create_stack_set_with_main_account(session, client, logger, tmpdir):
             '--main-account-parameter'
         ])
 
-    session.return_value.client.assert_called_with('sts')
+    boto_client.assert_called_with('sts')
 
     client.create_stack_set.assert_called_with(
         StackSetName=STACK,
@@ -243,7 +241,7 @@ def test_update_stack_set_yes_ignores_input(client, loader, input, compare, wait
     input.assert_not_called()
 
 
-def test_update_stack_set_with_main_account(session, client, logger, tmpdir, input, compare, wait):
+def test_update_stack_set_with_main_account(boto_client, client, logger, tmpdir, input, compare, wait):
     client.update_stack_set.return_value = {'OperationId': '12345'}
     accountid = str(uuid4())
     client.get_caller_identity.return_value = {'Account': accountid}
@@ -257,8 +255,8 @@ def test_update_stack_set_with_main_account(session, client, logger, tmpdir, inp
             '--main-account-parameter'
         ])
 
-    session.return_value.client.assert_any_call('sts')
-    session.return_value.client.assert_any_call('cloudformation')
+    boto_client.assert_any_call('sts')
+    boto_client.assert_any_call('cloudformation')
 
     client.update_stack_set.assert_called_with(
         StackSetName=STACK,

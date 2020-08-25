@@ -31,7 +31,7 @@ def test_template_calls_template_with_yaml(tmpdir, logger):
         assert {"Description": "Test"} == yaml.load(logger.info.call_args[0][0])
 
 
-def test_with_organization_variables(aws_client, aws_session, tmpdir, logger, paginators):
+def test_with_organization_variables(aws_client, tmpdir, logger, paginators):
     aws_client.get_paginator.side_effect = paginators(list_accounts=[ACCOUNTS])
     aws_client.describe_regions.return_value = EC2_REGIONS
     aws_client.get_caller_identity.return_value = {'Account': '1234'}
@@ -62,7 +62,7 @@ def test_with_organization_variables(aws_client, aws_session, tmpdir, logger, pa
     assert actual == expected
 
 
-def test_with_organization_region_variables_no_account_variables(aws_client, aws_session, tmpdir, logger, paginators):
+def test_with_organization_region_variables_no_account_variables(aws_client, tmpdir, logger, paginators):
     aws_client.get_paginator.side_effect = paginators(list_accounts=[ACCOUNTS])
     aws_client.describe_regions.return_value = EC2_REGIONS
     aws_client.get_caller_identity.return_value = {'Account': '1234'}
@@ -76,7 +76,7 @@ def test_with_organization_region_variables_no_account_variables(aws_client, aws
             cli.main(['template', '--organization-region-variables'])
 
 
-def test_with_organization_region_variables(aws_client, aws_session, tmpdir, logger, paginators):
+def test_with_organization_region_variables(aws_client, tmpdir, logger, paginators):
     aws_client.get_paginator.side_effect = paginators(list_accounts=[ACCOUNTS])
     aws_client.describe_regions.return_value = EC2_REGIONS
     aws_client.get_caller_identity.return_value = {'Account': '1234'}
@@ -94,7 +94,7 @@ def test_with_organization_region_variables(aws_client, aws_session, tmpdir, log
     assert actual == expected
 
 
-def test_with_organization_account_variables_no_region_variables(aws_client, aws_session, tmpdir, logger, paginators):
+def test_with_organization_account_variables_no_region_variables(aws_client, tmpdir, logger, paginators):
     aws_client.get_paginator.side_effect = paginators(list_accounts=[ACCOUNTS])
     aws_client.describe_regions.return_value = EC2_REGIONS
     aws_client.get_caller_identity.return_value = {'Account': '1234'}
@@ -108,7 +108,7 @@ def test_with_organization_account_variables_no_region_variables(aws_client, aws
             cli.main(['template', '--organization-account-variables'])
 
 
-def test_with_organization_account_variables(aws_client, aws_session, tmpdir, logger, paginators):
+def test_with_organization_account_variables(aws_client, tmpdir, logger, paginators):
     aws_client.get_paginator.side_effect = paginators(list_accounts=[ACCOUNTS])
     aws_client.describe_regions.return_value = EC2_REGIONS
     aws_client.get_caller_identity.return_value = {'Account': '1234'}

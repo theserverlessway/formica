@@ -30,17 +30,17 @@ def test_fails_if_no_stack_given(logger):
     assert '--config-file' in out
 
 
-def test_executes_change_set_and_waits(session, stack_waiter, client):
+def test_executes_change_set_and_waits(session, stack_waiter, client, boto_client):
     client.describe_change_set.return_value = {'Status': 'CREATE_COMPLETE'}
     client.describe_stack_events.return_value = {'StackEvents': [{'EventId': EVENT_ID}]}
     client.describe_stacks.return_value = {'Stacks': [{'StackId': STACK_ID}]}
 
     cli.main(['deploy', '--stack', STACK, '--profile', PROFILE, '--region', REGION])
-    session.return_value.client.assert_called_with('cloudformation')
+    boto_client.assert_called_with('cloudformation')
     client.describe_stack_events.assert_called_with(StackName=STACK)
     client.execute_change_set.assert_called_with(ChangeSetName=CHANGESETNAME, StackName=STACK)
     client.describe_change_set.assert_called_with(ChangeSetName=CHANGESETNAME, StackName=STACK)
-    stack_waiter.assert_called_with(STACK_ID, client)
+    stack_waiter.assert_called_with(STACK_ID)
     stack_waiter.return_value.wait.assert_called_with(EVENT_ID)
 
 
@@ -50,7 +50,7 @@ def test_executes_change_set_with_timeout(stack_waiter, client):
     client.describe_stacks.return_value = {'Stacks': [{'StackId': STACK_ID}]}
 
     cli.main(['deploy', '--stack', STACK, '--profile', PROFILE, '--region', REGION, '--timeout', '15'])
-    stack_waiter.assert_called_with(STACK_ID, client, timeout=15)
+    stack_waiter.assert_called_with(STACK_ID, timeout=15)
     stack_waiter.return_value.wait.assert_called_with(EVENT_ID)
 
 
@@ -62,7 +62,7 @@ def test_does_not_execute_changeset_if_no_changes(stack_waiter, client):
 
     cli.main(['deploy', '--stack', STACK])
     client.execute_change_set.assert_not_called()
-    stack_waiter.assert_called_with(STACK_ID, client)
+    stack_waiter.assert_called_with(STACK_ID)
     stack_waiter.return_value.wait.assert_called_with(EVENT_ID)
 
 

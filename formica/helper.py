@@ -23,21 +23,19 @@ def accounts_and_regions():
 
 
 def aws_regions():
-    from formica.aws import AWS
+    import boto3
 
-    current_session = AWS.current_session()
-    ec2 = current_session.client("ec2")
+    ec2 = boto3.client("ec2")
     regions = ec2.describe_regions()
     regions = [r["RegionName"] for r in regions["Regions"]]
     return {"AWSRegions": regions}
 
 
 def aws_accounts():
-    from formica.aws import AWS
+    import boto3
 
-    current_session = AWS.current_session()
-    organizations = current_session.client("organizations")
-    sts = current_session.client("sts")
+    organizations = boto3.client("organizations")
+    sts = boto3.client("sts")
 
     paginator = organizations.get_paginator("list_accounts")
 
@@ -57,8 +55,8 @@ def aws_accounts():
 
 
 def main_account_id():
-    from formica.aws import AWS
+    import boto3
 
-    sts = AWS.current_session().client("sts")
+    sts = boto3.client("sts")
     identity = sts.get_caller_identity()
     return identity["Account"]

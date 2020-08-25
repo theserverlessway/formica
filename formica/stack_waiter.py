@@ -1,6 +1,7 @@
 import sys
 import time
 from datetime import datetime
+import boto3
 
 import logging
 from texttable import Texttable
@@ -24,11 +25,12 @@ logger = logging.getLogger(__name__)
 
 SLEEP_TIME = 5
 
+cf = boto3.client("cloudformation")
+
 
 class StackWaiter:
-    def __init__(self, stack, client, timeout=0):
+    def __init__(self, stack, timeout=0):
         self.stack = stack
-        self.client = client
         self.timeout = timeout
 
     def wait(self, last_event):
@@ -37,7 +39,7 @@ class StackWaiter:
         canceled = False
         start = datetime.now()
         while not finished:
-            stack_events = self.client.describe_stack_events(StackName=self.stack)["StackEvents"]
+            stack_events = cf.describe_stack_events(StackName=self.stack)["StackEvents"]
             index = next((i for i, v in enumerate(stack_events) if v["EventId"] == last_event))
             last_event = stack_events[0]["EventId"]
             new_events = stack_events[0:index]
@@ -56,12 +58,12 @@ class StackWaiter:
             elif not canceled and self.timeout > 0 and (datetime.now() - start).seconds > (self.timeout * 60):
                 logger.info("Timeout of {} minute(s) reached. Canceling Update.".format(self.timeout))
                 canceled = True
-                self.client.cancel_update_stack(StackName=self.stack)
+                cf.cancel_update_stack(StackName=self.stack)
             else:
                 time.sleep(SLEEP_TIME)
 
     def stack_status(self):
-        return self.client.describe_stacks(StackName=self.stack)["Stacks"][0]["StackStatus"]
+        return cf.describe_stacks(StackName=self.stack)["Stacks"][0]["StackStatus"]
 
     def __create_table(self):
         table = Texttable()

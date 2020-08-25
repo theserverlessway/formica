@@ -1,36 +1,14 @@
-class AWS:
-    __session = None
+import boto3
+import botocore
+from botocore import credentials
+import os
 
-    @staticmethod
-    def current_session():
-        if not AWS.__session:
-            raise AttributeError("Session was not initialised")
-        return AWS.__session
 
-    def __init__(self):
-        raise Exception("AWS Constructur should not be called")
+def initialize(region, profile):
+    cli_cache = os.path.join(os.path.expanduser("~"), ".aws/cli/cache")
 
-    @staticmethod
-    def initialize(region="", profile=""):
-        from botocore import credentials
-        import botocore.session
-        import os
-
-        cli_cache = os.path.join(os.path.expanduser("~"), ".aws/cli/cache")
-
-        params = {}
-        if profile:
-            params["profile"] = profile
-
-        session = botocore.session.Session(**params)
-        session.get_component("credential_provider").get_provider("assume-role").cache = credentials.JSONFileCache(
-            cli_cache
-        )
-
-        from boto3.session import Session
-
-        params = {}
-        if region:
-            params["region_name"] = region
-
-        AWS.__session = Session(botocore_session=session, **params)
+    session = botocore.session.Session(profile=profile)
+    session.get_component("credential_provider").get_provider("assume-role").cache = credentials.JSONFileCache(
+        cli_cache
+    )
+    boto3.setup_default_session(botocore_session=session, region_name=region, profile_name=profile)
