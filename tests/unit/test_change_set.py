@@ -56,15 +56,15 @@ def test_submits_changeset_and_waits(client):
 
 def test_creates_and_removes_bucket_for_s3_flag(client, temp_bucket):
     change_set = ChangeSet(STACK)
-    bucket_name = 'formica-deploy-{}'.format(UUID)
+    bucket_name = 'formica-deploy-{}'.format("test")
     bucket_path = '{}-template.json'.format(STACK)
     template_url = 'https://{}.s3.amazonaws.com/{}'.format(bucket_name, bucket_path)
+    temp_bucket.add.return_value = bucket_path
     temp_bucket.name = bucket_name
-    temp_bucket.upload.return_value = bucket_path
 
     change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, s3=True)
 
-    temp_bucket.upload.assert_called_with(TEMPLATE)
+    temp_bucket.add.assert_called_with(TEMPLATE)
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateURL=template_url,
