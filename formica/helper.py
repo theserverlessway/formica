@@ -1,3 +1,6 @@
+from .s3 import temporary_bucket
+
+
 def name(*names):
     name = "".join(map(lambda name: name.title(), names))
     name = "".join(e for e in name if e.isalnum())
@@ -13,6 +16,10 @@ def collect_vars(args):
             variables.update(aws_regions())
         if args.organization_account_variables:
             variables.update(aws_accounts())
+
+    if args.artifacts:
+        variables.update(artifact_variables(args.artifacts))
+
     return variables
 
 
@@ -60,3 +67,17 @@ def main_account_id():
     sts = boto3.client("sts")
     identity = sts.get_caller_identity()
     return identity["Account"]
+
+
+def artifact_variables(artifacts):
+    class Artifact:
+        def __init__(self, key, bucket):
+            self.key = key
+            self.bucket = bucket
+    artifact_keys = {}
+    with temporary_bucket() as t:
+        for a in artifacts:
+            with open(a, 'r') as f:
+                artifact_keys[a] = t.add(f.read())
+        finished_vars = {key: Artifact(value, t.name) for key, value in artifact_keys.items()}
+    return {"artifacts": finished_vars}

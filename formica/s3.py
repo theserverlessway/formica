@@ -7,6 +7,7 @@ import hashlib
 logger = logging.getLogger(__name__)
 
 s3 = boto3.resource("s3")
+sts = boto3.client("sts")
 
 
 class TemporaryS3Bucket(object):
@@ -24,15 +25,22 @@ class TemporaryS3Bucket(object):
         self.objects[object_name] = body
         return object_name
 
+    @property
+    def name(self):
+        body_hashes = "".join([key for key, _ in self.objects.items()]).encode()
+        account_id = sts.get_caller_identity()["Account"]
+        body_hashes_hash = self.__digest(account_id + sts.meta.region_name + body_hashes)
+        return "formica-deploy-{}".format(body_hashes_hash)
+
     def upload(self):
         if not self.uploaded:
             self.uploaded = True
-            body_hashes = "".join([key for key, _ in self.objects.items()]).encode()
-            body_hashes_hash = self.__digest(body_hashes)
-            self.name = "formica-deploy-{}".format(body_hashes_hash)
             self.s3_bucket = s3.Bucket(self.name)
-            self.s3_bucket.create(
-                CreateBucketConfiguration=dict(LocationConstraint=boto3.session.Session().region_name))
+            try:
+                self.s3_bucket.create(
+                    CreateBucketConfiguration=dict(LocationConstraint=sts.meta.region_name))
+            except s3.exceptions.BucketAlreadyOwnedByYou:
+                logger.info("Bucket already exists")
             for name, body in self.objects.items():
                 logger.info("Uploading to Bucket: {}/{}".format(self.name, name))
                 self.s3_bucket.put_object(Key=name, Body=body)
@@ -50,4 +58,4 @@ def temporary_bucket():
                 logger.info("Deleting {} Objects from Bucket: {}".format(len(to_delete), temp_bucket.name))
                 temp_bucket.s3_bucket.delete_objects(Delete=dict(Objects=to_delete))
             logger.info("Deleting Bucket: {}".format(temp_bucket.name))
-            temp_bucket.s3_bucket.delete()
+            # temp_bucket.s3_bucket.delete()

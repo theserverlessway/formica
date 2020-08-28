@@ -1,0 +1,5 @@
+stack: s3-lambda
+capabilities:
+  - CAPABILITY_IAM
+artifacts:
+  - code.py

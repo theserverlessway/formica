@@ -14,4 +14,14 @@ Resources:
             Fn::GetAtt:
             - TestFunction
             - Arn
+        - Event: s3:ObjectCreated:*
+          Function:
+            Fn::GetAtt:
+              - TestFunctionS3
+              - Arn
+        - Event: s3:ObjectRemoved:*
+          Function:
+            Fn::GetAtt:
+              - TestFunctionS3
+              - Arn
 
