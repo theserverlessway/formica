@@ -1,11 +1,9 @@
-FROM python:alpine
+FROM python:latest
 
 WORKDIR /app
 
-#RUN apt-get update -y
-#RUN apt-get install -y groff pandoc
-
-RUN apk add --no-cache --update build-base gcc libffi-dev openssl-dev openssl musl-dev python-dev bash
+RUN apt-get update -y
+RUN apt-get install -y groff pandoc gcc libffi-dev libssl-dev openssl musl-dev python-dev bash
 
 RUN pip install -U wheel pygments twine
 RUN pip install -U awslogs awscli
@@ -17,6 +15,6 @@ COPY setup.cfg setup.cfg
 COPY formica/__init__.py formica/__init__.py
 COPY README.md README.md
 
-#RUN pandoc --from=markdown --to=rst --output=README.rst README.md
+RUN pandoc --from=markdown --to=rst --output=README.rst README.md
 
 RUN python setup.py develop

@@ -30,7 +30,7 @@ root@07e549506145:/app/docs/examples/s3-bucket# formica deploy --stack formica-e
 
 ```
 usage: formica deploy [-h] [--region REGION] [--profile PROFILE]
-                      [--stack STACK]
+                      [--artifacts ARTIFACTS [ARTIFACTS ...]] [--stack STACK]
                       [--config-file CONFIG_FILE [CONFIG_FILE ...]]
                       [--timeout TIMEOUT]
 
@@ -40,6 +40,9 @@ optional arguments:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use
+  --artifacts ARTIFACTS [ARTIFACTS ...]
+                        Add one or more artifacts to push to S3 before
+                        deployment
   --stack STACK, -s STACK
                         The Stack to use
   --config-file CONFIG_FILE [CONFIG_FILE ...], -c CONFIG_FILE [CONFIG_FILE ...]
