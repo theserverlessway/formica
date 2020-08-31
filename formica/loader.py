@@ -6,7 +6,7 @@ import re
 import logging
 import yaml
 from jinja2 import Environment, FileSystemLoader
-from jinja2.exceptions import TemplateSyntaxError, TemplateNotFound
+from jinja2.exceptions import TemplateSyntaxError, TemplateNotFound, UndefinedError
 import arrow
 import fnmatch
 
@@ -193,7 +193,7 @@ class Loader(object):
         for file in files:
             try:
                 result = str(self.render(os.path.basename(file), **self.variables))
-                template = yaml.load(result, Loader=yaml.Loader)
+                template = yaml.full_load(result)
             except TemplateNotFound as e:
                 logger.info("File not found" + ": " + e.message)
                 logger.info('In: "' + file + '"')
@@ -201,6 +201,10 @@ class Loader(object):
             except TemplateSyntaxError as e:
                 logger.info(e.__class__.__name__ + ": " + e.message)
                 logger.info('File: "' + (e.filename or file) + '", line ' + str(e.lineno))
+                sys.exit(1)
+            except UndefinedError as e:
+                logger.info(e.__class__.__name__ + ": " + e.message)
+                logger.info('In: "' + file + '"')
                 sys.exit(1)
             except FormicaArgumentException as e:
                 logger.info(e.__class__.__name__ + ": " + e.args[0])

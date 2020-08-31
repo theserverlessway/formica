@@ -3,8 +3,8 @@ import pytest
 
 
 @pytest.fixture
-def bucket(mocker):
-    return mocker.patch('formica.s3.s3').Bucket
+def bucket(mocker, boto_resource, boto_client):
+    return boto_resource.return_value.Bucket
 
 
 STRING_BODY = "string"
@@ -12,11 +12,13 @@ STRING_BODY = "string"
 STRING_KEY = "b45cffe084dd3d20d928bee85e7b0f21"
 BINARY_BODY = "binary".encode()
 BINARY_KEY = "9d7183f16acce70658f686ae7f1a4d20"
-BUCKET_NAME = "formica-deploy-697eef07a03374e0bb75ffd1c8275bfc"
+BUCKET_NAME = "formica-deploy-2d76d05dc575a9e10d346fde56909c20"
 
 
-def test_s3_bucket_context(mocker, bucket, uuid4):
+def test_s3_bucket_context(mocker, bucket, uuid4, boto_client):
     bucket.return_value.objects.all.return_value = [mocker.Mock(key=STRING_KEY), mocker.Mock(key=BINARY_KEY)]
+    boto_client.return_value.meta.region_name = "eu-central-1"
+    boto_client.return_value.get_caller_identity.return_value = {'Account': '1234'}
 
     with temporary_bucket() as temp_bucket:
         string_return = temp_bucket.add(STRING_BODY)

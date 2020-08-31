@@ -1,6 +1,7 @@
 import subprocess
 import uuid
 import json
+import yaml
 from path import Path
 
 import pytest
@@ -13,6 +14,18 @@ def stack_name():
 
 CONFIG_FILE = 'test.config.json'
 
+TEMPLATE_FILE = """
+Resources:
+  TestName:
+    Type: AWS::S3::Bucket
+    Properties:
+      Tags:
+        - Key: Bucket
+          Value: {{ artifacts['SomeArtifact'].bucket }}
+        - Key: Name
+          Value: {{ artifacts['SomeArtifact'].key }}
+"""
+
 
 class TestIntegrationBasic():
     def test_integration_basic(self, tmpdir, stack_name):
@@ -24,32 +37,39 @@ class TestIntegrationBasic():
 
             def write_template(content):
                 with open("test.template.json", 'w') as f:
-                    f.write(json.dumps(content))
+                    f.write(content)
 
             def write_config(content):
                 with open(CONFIG_FILE, 'w') as f:
                     f.write(json.dumps(content))
 
             # Create a simple FC file and print it to STDOUT
-            write_template({'Resources': {'TestName': {'Type': 'AWS::S3::Bucket'}}})
-            write_config({'stack': stack_name})
-            template = run_formica('template')
+            write_template(TEMPLATE_FILE)
+            write_config({'stack': stack_name, "artifacts": ['SomeArtifact']})
+            with open("SomeArtifact", 'w') as f:
+                f.write("Artifact")
+
+            artifacts_args = ['--artifacts', 'SomeArtifact']
+
+            template = run_formica('template', *artifacts_args)
             assert 'TestName' in template
             assert 'AWS::S3::Bucket' in template
 
             stack_args = ['--stack', stack_name]
 
+            stack_artifact_args = [*stack_args, *artifacts_args]
+
             # Create a ChangeSet for a new Stack to be deployed
-            new = run_formica('new', *stack_args)
+            new = run_formica('new', *stack_artifact_args)
             assert 'AWS::S3::Bucket' in new
 
             # Deploy new Stack
             run_formica('deploy', '-c', CONFIG_FILE)
 
-            write_template({'Resources': {'TestNameUpdate': {'Type': 'AWS::S3::Bucket'}}})
+            write_template(json.dumps({'Resources': {'TestNameUpdate': {'Type': 'AWS::S3::Bucket'}}}))
 
             # Diff the current stack
-            diff = run_formica('diff', *stack_args)
+            diff = run_formica('diff', *stack_artifact_args)
 
             assert 'Resources > TestName' in diff
             assert 'Dictionary Item Removed' in diff
@@ -57,7 +77,7 @@ class TestIntegrationBasic():
             assert 'Dictionary Item Added' in diff
 
             # Change Resources in existing stack
-            change = run_formica('change', '--s3', *stack_args)
+            change = run_formica('change', '--s3', *stack_artifact_args)
             assert 'TestNameUpdate' in change
 
             # Describe ChangeSet before deploying
@@ -65,11 +85,11 @@ class TestIntegrationBasic():
             assert 'TestNameUpdate' in describe
 
             # Deploy changes to existing stack
-            deploy = run_formica('deploy', *stack_args)
+            deploy = run_formica('deploy', *stack_artifact_args)
             assert 'UPDATE_COMPLETE' in deploy
 
             # Add Changes again without failing
-            change = run_formica('change', *stack_args)
+            change = run_formica('change', *stack_artifact_args)
             assert "The submitted information didn't contain changes." in change
 
             # List Resources after deployment

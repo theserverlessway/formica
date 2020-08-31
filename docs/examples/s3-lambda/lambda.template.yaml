@@ -53,9 +53,9 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: {{artifacts['code.py'].bucket}}
-        S3Key: {{artifacts['code.py'].key}}
-      Handler: index.handler
+        S3Bucket: {{artifacts['build/code.py.zip'].bucket}}
+        S3Key: {{artifacts['build/code.py.zip'].key}}
+      Handler: code.handler
       Role:
         Fn::GetAtt:
           - LambdaExecutionRole

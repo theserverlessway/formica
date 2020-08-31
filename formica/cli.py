@@ -57,7 +57,7 @@ CONFIG_FILE_ARGUMENTS = {
     "use_previous_template": bool,
     "use_previous_parameters": bool,
     "s3": bool,
-    "artifacts": list
+    "artifacts": list,
 }
 
 
@@ -120,6 +120,7 @@ def main(cli_args):
     add_config_file_argument(new_parser)
     add_stack_variables_argument(new_parser)
     add_s3_upload_argument(new_parser)
+    add_artifacts_argument(new_parser)
     add_resource_types(new_parser)
     add_organization_account_template_variables(new_parser)
     new_parser.set_defaults(func=new)
@@ -135,6 +136,7 @@ def main(cli_args):
     add_config_file_argument(change_parser)
     add_stack_variables_argument(change_parser)
     add_s3_upload_argument(change_parser)
+    add_artifacts_argument(change_parser)
     add_resource_types(change_parser)
     add_create_missing_argument(change_parser)
     add_organization_account_template_variables(change_parser)
@@ -144,6 +146,7 @@ def main(cli_args):
     # Deploy Command Arguments
     deploy_parser = subparsers.add_parser("deploy", description="Deploy the latest change set for a stack")
     add_aws_arguments(deploy_parser)
+    add_artifacts_argument(deploy_parser)
     add_stack_argument(deploy_parser)
     add_config_file_argument(deploy_parser)
     add_timeout_parameter(deploy_parser)
@@ -179,6 +182,7 @@ def main(cli_args):
     add_stack_parameters_argument(diff_parser)
     add_stack_tags_argument(diff_parser)
     add_organization_account_template_variables(diff_parser)
+    add_artifacts_argument(diff_parser)
     diff_parser.set_defaults(func=diff)
 
     # Resources Command Arguments
@@ -494,10 +498,7 @@ def add_s3_upload_argument(parser):
 
 def add_artifacts_argument(parser):
     parser.add_argument(
-        "--artifacts",
-        help="Add one or more artifacts to push to S3 before deployment",
-        nargs="+",
-        default=[],
+        "--artifacts", help="Add one or more artifacts to push to S3 before deployment", nargs="+", default=[],
     )
 
 
@@ -663,7 +664,7 @@ def with_artifacts(function):
         if args.artifacts:
             with temporary_bucket() as t:
                 for a in args.artifacts:
-                    with open(a, 'r') as f:
+                    with open(a, "rb") as f:
                         t.add(f.read())
                 t.upload()
                 function(args)

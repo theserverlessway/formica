@@ -7,7 +7,7 @@ def name(*names):
     return name
 
 
-def collect_vars(args):
+def collect_stack_set_vars(args):
     variables = args.vars or {}
     if args.organization_variables:
         variables.update(accounts_and_regions())
@@ -17,6 +17,11 @@ def collect_vars(args):
         if args.organization_account_variables:
             variables.update(aws_accounts())
 
+    return variables
+
+
+def collect_vars(args):
+    variables = collect_stack_set_vars(args)
     if args.artifacts:
         variables.update(artifact_variables(args.artifacts))
 
@@ -74,10 +79,11 @@ def artifact_variables(artifacts):
         def __init__(self, key, bucket):
             self.key = key
             self.bucket = bucket
+
     artifact_keys = {}
     with temporary_bucket() as t:
         for a in artifacts:
-            with open(a, 'r') as f:
+            with open(a, "rb") as f:
                 artifact_keys[a] = t.add(f.read())
         finished_vars = {key: Artifact(value, t.name) for key, value in artifact_keys.items()}
     return {"artifacts": finished_vars}

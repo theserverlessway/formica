@@ -2,4 +2,5 @@ stack: s3-lambda
 capabilities:
   - CAPABILITY_IAM
 artifacts:
+  - build/code.py.zip
   - code.py

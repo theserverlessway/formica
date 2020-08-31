@@ -28,7 +28,7 @@ def test_template_calls_template_with_yaml(tmpdir, logger):
             f.write('{"Description": "{{ \'test\' | title }}"}')
         cli.main(['template', '--yaml'])
         logger.info.assert_called()
-        assert {"Description": "Test"} == yaml.load(logger.info.call_args[0][0])
+        assert {"Description": "Test"} == yaml.safe_load(logger.info.call_args[0][0])
 
 
 def test_with_organization_variables(aws_client, tmpdir, logger, paginators):
@@ -47,7 +47,7 @@ def test_with_organization_variables(aws_client, tmpdir, logger, paginators):
         logger.info.assert_called()
         output = logger.info.call_args[0][0]
 
-        actual = yaml.load(output)
+        actual = yaml.safe_load(output)
         expected = {'Resources': {'Accounts': [{'Email': 'email1@test.com', 'Id': '1234', 'Name': 'TestName1'},
                                                {'Email': 'email2@test.com', 'Id': '5678', 'Name': 'TestName2'}],
                                   'SubAccounts': [{'Email': 'email2@test.com', 'Id': '5678', 'Name': 'TestName2'}],
@@ -89,7 +89,7 @@ def test_with_organization_region_variables(aws_client, tmpdir, logger, paginato
         logger.info.assert_called()
         output = logger.info.call_args[0][0]
 
-        actual = yaml.load(output)
+        actual = yaml.safe_load(output)
         expected = {'Resources': {'Regions': ['us-west-1', 'us-west-2'], 'Regions': ['us-west-1', 'us-west-2']}}
     assert actual == expected
 
@@ -121,9 +121,30 @@ def test_with_organization_account_variables(aws_client, tmpdir, logger, paginat
         logger.info.assert_called()
         output = logger.info.call_args[0][0]
 
-        actual = yaml.load(output)
+        actual = yaml.safe_load(output)
         expected = {'Resources': {'Accounts': [{'Email': 'email1@test.com', 'Id': '1234', 'Name': 'TestName1'},
                                                {'Email': 'email2@test.com', 'Id': '5678', 'Name': 'TestName2'}],
                                   'SubAccounts': [{'Email': 'email2@test.com', 'Id': '5678', 'Name': 'TestName2'}],
                                   'MainAccount': {'Email': 'email1@test.com', 'Id': '1234', 'Name': 'TestName1'}}}
+    assert actual == expected
+
+
+def test_with_artifacts(aws_client, tmpdir, logger, paginators):
+    aws_client.get_paginator.side_effect = paginators(list_accounts=[ACCOUNTS])
+    aws_client.describe_regions.return_value = EC2_REGIONS
+    aws_client.meta.region_name = "eu-central-1"
+    aws_client.get_caller_identity.return_value = {'Account': '1234'}
+    example = '{"Resources": {"Bucket": {{ artifacts["bucketfile"].bucket }}, "Key": {{ artifacts["bucketfile"].key }} }}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with open('bucketfile', 'w') as f:
+            f.write("Testfile")
+
+        cli.main(['template', '--artifacts', 'bucketfile'])
+        logger.info.assert_called()
+        output = logger.info.call_args[0][0]
+
+        actual = yaml.safe_load(output)
+        expected = {"Resources": {"Bucket": "formica-deploy-83acc03037c35fdce1aae77faa87d9f2", "Key": "864c71d530a42421476458005e05b2a0" }}
     assert actual == expected
