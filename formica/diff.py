@@ -22,9 +22,9 @@ class Change:
 def convert(data):
     if isinstance(data, str):
         return data
-    if isinstance(data, collections.Mapping):
+    if isinstance(data, collections.abc.Mapping):
         return dict(map(convert, data.items()))
-    elif isinstance(data, collections.Iterable):
+    elif isinstance(data, collections.abc.Iterable):
         return type(data)(map(convert, data))
     else:
         return data

@@ -78,14 +78,14 @@ def test_dictionary_item_added(loader, client, caplog):
     loader_return(loader, {'Resources': '5678'})
     template_return(client, {})
     compare_stack(STACK)
-    check_echo(caplog, ['Resources', 'Not Present', '5678', 'Dictionary Item Added'])
+    check_echo(caplog, ['Resources', 'not present', '5678', 'Dictionary Item Added'])
 
 
 def test_dictionary_item_removed(loader, client, caplog):
     loader_return(loader, {})
     template_return(client, {'Resources': '5678'})
     compare_stack(STACK)
-    check_echo(caplog, ['Resources', '5678', 'Not Present', 'Dictionary Item Removed'])
+    check_echo(caplog, ['Resources', '5678', 'not present', 'Dictionary Item Removed'])
 
 
 def test_type_changed(loader, client, caplog):
@@ -99,14 +99,14 @@ def test_iterable_item_added(loader, client, caplog):
     loader_return(loader, {'Resources': [1, 2]})
     template_return(client, {'Resources': [1]})
     compare_stack(STACK)
-    check_echo(caplog, ['Resources > 1', 'Not Present', '2', 'Iterable Item Added'])
+    check_echo(caplog, ['Resources > 1', 'not present', '2', 'Iterable Item Added'])
 
 
 def test_iterable_item_removed(loader, client, caplog):
     loader_return(loader, {'Resources': [1]})
     template_return(client, {'Resources': [1, 2]})
     compare_stack(STACK)
-    check_echo(caplog, ['Resources > 1', '2', 'Not Present', 'Iterable Item Removed'])
+    check_echo(caplog, ['Resources > 1', '2', 'not present', 'Iterable Item Removed'])
 
 
 def test_request_returns_string(loader, client, caplog):
