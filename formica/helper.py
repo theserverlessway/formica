@@ -83,7 +83,6 @@ def artifact_variables(artifacts):
     artifact_keys = {}
     with temporary_bucket() as t:
         for a in artifacts:
-            with open(a, "rb") as f:
-                artifact_keys[a] = t.add(f.read())
+            artifact_keys[a] = t.add_file(a)
         finished_vars = {key: Artifact(value, t.name) for key, value in artifact_keys.items()}
     return {"artifacts": finished_vars}

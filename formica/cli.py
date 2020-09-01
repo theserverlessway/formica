@@ -664,8 +664,7 @@ def with_artifacts(function):
         if args.artifacts:
             with temporary_bucket() as t:
                 for a in args.artifacts:
-                    with open(a, "rb") as f:
-                        t.add(f.read())
+                    t.add_file(a)
                 t.upload()
                 function(args)
         else:

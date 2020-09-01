@@ -1,9 +1,15 @@
 import boto3
 from contextlib import contextmanager
 import logging
-import hashlib
+from hashlib import md5
+from io import BytesIO
 
 logger = logging.getLogger(__name__)
+
+# Using MD5 for shorter string names as Sha256 is larger than allowed bucket name characters
+HASH = md5
+# Use Hash Blocksize to determine number of bytes read
+BLOCKSIZE_MULTI = 512
 
 
 class TemporaryS3Bucket(object):
@@ -12,22 +18,35 @@ class TemporaryS3Bucket(object):
         self.uploaded = False
         self.__sts = boto3.client("sts")
         self.s3_bucket = None
+        self.files = {}
 
     def __digest(self, body):
-        return str(hashlib.md5(body).hexdigest()).lower()
+
+        used_hash = HASH()
+        for byte_block in iter(lambda: body.read(used_hash.block_size * BLOCKSIZE_MULTI), b""):
+            used_hash.update(byte_block)
+        return used_hash.hexdigest()
 
     def add(self, body):
         if type(body) == str:
             body = body.encode()
-        object_name = self.__digest(body)
+        with BytesIO(body) as b:
+            object_name = self.__digest(b)
         self.objects[object_name] = body
+        return object_name
+
+    def add_file(self, file_name):
+        with open(file_name, "rb") as f:
+            object_name = self.__digest(f)
+        self.files[object_name] = file_name
         return object_name
 
     @property
     def name(self):
-        body_hashes = "".join([key for key, _ in self.objects.items()]).encode()
+        body_hashes = "".join(
+            [key for key, _ in self.objects.items()] + [key for key, _ in self.files.items()]).encode()
         account_id = self.__sts.get_caller_identity()["Account"]
-        name_digest_input = (account_id + self.__sts.meta.region_name + body_hashes.decode()).encode()
+        name_digest_input = BytesIO((account_id + self.__sts.meta.region_name + body_hashes.decode()).encode())
         body_hashes_hash = self.__digest(name_digest_input)
         return "formica-deploy-{}".format(body_hashes_hash)
 
@@ -43,6 +62,10 @@ class TemporaryS3Bucket(object):
             for name, body in self.objects.items():
                 logger.info("Uploading to Bucket: {}/{}".format(self.name, name))
                 self.s3_bucket.put_object(Key=name, Body=body)
+            for name, file_name in self.files.items():
+                with open(file_name, "rb") as f:
+                    logger.info("Uploading to Bucket: {}/{}".format(self.name, name))
+                    self.s3_bucket.put_object(Key=name, Body=f)
 
 
 @contextmanager
