@@ -498,7 +498,10 @@ def add_s3_upload_argument(parser):
 
 def add_artifacts_argument(parser):
     parser.add_argument(
-        "--artifacts", help="Add one or more artifacts to push to S3 before deployment", nargs="+", default=[],
+        "--artifacts",
+        help="Add one or more artifacts to push to S3 before deployment",
+        nargs="+",
+        default=[],
     )
 
 

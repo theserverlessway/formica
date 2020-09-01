@@ -44,7 +44,8 @@ class TemporaryS3Bucket(object):
     @property
     def name(self):
         body_hashes = "".join(
-            [key for key, _ in self.objects.items()] + [key for key, _ in self.files.items()]).encode()
+            [key for key, _ in self.objects.items()] + [key for key, _ in self.files.items()]
+        ).encode()
         account_id = self.__sts.get_caller_identity()["Account"]
         name_digest_input = BytesIO((account_id + self.__sts.meta.region_name + body_hashes.decode()).encode())
         body_hashes_hash = self.__digest(name_digest_input)
