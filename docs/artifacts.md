@@ -11,7 +11,7 @@ The bucket will always start with `formica-deploy-` followed by the bucket hash 
 
 Because the files are hashed when the files don't change neither do your templates and CloudFormation will not redeploy any resources.
 
-A simple example would be the following artifact for a Lambda function. The example can also be seen in the [S3-Lambda Example](examples/s3-lambda) At first we're zipping `code.py` into `build/code.py.zip`.:
+A simple example would be the following artifact for a Lambda function. The example can also be seen in the [S3-Lambda Example](https://github.com/theserverlessway/formica/tree/master/docs/examples/s3-lambda) At first we're zipping `code.py` into `build/code.py.zip`.:
 
 ```
 mkdir -p build
