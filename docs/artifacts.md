@@ -3,9 +3,9 @@ title: Artifacts
 weight: 700
 ---
 
-Sometimes you might want to upload a Zipfile for a Lambda function or scripts to use with EC2 Auto Scaling groups to S3. To set this up you can use the `--artifacts` argument or config file option.
+Sometimes you might want to upload a zipfile for a Lambda function or scripts to use with EC2 Auto Scaling groups to S3 or anything else where CloudFormation or Resources you're creating should reference artifacts in S3. To set this up you can use the `--artifacts` argument or config file option.
 
-Artifacts takes a list of file names, reads them and hashes them. These hashes are then used to create a temporary S3 Bucket which will be created at deployment. When creating a changeset, diffing your template or just taking a look at the current template, the same calculations are performed and the Bucket as well as S3 Object name will be set in Jinja variables so you can access them.
+Artifacts takes a list of file names, reads them and hashes them. These hashes are then used to create a temporary S3 Bucket which will be created at deployment. When creating a changeset, diffing your template or just taking a look at the current template, the same calculations are performed and the Bucket as well as S3 Object name will be set in Jinja variables so you can access them in your template..
 
 The bucket will always start with `formica-deploy-` followed by the bucket hash so you can set up IAM Roles for deployment to have access to resources starting with this prefix.
 

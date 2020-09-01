@@ -31,8 +31,10 @@ class TestIntegrationBasic():
     def test_integration_basic(self, tmpdir, stack_name):
         with Path(tmpdir):
             def run_formica(*args):
-                result = str(subprocess.check_output(['formica'] + list(args), cwd=str(tmpdir)))
-
+                print()
+                print("Command: formica {}".format(' '.join(args)))
+                result = subprocess.check_output(['formica'] + list(args), cwd=str(tmpdir)).decode()
+                print(result)
                 return result
 
             def write_template(content):
