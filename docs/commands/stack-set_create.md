@@ -23,6 +23,8 @@ usage: formica stack-set create [-h] [--region REGION] [--profile PROFILE]
                                 [--administration-role-name ADMINISTRATION_ROLE_NAME]
                                 [--execution-role-name EXECUTION_ROLE_NAME]
                                 [--organization-variables]
+                                [--organization-region-variables]
+                                [--organization-account-variables]
 
 Create a Stack Set
 
@@ -56,4 +58,10 @@ optional arguments:
                         Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
                         AWSRegions as Jinja variables with an Email, Id and
                         Name field for each account
+  --organization-region-variables
+                        Add AWSRegions as Jinja variables
+  --organization-account-variables
+                        Add AWSAccounts, AWSSubAccounts, and AWSMainAccount as
+                        Jinja variables with an Email, Id, and Name field for
+                        each account
 ```

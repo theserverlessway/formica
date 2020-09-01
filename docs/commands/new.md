@@ -21,7 +21,10 @@ usage: formica new [-h] [--region REGION] [--profile PROFILE] [--stack STACK]
                    [--role-arn ROLE_ARN] [--role-name ROLE_NAME]
                    [--config-file CONFIG_FILE [CONFIG_FILE ...]]
                    [--vars KEY=Value [KEY=Value ...]] [--s3]
-                   [--resource-types] [--organization-variables]
+                   [--artifacts ARTIFACTS [ARTIFACTS ...]] [--resource-types]
+                   [--organization-variables]
+                   [--organization-region-variables]
+                   [--organization-account-variables]
 
 Create a change set for a new stack
 
@@ -45,9 +48,18 @@ optional arguments:
   --vars KEY=Value [KEY=Value ...]
                         Add one or multiple Jinja2 variables
   --s3                  Upload template to S3 before deployment
+  --artifacts ARTIFACTS [ARTIFACTS ...]
+                        Add one or more artifacts to push to S3 before
+                        deployment
   --resource-types      Add Resource Types to the ChangeSet
   --organization-variables
                         Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
                         AWSRegions as Jinja variables with an Email, Id and
                         Name field for each account
+  --organization-region-variables
+                        Add AWSRegions as Jinja variables
+  --organization-account-variables
+                        Add AWSAccounts, AWSSubAccounts, and AWSMainAccount as
+                        Jinja variables with an Email, Id, and Name field for
+                        each account
 ```

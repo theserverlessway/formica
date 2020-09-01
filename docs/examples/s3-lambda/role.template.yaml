@@ -1,6 +1,7 @@
 Resources:
   LambdaExecutionRole:
     Properties:
+      PermissionsBoundary: !Sub arn:aws:iam::${AWS::AccountId}:policy/CreatedIdentitiesPermissionsBoundary
       AssumeRolePolicyDocument:
         Statement:
         - Action:

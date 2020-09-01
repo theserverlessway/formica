@@ -1,10 +1,13 @@
+from .s3 import temporary_bucket
+
+
 def name(*names):
     name = "".join(map(lambda name: name.title(), names))
     name = "".join(e for e in name if e.isalnum())
     return name
 
 
-def collect_vars(args):
+def collect_stack_set_vars(args):
     variables = args.vars or {}
     if args.organization_variables:
         variables.update(accounts_and_regions())
@@ -13,6 +16,15 @@ def collect_vars(args):
             variables.update(aws_regions())
         if args.organization_account_variables:
             variables.update(aws_accounts())
+
+    return variables
+
+
+def collect_vars(args):
+    variables = collect_stack_set_vars(args)
+    if args.artifacts:
+        variables.update(artifact_variables(args.artifacts))
+
     return variables
 
 
@@ -60,3 +72,31 @@ def main_account_id():
     sts = boto3.client("sts")
     identity = sts.get_caller_identity()
     return identity["Account"]
+
+
+def artifact_variables(artifacts):
+    class Artifact:
+        def __init__(self, key, bucket):
+            self.key = key
+            self.bucket = bucket
+
+    artifact_keys = {}
+    with temporary_bucket() as t:
+        for a in artifacts:
+            artifact_keys[a] = t.add_file(a)
+        finished_vars = {key: Artifact(value, t.name) for key, value in artifact_keys.items()}
+    return {"artifacts": finished_vars}
+
+
+def with_artifacts(function):
+    def handle_artifacts(args):
+        if args.artifacts:
+            with temporary_bucket() as t:
+                for a in args.artifacts:
+                    t.add_file(a)
+                t.upload()
+                function(args)
+        else:
+            function(args)
+
+    return handle_artifacts

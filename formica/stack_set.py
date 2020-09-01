@@ -4,7 +4,7 @@ import time
 from botocore.exceptions import ClientError
 import boto3
 
-from .helper import collect_vars, main_account_id, aws_accounts, aws_regions
+from .helper import collect_stack_set_vars, main_account_id, aws_accounts, aws_regions
 from .diff import compare_stack_set
 from texttable import Texttable
 
@@ -60,7 +60,7 @@ def update_stack_set(args):
 
     compare_stack_set(
         stack=args.stack_set,
-        vars=collect_vars(args),
+        vars=collect_stack_set_vars(args),
         parameters=args.parameters,
         tags=args.tags,
         main_account_parameter=args.main_account_parameter,
@@ -175,7 +175,7 @@ def diff_stack_set(args):
 
     compare_stack_set(
         stack=args.stack_set,
-        vars=collect_vars(args),
+        vars=collect_stack_set_vars(args),
         parameters=args.parameters,
         tags=args.tags,
         main_account_parameter=args.main_account_parameter,
@@ -258,7 +258,7 @@ def __manage_stack_set(args, create):
         # Necessary for python 2.7 as it can't merge dicts with **
         params.update(preferences)
 
-    loader = Loader(variables=collect_vars(args), main_account_parameter=args.main_account_parameter)
+    loader = Loader(variables=collect_stack_set_vars(args), main_account_parameter=args.main_account_parameter)
     loader.load()
     template = loader.template(indent=None)
 

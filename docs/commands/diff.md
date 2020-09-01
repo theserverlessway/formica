@@ -33,6 +33,9 @@ usage: formica diff [-h] [--region REGION] [--profile PROFILE] [--stack STACK]
                     [--parameters KEY=Value [KEY=Value ...]]
                     [--tags KEY=Value [KEY=Value ...]]
                     [--organization-variables]
+                    [--organization-region-variables]
+                    [--organization-account-variables]
+                    [--artifacts ARTIFACTS [ARTIFACTS ...]]
 
 Print a diff between local and deployed stack
 
@@ -54,4 +57,13 @@ optional arguments:
                         Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
                         AWSRegions as Jinja variables with an Email, Id and
                         Name field for each account
+  --organization-region-variables
+                        Add AWSRegions as Jinja variables
+  --organization-account-variables
+                        Add AWSAccounts, AWSSubAccounts, and AWSMainAccount as
+                        Jinja variables with an Email, Id, and Name field for
+                        each account
+  --artifacts ARTIFACTS [ARTIFACTS ...]
+                        Add one or more artifacts to push to S3 before
+                        deployment
 ```

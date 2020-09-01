@@ -34,7 +34,9 @@ usage: formica stack-set update [-h] [--region REGION] [--profile PROFILE]
                                 [--region-order REGION_ORDER [REGION_ORDER ...]]
                                 [--failure-tolerance-count FAILURE_TOLERANCE_COUNT | --failure-tolerance-percentage FAILURE_TOLERANCE_PERCENTAGE]
                                 [--max-concurrent-count MAX_CONCURRENT_COUNT | --max-concurrent-percentage MAX_CONCURRENT_PERCENTAGE]
-                                [--organization-variables] [--yes]
+                                [--organization-variables]
+                                [--organization-region-variables]
+                                [--organization-account-variables] [--yes]
                                 [--create-missing]
 
 Update a Stack Set
@@ -91,6 +93,12 @@ optional arguments:
                         Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
                         AWSRegions as Jinja variables with an Email, Id and
                         Name field for each account
+  --organization-region-variables
+                        Add AWSRegions as Jinja variables
+  --organization-account-variables
+                        Add AWSAccounts, AWSSubAccounts, and AWSMainAccount as
+                        Jinja variables with an Email, Id, and Name field for
+                        each account
   --yes, -y             Answer all input questions with yes
   --create-missing      Create the Stack in case it's missing
 ```

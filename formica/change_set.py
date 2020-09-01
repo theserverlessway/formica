@@ -69,8 +69,9 @@ class ChangeSet:
         else:
             if s3:
                 with temporary_bucket() as t:
+                    file_name = t.add(template)
+                    t.upload()
                     bucket_name = t.name
-                    file_name = t.upload(template)
                     template_url = "https://{}.s3.amazonaws.com/{}".format(bucket_name, file_name)
                     self.__change_and_wait(change_set_type, {"TemplateURL": template_url, **optional_arguments})
             else:

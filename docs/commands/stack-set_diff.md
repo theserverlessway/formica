@@ -29,6 +29,8 @@ usage: formica stack-set diff [-h] [--region REGION] [--profile PROFILE]
                               [--tags KEY=Value [KEY=Value ...]]
                               [--vars KEY=Value [KEY=Value ...]]
                               [--organization-variables]
+                              [--organization-region-variables]
+                              [--organization-account-variables]
                               [--main-account-parameter]
 
 Diff the StackSet template to the local template
@@ -51,6 +53,12 @@ optional arguments:
                         Add AWSAccounts, AWSSubAccounts, AWSMainAccount and
                         AWSRegions as Jinja variables with an Email, Id and
                         Name field for each account
+  --organization-region-variables
+                        Add AWSRegions as Jinja variables
+  --organization-account-variables
+                        Add AWSAccounts, AWSSubAccounts, and AWSMainAccount as
+                        Jinja variables with an Email, Id, and Name field for
+                        each account
   --main-account-parameter
                         Set MainAccount Parameter
 ```

@@ -172,3 +172,5 @@ def test_use_previous_parameters(change_set, aws_client):
                                                            tags={}, capabilities=None, resource_types=False,
                                                            role_arn=None, s3=False, use_previous_template=True,
                                                            use_previous_parameters=True)
+
+

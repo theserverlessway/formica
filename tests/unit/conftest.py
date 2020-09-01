@@ -18,6 +18,10 @@ def boto_client(mocker):
     return mocker.patch('boto3.client')
 
 @pytest.fixture
+def boto_resource(mocker):
+    return mocker.patch('boto3.resource')
+
+@pytest.fixture
 def aws_client(boto_client, mocker):
     client_mock = mocker.Mock()
     boto_client.return_value = client_mock
