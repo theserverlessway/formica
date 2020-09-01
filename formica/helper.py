@@ -86,3 +86,17 @@ def artifact_variables(artifacts):
             artifact_keys[a] = t.add_file(a)
         finished_vars = {key: Artifact(value, t.name) for key, value in artifact_keys.items()}
     return {"artifacts": finished_vars}
+
+
+def with_artifacts(function):
+    def handle_artifacts(args):
+        if args.artifacts:
+            with temporary_bucket() as t:
+                for a in args.artifacts:
+                    t.add_file(a)
+                t.upload()
+                function(args)
+        else:
+            function(args)
+
+    return handle_artifacts

@@ -12,8 +12,7 @@ from . import CHANGE_SET_FORMAT, __version__
 from . import stack_set
 from . import aws
 import boto3
-from .helper import collect_vars
-from .s3 import temporary_bucket
+from .helper import collect_vars, with_artifacts
 
 STACK_HEADERS = ["Name", "Created At", "Updated At", "Status"]
 RESOURCE_HEADERS = ["Logical ID", "Physical ID", "Type", "Status"]
@@ -660,20 +659,6 @@ def wait_for_stack(function):
         StackWaiter(stack_id, **options).wait(last_event)
 
     return stack_wait_handler
-
-
-def with_artifacts(function):
-    def handle_artifacts(args):
-        if args.artifacts:
-            with temporary_bucket() as t:
-                for a in args.artifacts:
-                    t.add_file(a)
-                t.upload()
-                function(args)
-        else:
-            function(args)
-
-    return handle_artifacts
 
 
 @requires_stack

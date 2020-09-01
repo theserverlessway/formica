@@ -14,7 +14,6 @@ Exceptions = [ProfileNotFound, NoCredentialsError, NoRegionError, ClientError]
 def logger(mocker):
     return mocker.patch('formica.cli.logger')
 
-
 def test_fails_for_no_arguments(capsys):
     with pytest.raises(SystemExit):
         cli.main([])

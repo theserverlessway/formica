@@ -338,6 +338,16 @@ def test_wrong_key_throws_exception(load, tmpdir):
             load.load()
 
 
+def test_undefined_in_dict_throws_exception(load, tmpdir):
+    example = '{% set test = {} %}{"Description": "{{test["abcde"].key}}"}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        with pytest.raises(SystemExit):
+            load.load()
+            print(load.template())
+
+
 def test_mandatory_filter_passes_through_text(load, tmpdir):
     example = '{"Description": "{{ "test" | mandatory }}"}'
     with Path(tmpdir):
@@ -508,7 +518,8 @@ def test_utcnow(load, tmpdir):
         load.load()
 
         actual = json.loads(load.template())
-    assert actual == {"Resources": {"Test": (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d %H:%M")}}
+    assert actual == {
+        "Resources": {"Test": (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d %H:%M")}}
 
 
 def test_files(load, tmpdir):
@@ -524,7 +535,8 @@ def test_files(load, tmpdir):
             f.write('')
         load.load()
         all = json.loads(load.template())
-    assert all == {"Resources": {"Test": 'moduledir1/test1.template.json,moduledir2/test2.template.json,test.template.json'}}
+    assert all == {
+        "Resources": {"Test": 'moduledir1/test1.template.json,moduledir2/test2.template.json,test.template.json'}}
 
 
 def test_files_with_filter(load, tmpdir):
