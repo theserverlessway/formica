@@ -100,6 +100,7 @@ def main(cli_args):
     template_parser.add_argument("-y", "--yaml", help="print output as yaml", action="store_true")
     add_artifacts_argument(template_parser)
     add_organization_account_template_variables(template_parser)
+    add_aws_arguments(template_parser)
     template_parser.set_defaults(func=template)
 
     # Stacks Command Arguments
