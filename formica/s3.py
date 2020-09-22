@@ -57,7 +57,14 @@ class TemporaryS3Bucket(object):
             self.uploaded = True
             self.s3_bucket = s3.Bucket(self.name)
             try:
-                self.s3_bucket.create(CreateBucketConfiguration=dict(LocationConstraint=self.__sts.meta.region_name))
+                if self.__sts.meta.region_name == "us-east-1":
+                    # To create a bucket in us-east-1 no LocationConstraint should be specified.
+                    # See https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Bucket.create
+                    self.s3_bucket.create()
+                else:
+                    self.s3_bucket.create(
+                        CreateBucketConfiguration=dict(LocationConstraint=self.__sts.meta.region_name)
+                    )
             except s3.meta.client.exceptions.BucketAlreadyOwnedByYou:
                 logger.info("Artifact Bucket already exists")
             for name, body in self.objects.items():
