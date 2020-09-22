@@ -76,3 +76,12 @@ def test_fails_with_wrong_parameter_format(capsys):
     out, err = capsys.readouterr()
     assert "argument --parameters: Test:Test needs to be in format KEY=VALUE" in err
     assert pytest_wrapped_e.value.code == 2
+
+
+def test_can_provide_profile_for_template_comand(capsys):
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        cli.main(['template', '--profile', 'testAwsCliProfile'])
+    out, err = capsys.readouterr()
+    assert "" == out
+
+
