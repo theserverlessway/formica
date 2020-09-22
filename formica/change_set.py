@@ -121,7 +121,7 @@ class ChangeSet:
             target_ = change["Target"]
             attribute = target_["Attribute"]
             if attribute == "Properties":
-                return target_["Name"]
+                return target_.get("Name", "")
             else:
                 return attribute
 

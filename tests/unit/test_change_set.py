@@ -1,6 +1,7 @@
 import pytest
 from mock import Mock
 import json
+import copy
 
 from botocore.exceptions import WaiterError, ClientError
 
@@ -286,3 +287,20 @@ def test_change_set_with_previous_parameters(client):
     client.create_change_set.assert_called_with(
         StackName=STACK,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters, UsePreviousTemplate=True)
+
+
+def test_change_set_without_named_properties(client):
+    CHANGESET = copy.deepcopy(CHANGESETCHANGES)
+
+    # Find a property change in the changeset
+    PROPERTY_CHANGE = CHANGESET['Changes'][1]['ResourceChange']['Details'][1]
+    assert PROPERTY_CHANGE['Target']['Attribute'] == 'Properties'
+    assert PROPERTY_CHANGE['Target']['Name'] == 'BucketName'
+    
+    # Remove the "Name" attribute
+    del PROPERTY_CHANGE['Target']['Name']
+
+    client.describe_change_set.return_value = CHANGESET
+
+    change_set = ChangeSet(STACK)
+    change_set.describe()
