@@ -36,6 +36,10 @@ def template_return(client, template):
     client.get_template.return_value = {'TemplateBody': json.dumps(template)}
 
 
+def template_return_string(client, template):
+    client.get_template.return_value = {'TemplateBody': template}
+
+
 def check_echo(caplog, args):
     assert all([arg in caplog.text for arg in args])
 
@@ -123,6 +127,13 @@ def test_long_numbers(loader, client, caplog):
     client.get_template.return_value = {'TemplateBody': yaml.dump({'Resources': id2})}
     compare_stack(STACK)
     check_echo(caplog, [id1, id2])
+
+
+def test_yaml_tags(loader, client, caplog):
+    tagged_template = 'Resources: !Not []'
+    loader_return(loader, {'Resources': {"Not": []}})
+    client.get_template.return_value = {'TemplateBody': tagged_template}
+    compare_stack(STACK)
 
 
 def test_diff_cli_with_vars(template, mocker):

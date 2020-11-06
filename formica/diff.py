@@ -62,7 +62,7 @@ def __compare(template, stack, vars=None, parameters={}, tags={}, main_account_p
 
     template_parameters.update(parameters)
     if isinstance(deployed_template, str):
-        deployed_template = yaml.safe_load(deployed_template)
+        deployed_template = yaml.full_load(deployed_template)
 
     __generate_table("Parameters", current_parameters, template_parameters)
     __generate_table("Tags", current_tags, tags)
