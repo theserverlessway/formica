@@ -13,12 +13,13 @@ BLOCKSIZE_MULTI = 512
 
 
 class TemporaryS3Bucket(object):
-    def __init__(self):
+    def __init__(self, seed):
         self.objects = {}
         self.uploaded = False
         self.__sts = boto3.client("sts")
         self.s3_bucket = None
         self.files = {}
+        self.seed = seed
 
     def __digest(self, body):
 
@@ -47,7 +48,8 @@ class TemporaryS3Bucket(object):
             [key for key, _ in self.objects.items()] + [key for key, _ in self.files.items()]
         ).encode()
         account_id = self.__sts.get_caller_identity()["Account"]
-        name_digest_input = BytesIO((account_id + self.__sts.meta.region_name + body_hashes.decode()).encode())
+        to_hash = self.seed + account_id + self.__sts.meta.region_name + body_hashes.decode()
+        name_digest_input = BytesIO(to_hash.encode())
         body_hashes_hash = self.__digest(name_digest_input)
         return "formica-deploy-{}".format(body_hashes_hash)
 
@@ -77,8 +79,8 @@ class TemporaryS3Bucket(object):
 
 
 @contextmanager
-def temporary_bucket():
-    temp_bucket = TemporaryS3Bucket()
+def temporary_bucket(seed):
+    temp_bucket = TemporaryS3Bucket(seed=seed)
     try:
         yield temp_bucket
     finally:

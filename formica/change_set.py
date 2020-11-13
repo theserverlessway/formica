@@ -68,7 +68,7 @@ class ChangeSet:
             self.__change_and_wait(change_set_type, optional_arguments)
         else:
             if s3:
-                with temporary_bucket() as t:
+                with temporary_bucket(self.stack) as t:
                     file_name = t.add(template)
                     t.upload()
                     bucket_name = t.name

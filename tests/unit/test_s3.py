@@ -1,5 +1,6 @@
 from formica.s3 import temporary_bucket
 import pytest
+from .constants import STACK
 
 
 @pytest.fixture
@@ -11,7 +12,7 @@ STRING_BODY = "string"
 STRING_KEY = "b45cffe084dd3d20d928bee85e7b0f21"
 BINARY_BODY = "binary".encode()
 BINARY_KEY = "9d7183f16acce70658f686ae7f1a4d20"
-BUCKET_NAME = "formica-deploy-c1b5d5393a375cd8a51e91f2f3cec8bd"
+BUCKET_NAME = "formica-deploy-88dec80484e3155b2c8cf023b635fb31"
 FILE_NAME = "testfile"
 FILE_BODY = "file-body"
 FILE_KEY = "de858a1b070b29a579e2d8861b53ad20"
@@ -24,7 +25,7 @@ def test_s3_bucket_context(mocker, bucket, uuid4, boto_client):
     mock_open = mocker.mock_open(read_data=FILE_BODY.encode())
     mocker.patch('formica.s3.open', mock_open)
 
-    with temporary_bucket() as temp_bucket:
+    with temporary_bucket(seed=STACK) as temp_bucket:
         string_return = temp_bucket.add(STRING_BODY)
         binary_return = temp_bucket.add(BINARY_BODY)
         file_return = temp_bucket.add_file(FILE_NAME)
@@ -53,7 +54,7 @@ def test_s3_bucket_context(mocker, bucket, uuid4, boto_client):
 def test_does_not_delete_objects_if_empty(bucket):
     bucket.return_value.objects.all.return_value = []
 
-    with temporary_bucket():
+    with temporary_bucket(seed=STACK):
         pass
 
     bucket.return_value.delete_objects.assert_not_called()
@@ -62,7 +63,7 @@ def test_does_not_delete_objects_if_empty(bucket):
 def test_does_not_use_s3_api_when_planning(bucket):
     bucket.return_value.objects.all.return_value = []
 
-    with temporary_bucket() as temp_bucket:
+    with temporary_bucket(seed=STACK) as temp_bucket:
         temp_bucket.add(STRING_BODY)
         temp_bucket.add(BINARY_BODY)
 

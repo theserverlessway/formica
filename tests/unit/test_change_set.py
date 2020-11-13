@@ -25,11 +25,16 @@ def client(mocker):
     client = mocker.patch('formica.change_set.cf')
     return client
 
+
 @pytest.fixture
-def temp_bucket(mocker):
-    t = mocker.patch('formica.change_set.temporary_bucket')
+def temp_bucket_function(mocker):
+    return mocker.patch('formica.change_set.temporary_bucket')
+
+
+@pytest.fixture
+def temp_bucket(mocker, temp_bucket_function):
     tempbucket_mock = mocker.Mock()
-    t.return_value.__enter__.return_value = tempbucket_mock
+    temp_bucket_function.return_value.__enter__.return_value = tempbucket_mock
     return tempbucket_mock
 
 
@@ -55,7 +60,7 @@ def test_submits_changeset_and_waits(client):
         StackName=STACK, ChangeSetName=CHANGESETNAME)
 
 
-def test_creates_and_removes_bucket_for_s3_flag(client, temp_bucket):
+def test_creates_and_removes_bucket_for_s3_flag(client, temp_bucket_function, temp_bucket):
     change_set = ChangeSet(STACK)
     bucket_name = 'formica-deploy-{}'.format("test")
     bucket_path = '{}-template.json'.format(STACK)
@@ -66,6 +71,7 @@ def test_creates_and_removes_bucket_for_s3_flag(client, temp_bucket):
     change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE, s3=True)
 
     temp_bucket.add.assert_called_with(TEMPLATE)
+    temp_bucket_function.assert_called_with(STACK)
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateURL=template_url,
@@ -296,7 +302,7 @@ def test_change_set_without_named_properties(client):
     PROPERTY_CHANGE = CHANGESET['Changes'][1]['ResourceChange']['Details'][1]
     assert PROPERTY_CHANGE['Target']['Attribute'] == 'Properties'
     assert PROPERTY_CHANGE['Target']['Name'] == 'BucketName'
-    
+
     # Remove the "Name" attribute
     del PROPERTY_CHANGE['Target']['Name']
 

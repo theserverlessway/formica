@@ -23,7 +23,7 @@ def collect_stack_set_vars(args):
 def collect_vars(args):
     variables = collect_stack_set_vars(args)
     if args.artifacts:
-        variables.update(artifact_variables(args.artifacts))
+        variables.update(artifact_variables(args.artifacts, vars(args).get("stack", "")))
 
     return variables
 
@@ -74,14 +74,14 @@ def main_account_id():
     return identity["Account"]
 
 
-def artifact_variables(artifacts):
+def artifact_variables(artifacts, seed):
     class Artifact:
         def __init__(self, key, bucket):
             self.key = key
             self.bucket = bucket
 
     artifact_keys = {}
-    with temporary_bucket() as t:
+    with temporary_bucket(seed=seed) as t:
         for a in artifacts:
             artifact_keys[a] = t.add_file(a)
         finished_vars = {key: Artifact(value, t.name) for key, value in artifact_keys.items()}
@@ -91,7 +91,8 @@ def artifact_variables(artifacts):
 def with_artifacts(function):
     def handle_artifacts(args):
         if args.artifacts:
-            with temporary_bucket() as t:
+            seed = vars(args).get("stack", "")
+            with temporary_bucket(seed=seed) as t:
                 for a in args.artifacts:
                     t.add_file(a)
                 t.upload()
