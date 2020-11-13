@@ -1,4 +1,5 @@
 stack: s3-lambda
+s3: true
 capabilities:
   - CAPABILITY_IAM
 artifacts:
