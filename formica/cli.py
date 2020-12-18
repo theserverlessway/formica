@@ -58,7 +58,7 @@ CONFIG_FILE_ARGUMENTS = {
     "use_previous_parameters": bool,
     "s3": bool,
     "artifacts": list,
-    "upload_artifacts": bool
+    "upload_artifacts": bool,
 }
 
 
@@ -738,13 +738,11 @@ def new(args):
         s3=args.s3,
         resource_types=args.resource_types,
     )
-    print(args)
     if args.upload_artifacts:
         with temporary_bucket(seed=args.stack) as t:
             for a in args.artifacts:
                 t.add_file(a)
             t.upload()
-            print('with artifacts')
             change_set.create(**options)
     else:
         change_set.create(**options)

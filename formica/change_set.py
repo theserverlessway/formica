@@ -19,17 +19,17 @@ cf = boto3.client("cloudformation")
 
 class ChangeSet:
     def create(
-            self,
-            template="",
-            change_set_type="",
-            parameters=None,
-            tags=None,
-            capabilities=None,
-            role_arn=None,
-            s3=False,
-            resource_types=False,
-            use_previous_template=False,
-            use_previous_parameters=False,
+        self,
+        template="",
+        change_set_type="",
+        parameters=None,
+        tags=None,
+        capabilities=None,
+        role_arn=None,
+        s3=False,
+        resource_types=False,
+        use_previous_template=False,
+        use_previous_parameters=False,
     ):
         optional_arguments = {}
         parameters_set = []
@@ -81,8 +81,11 @@ class ChangeSet:
     def __change_and_wait(self, change_set_type, optional_arguments):
         try:
             cf.create_change_set(
-                StackName=self.stack, ChangeSetName=self.name, ChangeSetType=change_set_type, **optional_arguments,
-                IncludeNestedStacks=True
+                StackName=self.stack,
+                ChangeSetName=self.name,
+                ChangeSetType=change_set_type,
+                **optional_arguments,
+                IncludeNestedStacks=True,
             )
             logger.info("Change set submitted, waiting for CloudFormation to calculate changes ...")
             waiter = cf.get_waiter("change_set_create_complete")
@@ -105,7 +108,6 @@ class ChangeSet:
         else:
             cs_options = dict(StackName=self.stack, ChangeSetName=self.name)
         change_set = cf.describe_change_set(**cs_options)
-        print(change_set)
         table = Texttable(max_width=150)
 
         if print_metadata:
@@ -150,12 +152,14 @@ class ChangeSet:
 
         logger.info(table.draw())
 
-        nested_change_sets = [(change['ResourceChange']['LogicalResourceId'], change['ResourceChange']['ChangeSetId'])
-                              for change in change_set['Changes'] if
-                              change['ResourceChange']['ResourceType'] == "AWS::CloudFormation::Stack" and
-                              change['ResourceChange']['ChangeSetId']]
+        nested_change_sets = [
+            (change["ResourceChange"]["LogicalResourceId"], change["ResourceChange"]["ChangeSetId"])
+            for change in change_set["Changes"]
+            if change["ResourceChange"]["ResourceType"] == "AWS::CloudFormation::Stack"
+            and change["ResourceChange"]["ChangeSetId"]
+        ]
         for nested_change_set in nested_change_sets:
-            logger.info(f'\nChanges for nested Stack: {nested_change_set[0]}')
+            logger.info(f"\nChanges for nested Stack: {nested_change_set[0]}")
             ChangeSet(stack=self.stack, arn=nested_change_set[1]).describe(print_metadata=False)
 
     def remove_existing_changeset(self):
@@ -166,7 +170,7 @@ class ChangeSet:
 
             # Sleep to let Cloudformation remove
             for _ in range(100):
-                print(cf.describe_change_set(StackName=self.stack, ChangeSetName=self.name))
+                cf.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
                 time.sleep(5)
             raise Exception()
         except ClientError as e:
