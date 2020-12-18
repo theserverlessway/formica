@@ -9,8 +9,18 @@ from formica.change_set import ChangeSet, CHANGE_SET_HEADER
 from tests.unit.constants import (
     STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES,
     CHANGE_SET_PARAMETERS, ROLE_ARN, CHANGE_SET_STACK_TAGS,
-    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER, REGION, UUID, RESOURCES
+    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER, REGION, UUID, RESOURCES, CHANGE_SET_ID, CHANGESET_NESTED_CHANGES
 )
+
+
+@pytest.fixture
+def time(mocker):
+    return mocker.patch('formica.change_set.time')
+
+
+@pytest.fixture
+def change_set_not_found():
+    return ClientError(dict(Error=dict(Code='ChangeSetNotFound')), "DescribeChangeSet")
 
 
 @pytest.fixture
@@ -52,12 +62,12 @@ def test_submits_changeset_and_waits(client):
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, IncludeNestedStacks=True)
 
     client.get_waiter.assert_called_with(
         'change_set_create_complete')
     client.get_waiter.return_value.wait.assert_called_with(
-        StackName=STACK, ChangeSetName=CHANGESETNAME)
+        StackName=STACK, ChangeSetName=CHANGESETNAME, WaiterConfig={'Delay': 10, 'MaxAttempts': 120})
 
 
 def test_creates_and_removes_bucket_for_s3_flag(client, temp_bucket_function, temp_bucket):
@@ -75,7 +85,7 @@ def test_creates_and_removes_bucket_for_s3_flag(client, temp_bucket_function, te
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateURL=template_url,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, IncludeNestedStacks=True)
 
 
 def test_submits_changeset_with_parameters(client):
@@ -90,12 +100,12 @@ def test_submits_changeset_with_parameters(client):
     ]
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters, IncludeNestedStacks=True)
 
     client.get_waiter.assert_called_with(
         'change_set_create_complete')
     client.get_waiter.return_value.wait.assert_called_with(
-        StackName=STACK, ChangeSetName=CHANGESETNAME)
+        StackName=STACK, ChangeSetName=CHANGESETNAME, WaiterConfig={'Delay': 10, 'MaxAttempts': 120})
 
 
 def test_submits_changeset_with_stack_tags(client):
@@ -109,12 +119,12 @@ def test_submits_changeset_with_stack_tags(client):
     ]
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Tags=Tags)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Tags=Tags, IncludeNestedStacks=True)
 
     client.get_waiter.assert_called_with(
         'change_set_create_complete')
     client.get_waiter.return_value.wait.assert_called_with(
-        StackName=STACK, ChangeSetName=CHANGESETNAME)
+        StackName=STACK, ChangeSetName=CHANGESETNAME, WaiterConfig={'Delay': 10, 'MaxAttempts': 120})
 
 
 def test_submits_changeset_with_role_arn(client):
@@ -124,12 +134,12 @@ def test_submits_changeset_with_role_arn(client):
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, RoleARN=ROLE_ARN)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, RoleARN=ROLE_ARN, IncludeNestedStacks=True)
 
     client.get_waiter.assert_called_with(
         'change_set_create_complete')
     client.get_waiter.return_value.wait.assert_called_with(
-        StackName=STACK, ChangeSetName=CHANGESETNAME)
+        StackName=STACK, ChangeSetName=CHANGESETNAME, WaiterConfig={'Delay': 10, 'MaxAttempts': 120})
 
 
 def test_submits_changeset_with_capabilities(client):
@@ -140,12 +150,12 @@ def test_submits_changeset_with_capabilities(client):
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Capabilities=['A', 'B'])
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Capabilities=['A', 'B'], IncludeNestedStacks=True)
 
     client.get_waiter.assert_called_with(
         'change_set_create_complete')
     client.get_waiter.return_value.wait.assert_called_with(
-        StackName=STACK, ChangeSetName=CHANGESETNAME)
+        StackName=STACK, ChangeSetName=CHANGESETNAME, WaiterConfig={'Delay': 10, 'MaxAttempts': 120})
 
 
 def test_prints_error_message_for_failed_submit_and_exits(capsys, logger, client):
@@ -184,18 +194,20 @@ def test_prints_error_message_but_exits_successfully_for_no_changes(capsys, logg
     logger.info.assert_called_with(status_reason)
 
 
-def test_remove_existing_changeset_for_update_type(mocker, capsys, client):
+def test_remove_existing_changeset_for_update_type(mocker, capsys, client, change_set_not_found, time):
     mocker.patch.object(ChangeSet, 'describe')
     change_set = ChangeSet(STACK)
+    client.describe_change_set.side_effect = [
+        {"ChangeSetId": CHANGESETNAME}, {}, change_set_not_found]
     change_set.create(template=TEMPLATE, change_set_type='UPDATE')
     client.describe_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
-    client.delete_change_set.assert_called_with(StackName=STACK, ChangeSetName=CHANGESETNAME)
+    client.delete_change_set.assert_called_with(ChangeSetName=CHANGESETNAME)
+    time.sleep.assert_called_with(5)
 
 
-def test_do_not_remove_changeset_if_non_existent(client):
+def test_do_not_remove_changeset_if_non_existent(client, change_set_not_found):
     change_set = ChangeSet(STACK)
-    exception = ClientError(dict(Error=dict(Code='ChangeSetNotFound')), "DescribeChangeSet")
-    client.describe_change_set.side_effect = exception
+    client.describe_change_set.side_effect = change_set_not_found
     change_set.remove_existing_changeset()
     client.delete_change_set.assert_not_called()
 
@@ -238,6 +250,32 @@ def test_prints_changes(logger, client):
     assert 'None' not in change_set_output
 
 
+def test_prints_nested_changes(logger, client):
+    client.describe_change_set.side_effect = [CHANGESET_NESTED_CHANGES, CHANGESETCHANGES]
+    change_set = ChangeSet(STACK)
+
+    change_set.describe()
+
+    change_set_output = '\n'.join([call[1][0] for call in logger.info.mock_calls])
+    print(change_set_output)
+
+    to_search = []
+    to_search.extend(CHANGE_SET_HEADER)
+    to_search.extend(['Changes for nested Stack: NestedStack'])
+    to_search.extend(['NestedStack'])
+    to_search.extend(['Remove', 'Modify', 'Add'])
+    to_search.extend(['DeploymentBucket', 'DeploymentBucket2', 'DeploymentBucket3'])
+    to_search.extend(['simpleteststack-deploymentbucket-1l7p61v6fxpry ',
+                      'simpleteststack-deploymentbucket2-11ngaeftydtn7 '])
+    to_search.extend(['AWS::S3::Bucket'])
+    to_search.extend(['True'])
+    to_search.extend(['BucketName, Tags'])
+    for term in to_search:
+        assert term in change_set_output
+
+    assert 'None' not in change_set_output
+
+
 def test_only_prints_unique_changed_parameters(logger, client):
     client.describe_change_set.return_value = CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER
     change_set = ChangeSet(STACK)
@@ -260,7 +298,8 @@ def test_change_set_with_resource_types(client):
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=template,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, ResourceTypes=list(set(RESOURCES)))
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, ResourceTypes=list(set(RESOURCES)),
+        IncludeNestedStacks=True)
 
 
 def test_change_set_with_previous_template(client):
@@ -270,7 +309,7 @@ def test_change_set_with_previous_template(client):
 
     client.create_change_set.assert_called_with(
         StackName=STACK,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, UsePreviousTemplate=True)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, UsePreviousTemplate=True, IncludeNestedStacks=True)
 
 
 def test_change_set_with_previous_parameters(client):
@@ -292,7 +331,8 @@ def test_change_set_with_previous_parameters(client):
 
     client.create_change_set.assert_called_with(
         StackName=STACK,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters, UsePreviousTemplate=True)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters, UsePreviousTemplate=True,
+        IncludeNestedStacks=True)
 
 
 def test_change_set_without_named_properties(client):

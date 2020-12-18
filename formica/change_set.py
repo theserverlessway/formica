@@ -8,6 +8,7 @@ from texttable import Texttable
 import boto3
 
 from formica import CHANGE_SET_FORMAT
+import time
 
 CHANGE_SET_HEADER = ["Action", "LogicalId", "PhysicalId", "Type", "Replacement", "Changed"]
 
@@ -18,17 +19,17 @@ cf = boto3.client("cloudformation")
 
 class ChangeSet:
     def create(
-        self,
-        template="",
-        change_set_type="",
-        parameters=None,
-        tags=None,
-        capabilities=None,
-        role_arn=None,
-        s3=False,
-        resource_types=False,
-        use_previous_template=False,
-        use_previous_parameters=False,
+            self,
+            template="",
+            change_set_type="",
+            parameters=None,
+            tags=None,
+            capabilities=None,
+            role_arn=None,
+            s3=False,
+            resource_types=False,
+            use_previous_template=False,
+            use_previous_parameters=False,
     ):
         optional_arguments = {}
         parameters_set = []
@@ -80,11 +81,12 @@ class ChangeSet:
     def __change_and_wait(self, change_set_type, optional_arguments):
         try:
             cf.create_change_set(
-                StackName=self.stack, ChangeSetName=self.name, ChangeSetType=change_set_type, **optional_arguments
+                StackName=self.stack, ChangeSetName=self.name, ChangeSetType=change_set_type, **optional_arguments,
+                IncludeNestedStacks=True
             )
             logger.info("Change set submitted, waiting for CloudFormation to calculate changes ...")
             waiter = cf.get_waiter("change_set_create_complete")
-            waiter.wait(ChangeSetName=self.name, StackName=self.stack)
+            waiter.wait(ChangeSetName=self.name, StackName=self.stack, WaiterConfig=dict(Delay=10, MaxAttempts=120))
             logger.info("Change set created successfully")
         except WaiterError as e:
             status_reason = e.last_response.get("StatusReason", "")
@@ -92,26 +94,34 @@ class ChangeSet:
             if "didn't contain changes" not in status_reason:
                 sys.exit(1)
 
-    def __init__(self, stack):
+    def __init__(self, stack, arn=""):
         self.name = CHANGE_SET_FORMAT.format(stack=stack)
         self.stack = stack
+        self.change_set_arn = arn
 
-    def describe(self):
-        change_set = cf.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
+    def describe(self, print_metadata=True):
+        if self.change_set_arn:
+            cs_options = dict(ChangeSetName=self.change_set_arn)
+        else:
+            cs_options = dict(StackName=self.stack, ChangeSetName=self.name)
+        change_set = cf.describe_change_set(**cs_options)
+        print(change_set)
         table = Texttable(max_width=150)
 
-        logger.info("Deployment metadata:")
-        parameters = ", ".join(
-            [
-                parameter["ParameterKey"] + "=" + parameter["ParameterValue"]
-                for parameter in change_set.get("Parameters", [])
-            ]
-        )
-        table.add_row(["Parameters", parameters])
-        tags = [tag["Key"] + "=" + tag["Value"] for tag in change_set.get("Tags", [])]
-        table.add_row(["Tags ", ", ".join(tags)])
-        table.add_row(["Capabilities ", ", ".join(change_set.get("Capabilities", []))])
-        logger.info(table.draw() + "\n")
+        if print_metadata:
+            logger.info("Deployment metadata:")
+            parameters = ", ".join(
+                [
+                    parameter["ParameterKey"] + "=" + parameter["ParameterValue"]
+                    for parameter in change_set.get("Parameters", [])
+                ]
+            )
+            table.add_row(["Parameters", parameters])
+            tags = [tag["Key"] + "=" + tag["Value"] for tag in change_set.get("Tags", [])]
+            table.add_row(["Tags ", ", ".join(tags)])
+            table.add_row(["Capabilities ", ", ".join(change_set.get("Capabilities", []))])
+            logger.info(table.draw() + "\n")
+            logger.info("Resource Changes:")
 
         table.reset()
         table = Texttable(max_width=150)
@@ -138,14 +148,27 @@ class ChangeSet:
                 ]
             )
 
-        logger.info("Resource Changes:")
         logger.info(table.draw())
+
+        nested_change_sets = [(change['ResourceChange']['LogicalResourceId'], change['ResourceChange']['ChangeSetId'])
+                              for change in change_set['Changes'] if
+                              change['ResourceChange']['ResourceType'] == "AWS::CloudFormation::Stack" and
+                              change['ResourceChange']['ChangeSetId']]
+        for nested_change_set in nested_change_sets:
+            logger.info(f'\nChanges for nested Stack: {nested_change_set[0]}')
+            ChangeSet(stack=self.stack, arn=nested_change_set[1]).describe(print_metadata=False)
 
     def remove_existing_changeset(self):
         try:
-            cf.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
+            id = cf.describe_change_set(StackName=self.stack, ChangeSetName=self.name)["ChangeSetId"]
             logger.info("Removing existing change set")
-            cf.delete_change_set(StackName=self.stack, ChangeSetName=self.name)
+            cf.delete_change_set(ChangeSetName=id)
+
+            # Sleep to let Cloudformation remove
+            for _ in range(100):
+                print(cf.describe_change_set(StackName=self.stack, ChangeSetName=self.name))
+                time.sleep(5)
+            raise Exception()
         except ClientError as e:
             if e.response["Error"]["Code"] != "ChangeSetNotFound":
                 raise e
