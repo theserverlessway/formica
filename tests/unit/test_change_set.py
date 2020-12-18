@@ -212,6 +212,12 @@ def test_do_not_remove_changeset_if_non_existent(client, change_set_not_found):
     client.delete_change_set.assert_not_called()
 
 
+def test_exception_if_change_set_not_deleted(client, time):
+    change_set = ChangeSet(STACK)
+    with pytest.raises(Exception) as pytest_exception:
+        change_set.remove_existing_changeset()
+
+
 def test_reraises_exception_when_not_change_set_not_found(client):
     change_set = ChangeSet(STACK)
     exception = ClientError(dict(Error=dict(

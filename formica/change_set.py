@@ -172,7 +172,7 @@ class ChangeSet:
             for _ in range(100):
                 cf.describe_change_set(StackName=self.stack, ChangeSetName=self.name)
                 time.sleep(5)
-            raise Exception()
+            raise Exception("Old Change Set could not be removed, please retry")
         except ClientError as e:
             if e.response["Error"]["Code"] != "ChangeSetNotFound":
                 raise e
