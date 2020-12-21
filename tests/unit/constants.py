@@ -9,10 +9,12 @@ STACK = 'my-stack'
 STACK_ID = 'my-stack-id'
 TEMPLATE = 'MYTEMPLATE'
 RESOURCES = ['AWS::S3::Bucket', 'AWS::S3::Bucket', 'AWS::IAM::Role', 'AWS::DynamoDB::Table']
+UUID = str(uuid.uuid4())
 ACCOUNT_ID = '1234567890'
 OPERATION_ID = str(uuid.uuid4())
 ROLE_ARN = 'arn:aws:iam::1234567890:role/some-stack-role'
 CHANGESETNAME = '{}-change-set'.format(STACK)
+CHANGE_SET_ID = f'{CHANGESETNAME}-{UUID}'
 CHANGE_SET_TYPE = 'WHATEVER'
 CHANGE_SET_PARAMETERS = {'A': 'B', 'B': 2, 'C': True}
 CLOUDFORMATION_PARAMETERS = [
@@ -26,7 +28,7 @@ CLOUDFORMATION_TAGS = [
 ]
 CHANGE_SET_CAPABILITIES = ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM']
 VARS = {'SomeVar': 'value', 'OtherVar': 2}
-UUID = str(uuid.uuid4())
+
 CHANGESETCHANGES = {'ChangeSetName': 'simpleteststack-change-set',
                     'ChangeSetId': 'arn:aws:cloudformation:eu-central-1:420759548424:changeSet/simpleteststack-change-set/979f29ac-40c9-4802-b496-0b3f38241bcd',
                     'StackId': 'arn:aws:cloudformation:eu-central-1:420759548424:stack/simpleteststack/a4f23770-e476-11e6-bfa4-500c44f62262',
@@ -97,6 +99,31 @@ CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER = {'ChangeSetName': 'simpletes
                                                              'vary': 'Accept-Encoding',
                                                              'date': 'Fri, 27 Jan 2017 09:58:33 GMT'},
                                                          'RetryAttempts': 0}}  # noqa
+
+CHANGESET_NESTED_CHANGES = {'ChangeSetName': 'simpleteststack-change-set',
+                            'ChangeSetId': 'arn:aws:cloudformation:eu-central-1:420759548424:changeSet/simpleteststack-change-set/979f29ac-40c9-4802-b496-0b3f38241bcd',
+                            'StackId': 'arn:aws:cloudformation:eu-central-1:420759548424:stack/simpleteststack/a4f23770-e476-11e6-bfa4-500c44f62262',
+                            'StackName': 'simpleteststack',
+                            'Parameters': [],
+                            'CreationTime': datetime.datetime(2017, 1, 27, 9, 58, 3, 821000, tzinfo=tzlocal()),
+                            'ExecutionStatus': 'AVAILABLE', 'Status': 'CREATE_COMPLETE', 'NotificationARNs': [],
+                            'Capabilities': [],
+                            'Tags': [],
+                            'Changes': [{'Type': 'Resource',
+                                         'ResourceChange': {'Action': 'Change', 'LogicalResourceId': 'NestedStack',
+                                                            'PhysicalResourceId': 'test',
+                                                            'ResourceType': 'AWS::CloudFormation::Stack',
+                                                            'ChangeSetId': CHANGESETNAME,
+                                                            'Scope': [],
+                                                            'Details': []}}],
+                            'ResponseMetadata': {'RequestId': '2a95cc4f-e477-11e6-a696-5fdc4c9bb8c5',
+                                                 'HTTPStatusCode': 200,
+                                                 'HTTPHeaders': {
+                                                     'x-amzn-requestid': '2a95cc4f-e477-11e6-a696-5fdc4c9bb8c5',
+                                                     'content-type': 'text/xml', 'content-length': '2816',
+                                                     'vary': 'Accept-Encoding',
+                                                     'date': 'Fri, 27 Jan 2017 09:58:33 GMT'},
+                                                 'RetryAttempts': 0}}  # noqa
 
 DESCRIBE_STACKS = {'Stacks': [
     {'StackId': 'arn:aws:cloudformation:eu-central-1:420759548424:stack/teststack/a29eaa70-e7ab-11e6-aada-503f2ad2e536',

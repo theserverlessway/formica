@@ -29,6 +29,7 @@ usage: formica change [-h] [--region REGION] [--profile PROFILE]
                       [--organization-region-variables]
                       [--organization-account-variables]
                       [--use-previous-template] [--use-previous-parameters]
+                      [--upload-artifacts]
 
 Create a change set for an existing stack
 
@@ -71,4 +72,5 @@ optional arguments:
                         Use the previously deployed template
   --use-previous-parameters
                         Reuse Stack Parameters not specifically set
+  --upload-artifacts    Upload Artifacts when creating the ChangeSet
 ```

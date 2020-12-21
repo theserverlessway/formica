@@ -24,3 +24,7 @@ weight: 700
 ## Configuration File
 
  * [Configuration File](https://github.com/theserverlessway/formica/tree/master/docs/examples/config-file)
+
+## Nested Stack with template Artifacts
+
+ * [Nested Stack with template Artifacts](https://github.com/theserverlessway/formica/tree/master/docs/examples/nested-stack)

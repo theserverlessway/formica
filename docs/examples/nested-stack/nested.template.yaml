@@ -1,0 +1,5 @@
+Resources:
+  NestedStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: "https://s3.amazonaws.com/{{artifacts['nested.yaml'].bucket}}/{{artifacts['nested.yaml'].key}}"

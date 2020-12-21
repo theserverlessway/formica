@@ -12,6 +12,7 @@ from . import CHANGE_SET_FORMAT, __version__
 from . import stack_set
 from . import aws
 import boto3
+from .s3 import temporary_bucket
 from .helper import collect_vars, with_artifacts
 
 STACK_HEADERS = ["Name", "Created At", "Updated At", "Status"]
@@ -57,6 +58,7 @@ CONFIG_FILE_ARGUMENTS = {
     "use_previous_parameters": bool,
     "s3": bool,
     "artifacts": list,
+    "upload_artifacts": bool,
 }
 
 
@@ -123,6 +125,7 @@ def main(cli_args):
     add_artifacts_argument(new_parser)
     add_resource_types(new_parser)
     add_organization_account_template_variables(new_parser)
+    add_upload_artifacts(new_parser)
     new_parser.set_defaults(func=new)
 
     # Change Command Arguments
@@ -141,6 +144,7 @@ def main(cli_args):
     add_create_missing_argument(change_parser)
     add_organization_account_template_variables(change_parser)
     add_use_previous(change_parser)
+    add_upload_artifacts(change_parser)
     change_parser.set_defaults(func=change)
 
     # Deploy Command Arguments
@@ -524,6 +528,10 @@ def add_use_previous(parser):
     )
 
 
+def add_upload_artifacts(parser):
+    parser.add_argument("--upload-artifacts", help="Upload Artifacts when creating the ChangeSet", action="store_true")
+
+
 def template(args):
     from .loader import Loader
     import yaml
@@ -637,7 +645,14 @@ def change(args):
     if args.use_previous_parameters:
         options["use_previous_parameters"] = True
 
-    change_set.create(**options)
+    if args.upload_artifacts:
+        with temporary_bucket(seed=args.stack) as t:
+            for a in args.artifacts:
+                t.add_file(a)
+            t.upload()
+            change_set.create(**options)
+    else:
+        change_set.create(**options)
     change_set.describe()
 
 
@@ -713,7 +728,7 @@ def new(args):
     loader.load()
     logger.info("Creating change set for new stack, ...")
     change_set = ChangeSet(stack=args.stack)
-    change_set.create(
+    options = dict(
         template=loader.template(indent=None),
         change_set_type="CREATE",
         parameters=args.parameters,
@@ -723,6 +738,14 @@ def new(args):
         s3=args.s3,
         resource_types=args.resource_types,
     )
+    if args.upload_artifacts:
+        with temporary_bucket(seed=args.stack) as t:
+            for a in args.artifacts:
+                t.add_file(a)
+            t.upload()
+            change_set.create(**options)
+    else:
+        change_set.create(**options)
     change_set.describe()
     logger.info("Change set created, please deploy")
 

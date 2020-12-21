@@ -53,3 +53,17 @@ def test_new_uses_capabilities_for_creation(change_set, client, loader):
                                                            parameters={},
                                                            tags={}, capabilities=['A', 'B'], resource_types=False,
                                                            role_arn=None, s3=False)
+
+
+def test_upload_artifacts(change_set, aws_client, loader, temp_bucket_cli, mocker):
+    mocker.patch('formica.cli.collect_vars').return_value = {}
+    loader.return_value.template.return_value = TEMPLATE
+    cli.main(['new', '--stack', STACK, '--upload-artifacts', '--artifacts', 'testfile'])
+    change_set.assert_called_with(stack=STACK)
+    change_set.return_value.create.assert_called_once_with(change_set_type='CREATE',
+                                                           parameters={},
+                                                           tags={}, capabilities=None, resource_types=False,
+                                                           role_arn=None, s3=False, template=TEMPLATE)
+
+    temp_bucket_cli.add_file.assert_called_once_with('testfile')
+    temp_bucket_cli.upload.assert_called_once()

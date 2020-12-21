@@ -31,7 +31,8 @@ usage: formica template [-h] [--config-file CONFIG_FILE [CONFIG_FILE ...]]
                         [--artifacts ARTIFACTS [ARTIFACTS ...]]
                         [--organization-variables]
                         [--organization-region-variables]
-                        [--organization-account-variables]
+                        [--organization-account-variables] [--region REGION]
+                        [--profile PROFILE]
 
 Print the current template
 
@@ -55,4 +56,6 @@ optional arguments:
                         Add AWSAccounts, AWSSubAccounts, and AWSMainAccount as
                         Jinja variables with an Email, Id, and Name field for
                         each account
+  --region REGION       The AWS region to use
+  --profile PROFILE     The AWS profile to use
 ```

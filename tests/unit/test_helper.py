@@ -3,14 +3,6 @@ import pytest
 from formica import helper
 
 
-@pytest.fixture
-def temp_bucket(mocker):
-    t = mocker.patch('formica.helper.temporary_bucket')
-    tempbucket_mock = mocker.Mock()
-    t.return_value.__enter__.return_value = tempbucket_mock
-    return tempbucket_mock
-
-
 def test_with_artifacts(mocker, temp_bucket):
     class Namespace:
         def __init__(self):

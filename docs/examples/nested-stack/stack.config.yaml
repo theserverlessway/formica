@@ -1,0 +1,4 @@
+stack: formica-nested-stack
+artifacts:
+  - nested.yaml
+upload_artifacts: true

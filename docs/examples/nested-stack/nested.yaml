@@ -1,0 +1,9 @@
+Resources:
+  NestedBucket:
+    Type: AWS::S3::Bucket
+  NestedBucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: formica-nested-stack-bucket-name
+#  NestedBucket3:
+#    Type: AWS::S3::Bucket
