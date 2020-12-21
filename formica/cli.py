@@ -529,7 +529,7 @@ def add_use_previous(parser):
 
 
 def add_upload_artifacts(parser):
-    parser.add_argument("--upload-artifacts", help="Upload Artifacts during change operation", action="store_true")
+    parser.add_argument("--upload-artifacts", help="Upload Artifacts when creating the ChangeSet", action="store_true")
 
 
 def template(args):

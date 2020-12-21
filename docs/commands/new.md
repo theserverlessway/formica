@@ -24,7 +24,7 @@ usage: formica new [-h] [--region REGION] [--profile PROFILE] [--stack STACK]
                    [--artifacts ARTIFACTS [ARTIFACTS ...]] [--resource-types]
                    [--organization-variables]
                    [--organization-region-variables]
-                   [--organization-account-variables]
+                   [--organization-account-variables] [--upload-artifacts]
 
 Create a change set for a new stack
 
@@ -62,4 +62,5 @@ optional arguments:
                         Add AWSAccounts, AWSSubAccounts, and AWSMainAccount as
                         Jinja variables with an Email, Id, and Name field for
                         each account
+  --upload-artifacts    Upload Artifacts when creating the ChangeSet
 ```
