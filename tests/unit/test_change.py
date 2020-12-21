@@ -174,3 +174,13 @@ def test_use_previous_parameters(change_set, aws_client):
                                                            use_previous_parameters=True)
 
 
+def test_upload_artifacts(change_set, aws_client, temp_bucket_cli):
+    cli.main(['change', '--use-previous-template', '--stack', STACK, '--upload-artifacts', '--artifacts', 'testfile'])
+    change_set.assert_called_with(stack=STACK)
+    change_set.return_value.create.assert_called_once_with(change_set_type='UPDATE',
+                                                           parameters={},
+                                                           tags={}, capabilities=None, resource_types=False,
+                                                           role_arn=None, s3=False, use_previous_template=True)
+
+    temp_bucket_cli.add_file.assert_called_once_with('testfile')
+    temp_bucket_cli.upload.assert_called_once()

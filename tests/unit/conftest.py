@@ -67,3 +67,17 @@ def paginators(mocker):
 @pytest.fixture
 def uuid4(mocker):
     return mocker.patch('uuid.uuid4')
+
+@pytest.fixture
+def temp_bucket(mocker):
+    t = mocker.patch('formica.helper.temporary_bucket')
+    tempbucket_mock = mocker.Mock()
+    t.return_value.__enter__.return_value = tempbucket_mock
+    return tempbucket_mock
+
+@pytest.fixture
+def temp_bucket_cli(mocker):
+    t = mocker.patch('formica.cli.temporary_bucket')
+    tempbucket_mock = mocker.Mock()
+    t.return_value.__enter__.return_value = tempbucket_mock
+    return tempbucket_mock
