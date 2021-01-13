@@ -13,6 +13,8 @@ The default name for the created ChangeSet is `STACK_NAME-change-set`, e.g. `for
 
 After the change was submitted a description of the changes will be printed. For all details on the information in that description check out [`formica describe`]({{< relref "describe.md" >}})
 
+For nested Stacks you have the option to create nested ChangeSets via the `--nested-change-sets` option and `nested_change_sets` config file option. Those will give details about the changes proposed for each nested Stack as well as for the main Stack.
+
 ## Usage
 
 ```
@@ -29,7 +31,7 @@ usage: formica change [-h] [--region REGION] [--profile PROFILE]
                       [--organization-region-variables]
                       [--organization-account-variables]
                       [--use-previous-template] [--use-previous-parameters]
-                      [--upload-artifacts]
+                      [--upload-artifacts] [--nested-change-sets]
 
 Create a change set for an existing stack
 
@@ -73,4 +75,5 @@ optional arguments:
   --use-previous-parameters
                         Reuse Stack Parameters not specifically set
   --upload-artifacts    Upload Artifacts when creating the ChangeSet
+  --nested-change-sets  Create a ChangeSet for nested Stacks
 ```
