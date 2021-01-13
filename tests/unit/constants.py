@@ -125,6 +125,30 @@ CHANGESET_NESTED_CHANGES = {'ChangeSetName': 'simpleteststack-change-set',
                                                      'date': 'Fri, 27 Jan 2017 09:58:33 GMT'},
                                                  'RetryAttempts': 0}}  # noqa
 
+CHANGESET_NESTED_STACK_NO_NESTED_CHANGESET = {'ChangeSetName': 'simpleteststack-change-set',
+                            'ChangeSetId': 'arn:aws:cloudformation:eu-central-1:420759548424:changeSet/simpleteststack-change-set/979f29ac-40c9-4802-b496-0b3f38241bcd',
+                            'StackId': 'arn:aws:cloudformation:eu-central-1:420759548424:stack/simpleteststack/a4f23770-e476-11e6-bfa4-500c44f62262',
+                            'StackName': 'simpleteststack',
+                            'Parameters': [],
+                            'CreationTime': datetime.datetime(2017, 1, 27, 9, 58, 3, 821000, tzinfo=tzlocal()),
+                            'ExecutionStatus': 'AVAILABLE', 'Status': 'CREATE_COMPLETE', 'NotificationARNs': [],
+                            'Capabilities': [],
+                            'Tags': [],
+                            'Changes': [{'Type': 'Resource',
+                                         'ResourceChange': {'Action': 'Change', 'LogicalResourceId': 'NestedStack',
+                                                            'PhysicalResourceId': 'test',
+                                                            'ResourceType': 'AWS::CloudFormation::Stack',
+                                                            'Scope': [],
+                                                            'Details': []}}],
+                            'ResponseMetadata': {'RequestId': '2a95cc4f-e477-11e6-a696-5fdc4c9bb8c5',
+                                                 'HTTPStatusCode': 200,
+                                                 'HTTPHeaders': {
+                                                     'x-amzn-requestid': '2a95cc4f-e477-11e6-a696-5fdc4c9bb8c5',
+                                                     'content-type': 'text/xml', 'content-length': '2816',
+                                                     'vary': 'Accept-Encoding',
+                                                     'date': 'Fri, 27 Jan 2017 09:58:33 GMT'},
+                                                 'RetryAttempts': 0}}  # noqa
+
 DESCRIBE_STACKS = {'Stacks': [
     {'StackId': 'arn:aws:cloudformation:eu-central-1:420759548424:stack/teststack/a29eaa70-e7ab-11e6-aada-503f2ad2e536',
      'StackName': 'teststack',

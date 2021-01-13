@@ -9,7 +9,8 @@ from formica.change_set import ChangeSet, CHANGE_SET_HEADER
 from tests.unit.constants import (
     STACK, TEMPLATE, CHANGE_SET_TYPE, CHANGESETNAME, CHANGESETCHANGES,
     CHANGE_SET_PARAMETERS, ROLE_ARN, CHANGE_SET_STACK_TAGS,
-    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER, REGION, UUID, RESOURCES, CHANGE_SET_ID, CHANGESET_NESTED_CHANGES
+    CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER, REGION, UUID, RESOURCES, CHANGE_SET_ID, CHANGESET_NESTED_CHANGES,
+    CHANGESET_NESTED_STACK_NO_NESTED_CHANGESET
 )
 
 
@@ -62,7 +63,7 @@ def test_submits_changeset_and_waits(client):
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, IncludeNestedStacks=True)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, IncludeNestedStacks=False)
 
     client.get_waiter.assert_called_with(
         'change_set_create_complete')
@@ -85,7 +86,7 @@ def test_creates_and_removes_bucket_for_s3_flag(client, temp_bucket_function, te
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateURL=template_url,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, IncludeNestedStacks=True)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, IncludeNestedStacks=False)
 
 
 def test_submits_changeset_with_parameters(client):
@@ -100,7 +101,7 @@ def test_submits_changeset_with_parameters(client):
     ]
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters, IncludeNestedStacks=True)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters, IncludeNestedStacks=False)
 
     client.get_waiter.assert_called_with(
         'change_set_create_complete')
@@ -119,7 +120,7 @@ def test_submits_changeset_with_stack_tags(client):
     ]
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Tags=Tags, IncludeNestedStacks=True)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Tags=Tags, IncludeNestedStacks=False)
 
     client.get_waiter.assert_called_with(
         'change_set_create_complete')
@@ -134,7 +135,7 @@ def test_submits_changeset_with_role_arn(client):
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, RoleARN=ROLE_ARN, IncludeNestedStacks=True)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, RoleARN=ROLE_ARN, IncludeNestedStacks=False)
 
     client.get_waiter.assert_called_with(
         'change_set_create_complete')
@@ -150,7 +151,22 @@ def test_submits_changeset_with_capabilities(client):
 
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=TEMPLATE,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Capabilities=['A', 'B'], IncludeNestedStacks=True)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Capabilities=['A', 'B'], IncludeNestedStacks=False)
+
+    client.get_waiter.assert_called_with(
+        'change_set_create_complete')
+    client.get_waiter.return_value.wait.assert_called_with(
+        StackName=STACK, ChangeSetName=CHANGESETNAME, WaiterConfig={'Delay': 10, 'MaxAttempts': 120})
+
+
+def test_change_set_with_nested_stacks(client):
+    change_set = ChangeSet(stack=STACK, nested_change_sets=True)
+
+    change_set.create(template=TEMPLATE, change_set_type=CHANGE_SET_TYPE)
+
+    client.create_change_set.assert_called_with(
+        StackName=STACK, TemplateBody=TEMPLATE,
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, IncludeNestedStacks=True)
 
     client.get_waiter.assert_called_with(
         'change_set_create_complete')
@@ -282,6 +298,12 @@ def test_prints_nested_changes(logger, client):
     assert 'None' not in change_set_output
 
 
+def test_prints_nested_changes(logger, client):
+    client.describe_change_set.side_effect = [CHANGESET_NESTED_STACK_NO_NESTED_CHANGESET]
+    change_set = ChangeSet(STACK)
+    change_set.describe()
+
+
 def test_only_prints_unique_changed_parameters(logger, client):
     client.describe_change_set.return_value = CHANGESETCHANGES_WITH_DUPLICATE_CHANGED_PARAMETER
     change_set = ChangeSet(STACK)
@@ -305,7 +327,7 @@ def test_change_set_with_resource_types(client):
     client.create_change_set.assert_called_with(
         StackName=STACK, TemplateBody=template,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, ResourceTypes=list(set(RESOURCES)),
-        IncludeNestedStacks=True)
+        IncludeNestedStacks=False)
 
 
 def test_change_set_with_previous_template(client):
@@ -315,7 +337,7 @@ def test_change_set_with_previous_template(client):
 
     client.create_change_set.assert_called_with(
         StackName=STACK,
-        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, UsePreviousTemplate=True, IncludeNestedStacks=True)
+        ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, UsePreviousTemplate=True, IncludeNestedStacks=False)
 
 
 def test_change_set_with_previous_parameters(client):
@@ -338,7 +360,7 @@ def test_change_set_with_previous_parameters(client):
     client.create_change_set.assert_called_with(
         StackName=STACK,
         ChangeSetName=CHANGESETNAME, ChangeSetType=CHANGE_SET_TYPE, Parameters=Parameters, UsePreviousTemplate=True,
-        IncludeNestedStacks=True)
+        IncludeNestedStacks=False)
 
 
 def test_change_set_without_named_properties(client):

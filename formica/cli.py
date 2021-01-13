@@ -59,6 +59,7 @@ CONFIG_FILE_ARGUMENTS = {
     "s3": bool,
     "artifacts": list,
     "upload_artifacts": bool,
+    "nested_change_sets": bool,
 }
 
 
@@ -126,6 +127,7 @@ def main(cli_args):
     add_resource_types(new_parser)
     add_organization_account_template_variables(new_parser)
     add_upload_artifacts(new_parser)
+    add_nested_change_sets(new_parser)
     new_parser.set_defaults(func=new)
 
     # Change Command Arguments
@@ -145,6 +147,7 @@ def main(cli_args):
     add_organization_account_template_variables(change_parser)
     add_use_previous(change_parser)
     add_upload_artifacts(change_parser)
+    add_nested_change_sets(change_parser)
     change_parser.set_defaults(func=change)
 
     # Deploy Command Arguments
@@ -532,6 +535,10 @@ def add_upload_artifacts(parser):
     parser.add_argument("--upload-artifacts", help="Upload Artifacts when creating the ChangeSet", action="store_true")
 
 
+def add_nested_change_sets(parser):
+    parser.add_argument("--nested-change-sets", help="Create a ChangeSet for nested Stacks", action="store_true")
+
+
 def template(args):
     from .loader import Loader
     import yaml
@@ -612,7 +619,7 @@ def change(args):
 
     client = cloudformation_client()
 
-    change_set = ChangeSet(stack=args.stack)
+    change_set = ChangeSet(stack=args.stack, nested_change_sets=args.nested_change_sets)
 
     change_set_type = "UPDATE"
     if args.create_missing:
@@ -727,7 +734,7 @@ def new(args):
     loader = Loader(variables=collect_vars(args))
     loader.load()
     logger.info("Creating change set for new stack, ...")
-    change_set = ChangeSet(stack=args.stack)
+    change_set = ChangeSet(stack=args.stack, nested_change_sets=args.nested_change_sets)
     options = dict(
         template=loader.template(indent=None),
         change_set_type="CREATE",
