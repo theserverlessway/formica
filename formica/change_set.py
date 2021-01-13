@@ -85,7 +85,7 @@ class ChangeSet:
                 ChangeSetName=self.name,
                 ChangeSetType=change_set_type,
                 **optional_arguments,
-                IncludeNestedStacks=True,
+                IncludeNestedStacks=self.nested_change_sets,
             )
             logger.info("Change set submitted, waiting for CloudFormation to calculate changes ...")
             waiter = cf.get_waiter("change_set_create_complete")
@@ -97,10 +97,11 @@ class ChangeSet:
             if "didn't contain changes" not in status_reason:
                 sys.exit(1)
 
-    def __init__(self, stack, arn=""):
+    def __init__(self, stack, arn="", nested_change_sets=False):
         self.name = CHANGE_SET_FORMAT.format(stack=stack)
         self.stack = stack
         self.change_set_arn = arn
+        self.nested_change_sets = nested_change_sets
 
     def describe(self, print_metadata=True):
         if self.change_set_arn:
@@ -156,7 +157,7 @@ class ChangeSet:
             (change["ResourceChange"]["LogicalResourceId"], change["ResourceChange"]["ChangeSetId"])
             for change in change_set["Changes"]
             if change["ResourceChange"]["ResourceType"] == "AWS::CloudFormation::Stack"
-            and change["ResourceChange"]["ChangeSetId"]
+            and change["ResourceChange"].get("ChangeSetId")
         ]
         for nested_change_set in nested_change_sets:
             logger.info(f"\nChanges for nested Stack: {nested_change_set[0]}")
