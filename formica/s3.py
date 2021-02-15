@@ -70,10 +70,16 @@ class TemporaryS3Bucket(object):
             except s3.meta.client.exceptions.BucketAlreadyOwnedByYou:
                 logger.info("Artifact Bucket already exists")
 
-            boto3.client("s3").put_bucket_encryption(
+            s3.meta.client.put_bucket_encryption(
                 Bucket=self.name,
                 ServerSideEncryptionConfiguration={
-                    "Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256",},}],
+                    "Rules": [
+                        {
+                            "ApplyServerSideEncryptionByDefault": {
+                                "SSEAlgorithm": "AES256",
+                            },
+                        }
+                    ],
                 },
             )
 
