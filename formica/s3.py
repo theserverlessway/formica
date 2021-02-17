@@ -69,6 +69,20 @@ class TemporaryS3Bucket(object):
                     )
             except s3.meta.client.exceptions.BucketAlreadyOwnedByYou:
                 logger.info("Artifact Bucket already exists")
+
+            s3.meta.client.put_bucket_encryption(
+                Bucket=self.name,
+                ServerSideEncryptionConfiguration={
+                    "Rules": [
+                        {
+                            "ApplyServerSideEncryptionByDefault": {
+                                "SSEAlgorithm": "AES256",
+                            },
+                        }
+                    ],
+                },
+            )
+
             for name, body in self.objects.items():
                 logger.info("Uploading to Bucket: {}/{}".format(self.name, name))
                 self.s3_bucket.put_object(Key=name, Body=body)
