@@ -489,6 +489,24 @@ def test_novalue_uses_pseudoparameter_novalue_for_missing_variable(load, tmpdir)
         actual = json.loads(load.template())
     assert actual == {"Resources": {"Ref": "AWS::NoValue"}}
 
+def test_novalue_uses_false_if_given(load, tmpdir):
+    example = '{% set Parameter = false %}{"Resources": {"required": {{ Parameter | novalue }}}}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {'Resources': {'required': False}}
+
+def test_novalue_uses_zero_if_given(load, tmpdir):
+    example = '{% set Parameter = 0 %}{"Resources": {"ConcurrentExecutions": {{ Parameter | novalue }}}}'
+    with Path(tmpdir):
+        with open('test.template.json', 'w') as f:
+            f.write(example)
+        load.load()
+        actual = json.loads(load.template())
+    assert actual == {'Resources': {'ConcurrentExecutions': 0}}
+
 
 def test_un_indented_large_templates(load):
     # Generate a large dictionary that, with indent=4, is too large to deploy

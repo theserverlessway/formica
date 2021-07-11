@@ -63,7 +63,9 @@ def resource(name):
 
 
 def novalue(variable):
-    return variable or '{"Ref": "AWS::NoValue"}'
+    return False if variable is False \
+        else 0 if variable == 0 \
+        else (variable or '{"Ref": "AWS::NoValue"}')
 
 
 class Loader(object):
