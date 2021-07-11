@@ -488,7 +488,6 @@ def test_novalue_uses_pseudoparameter_novalue_for_missing_variable(load, tmpdir)
         load.load()
         actual = json.loads(load.template())
     assert actual == {"Resources": {"Ref": "AWS::NoValue"}}
-
 def test_novalue_uses_false_if_given(load, tmpdir):
     example = '{% set Parameter = false %}{"Resources": {"required": {{ Parameter | novalue }}}}'
     with Path(tmpdir):
@@ -497,6 +496,7 @@ def test_novalue_uses_false_if_given(load, tmpdir):
         load.load()
         actual = json.loads(load.template())
     assert actual == {'Resources': {'required': False}}
+
 
 def test_novalue_uses_zero_if_given(load, tmpdir):
     example = '{% set Parameter = 0 %}{"Resources": {"ConcurrentExecutions": {{ Parameter | novalue }}}}'
