@@ -60,7 +60,7 @@ CONFIG_FILE_ARGUMENTS = {
     "artifacts": list,
     "upload_artifacts": bool,
     "nested_change_sets": bool,
-    "disable_rollback": bool
+    "disable_rollback": bool,
 }
 
 
@@ -535,7 +535,9 @@ def add_timeout_parameter(parser):
 
 
 def add_disable_rollback_parameter(parser):
-    parser.add_argument("--disable-rollback", help="Do not roll back in case of a failed deployment", action="store_true")
+    parser.add_argument(
+        "--disable-rollback", help="Do not roll back in case of a failed deployment", action="store_true"
+    )
 
 
 def add_use_previous(parser):
@@ -708,7 +710,9 @@ def deploy(args, client):
     status = change_set["Status"]
     reason = change_set.get("StatusReason", "")
     if status == "CREATE_COMPLETE":
-        client.execute_change_set(ChangeSetName=change_set_name, StackName=args.stack, DisableRollback=args.disable_rollback)
+        client.execute_change_set(
+            ChangeSetName=change_set_name, StackName=args.stack, DisableRollback=args.disable_rollback
+        )
     elif status == "FAILED" and "The submitted information didn't contain changes." in reason:
         logger.info("ChangeSet did not contain any changes")
     else:
