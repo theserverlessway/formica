@@ -29,7 +29,7 @@ usage: formica resources [-h] [--region REGION] [--profile PROFILE]
 
 List all resources of a stack
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use

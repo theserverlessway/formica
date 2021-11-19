@@ -35,7 +35,7 @@ usage: formica change [-h] [--region REGION] [--profile PROFILE]
 
 Create a change set for an existing stack
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use

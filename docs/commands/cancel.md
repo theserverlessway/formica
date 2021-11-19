@@ -35,7 +35,7 @@ usage: formica cancel [-h] [--region REGION] [--profile PROFILE]
 
 Cancel a Stack Update
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use

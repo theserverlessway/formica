@@ -58,7 +58,7 @@ usage: formica describe [-h] [--region REGION] [--profile PROFILE]
 
 Describe the latest change-set of the stack
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use

@@ -17,7 +17,7 @@ usage: formica stack-set remove [-h] [--region REGION] [--profile PROFILE]
 
 Remove a Stack Set
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use

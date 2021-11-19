@@ -35,7 +35,7 @@ usage: formica remove [-h] [--region REGION] [--profile PROFILE]
 
 Remove the configured stack
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use

@@ -31,7 +31,7 @@ usage: formica wait [-h] [--region REGION] [--profile PROFILE] [--stack STACK]
 
 Wait for a Stack to be deployed or removed
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use
