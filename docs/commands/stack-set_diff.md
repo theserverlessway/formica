@@ -35,7 +35,7 @@ usage: formica stack-set diff [-h] [--region REGION] [--profile PROFILE]
 
 Diff the StackSet template to the local template
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use

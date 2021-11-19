@@ -36,7 +36,7 @@ usage: formica template [-h] [--config-file CONFIG_FILE [CONFIG_FILE ...]]
 
 Print the current template
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --config-file CONFIG_FILE [CONFIG_FILE ...], -c CONFIG_FILE [CONFIG_FILE ...]
                         Set the config files to use

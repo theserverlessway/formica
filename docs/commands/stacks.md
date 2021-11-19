@@ -33,7 +33,7 @@ usage: formica stacks [-h] [--region REGION] [--profile PROFILE]
 
 List all stacks
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use

@@ -34,7 +34,7 @@ usage: formica stack-set remove-instances [-h] [--region REGION]
 
 Remove Stack Set Instances
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use

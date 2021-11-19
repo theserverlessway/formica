@@ -32,11 +32,11 @@ root@07e549506145:/app/docs/examples/s3-bucket# formica deploy --stack formica-e
 usage: formica deploy [-h] [--region REGION] [--profile PROFILE]
                       [--artifacts ARTIFACTS [ARTIFACTS ...]] [--stack STACK]
                       [--config-file CONFIG_FILE [CONFIG_FILE ...]]
-                      [--timeout TIMEOUT]
+                      [--timeout TIMEOUT] [--disable-rollback]
 
 Deploy the latest change set for a stack
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --region REGION       The AWS region to use
   --profile PROFILE     The AWS profile to use
@@ -49,4 +49,5 @@ optional arguments:
                         Set the config files to use
   --timeout TIMEOUT     Set the Timeout in minutes before the Update is
                         canceled
+  --disable-rollback    Do not roll back in case of a failed deployment
 ```

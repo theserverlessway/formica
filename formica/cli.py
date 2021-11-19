@@ -60,6 +60,7 @@ CONFIG_FILE_ARGUMENTS = {
     "artifacts": list,
     "upload_artifacts": bool,
     "nested_change_sets": bool,
+    "disable_rollback": bool,
 }
 
 
@@ -157,6 +158,7 @@ def main(cli_args):
     add_stack_argument(deploy_parser)
     add_config_file_argument(deploy_parser)
     add_timeout_parameter(deploy_parser)
+    add_disable_rollback_parameter(deploy_parser)
     deploy_parser.set_defaults(func=deploy)
 
     # Cancel Command Arguments
@@ -206,6 +208,14 @@ def main(cli_args):
     add_role_arn_argument(remove_parser)
     add_config_file_argument(remove_parser)
     remove_parser.set_defaults(func=remove)
+
+    # rollback Command Arguments
+    rollback_parser = subparsers.add_parser("rollback", description="Roll back a stack when an operation fails")
+    add_aws_arguments(rollback_parser)
+    add_stack_argument(rollback_parser)
+    add_role_arn_argument(rollback_parser)
+    add_config_file_argument(rollback_parser)
+    rollback_parser.set_defaults(func=rollback)
 
     # Stack Set Configuration
     stack_set_parser(subparsers)
@@ -524,6 +534,12 @@ def add_timeout_parameter(parser):
     parser.add_argument("--timeout", help="Set the Timeout in minutes before the Update is canceled", type=int)
 
 
+def add_disable_rollback_parameter(parser):
+    parser.add_argument(
+        "--disable-rollback", help="Do not roll back in case of a failed deployment", action="store_true"
+    )
+
+
 def add_use_previous(parser):
     parser.add_argument("--use-previous-template", help="Use the previously deployed template", action="store_true")
     parser.add_argument(
@@ -694,7 +710,9 @@ def deploy(args, client):
     status = change_set["Status"]
     reason = change_set.get("StatusReason", "")
     if status == "CREATE_COMPLETE":
-        client.execute_change_set(ChangeSetName=change_set_name, StackName=args.stack)
+        client.execute_change_set(
+            ChangeSetName=change_set_name, StackName=args.stack, DisableRollback=args.disable_rollback
+        )
     elif status == "FAILED" and "The submitted information didn't contain changes." in reason:
         logger.info("ChangeSet did not contain any changes")
     else:
@@ -724,6 +742,16 @@ def remove(args, client):
         client.delete_stack(StackName=args.stack, RoleARN=args.role_arn)
     else:
         client.delete_stack(StackName=args.stack)
+
+
+@requires_stack
+@wait_for_stack
+def rollback(args, client):
+    logger.info("Rolling back, ...")
+    if args.role_arn:
+        client.rollback_stack(StackName=args.stack, RoleARN=args.role_arn)
+    else:
+        client.rollback_stack(StackName=args.stack)
 
 
 @requires_stack
