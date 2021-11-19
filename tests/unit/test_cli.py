@@ -25,7 +25,7 @@ def test_prints_version(capsys):
     with pytest.raises(SystemExit):
         cli.main(['--version'])
     out = "\n".join(capsys.readouterr())
-    assert __version__ in out
+    assert __version__.strip() in out
 
 
 def test_commands_use_exception_handling(session, logger):
